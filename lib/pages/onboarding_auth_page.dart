@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
@@ -330,7 +330,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                       onPressed: () {
                         provider.login('google.user@bemind.ai', 'google123');
                       },
-                      icon: const Icon(LucideIcons.chrome, size: 18, color: AppTheme.textPrimary),
+                      icon: const Icon(LucideIcons.globe, size: 18, color: AppTheme.textPrimary),
                       label: const Text('Google', style: TextStyle(color: AppTheme.textPrimary)),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
