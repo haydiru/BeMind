@@ -51,7 +51,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0FFE0F2FE),
+                            color: const Color(0xFFE0F2FE),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(LucideIcons.sparkles, color: AppTheme.primaryBlue, size: 22),
@@ -102,11 +102,11 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                           label: Text(cat),
                           selected: isSel,
                           selectedColor: AppTheme.primaryCyan,
-                          backgroundColor: const Color(0FFF8FAFC),
+                          backgroundColor: const Color(0xFFF8FAFC),
                           labelStyle: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
-                            color: isSel ? const Color(0FFF0F172A) : AppTheme.textSecondary,
+                            color: isSel ? const Color(0xFF0F172A) : AppTheme.textSecondary,
                           ),
                           onSelected: (selected) {
                             if (selected) setState(() => _selectedCategory = cat);
@@ -134,7 +134,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                       max: 4,
                       divisions: 4,
                       activeColor: AppTheme.primaryCyan,
-                      inactiveColor: const Color(0FFE2E8F0),
+                      inactiveColor: const Color(0xFFE2E8F0),
                       onChanged: (val) => setState(() => _difficultyValue = val),
                     ),
                   ],
@@ -147,9 +147,9 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0FFF8FAFC),
+                  color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0FFE2E8F0)),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

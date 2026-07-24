@@ -60,11 +60,11 @@ class _VocabVaultPageState extends State<VocabVaultPage> {
                             hintStyle: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted),
                             prefixIcon: const Icon(LucideIcons.search, size: 18, color: AppTheme.textMuted),
                             filled: true,
-                            fillColor: const Color(0FFF8FAFC),
+                            fillColor: const Color(0xFFF8FAFC),
                             contentPadding: const EdgeInsets.symmetric(vertical: 12),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
-                              borderSide: const BorderSide(color: Color(0FFE2E8F0)),
+                              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                             ),
                           ),
                         ),
@@ -103,10 +103,10 @@ class _VocabVaultPageState extends State<VocabVaultPage> {
                             label: Text(filter),
                             selected: isSel,
                             selectedColor: AppTheme.primaryCyan,
-                            backgroundColor: const Color(0FFF8FAFC),
+                            backgroundColor: const Color(0xFFF8FAFC),
                             labelStyle: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
-                              color: isSel ? const Color(0FFF0F172A) : AppTheme.textSecondary,
+                              color: isSel ? const Color(0xFF0F172A) : AppTheme.textSecondary,
                               fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
                             ),
                             onSelected: (selected) {
@@ -121,7 +121,7 @@ class _VocabVaultPageState extends State<VocabVaultPage> {
               ),
             ),
 
-            const Divider(color: Color(0FFE2E8F0), height: 1),
+            const Divider(color: Color(0xFFE2E8F0), height: 1),
 
             Expanded(
               child: _isFlashcardMode

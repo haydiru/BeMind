@@ -71,7 +71,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           backgroundColor: AppTheme.primaryCyan,
                           child: Text(
                             user.name.isNotEmpty ? user.name[0].toUpperCase() : 'A',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0FFF0F172A)),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
                           ),
                         ),
                         const SizedBox(width: 14),
@@ -93,7 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       decoration: InputDecoration(
                         labelText: 'Display Name',
                         filled: true,
-                        fillColor: const Color(0FFF8FAFC),
+                        fillColor: const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                     ),
@@ -139,7 +139,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0FFF0F172A),
+                  color: const Color(0xFF0F172A),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Column(
@@ -150,7 +150,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: const Color(0FFF1E293B),
+                        color: const Color(0xFF1E293B),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: Colors.white.withOpacity(0.1)),
                       ),
@@ -160,7 +160,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           Text('BeMind Passive Flashcard', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.primaryCyan)),
                           const SizedBox(height: 4),
                           Text('${sampleVocab.word} (${sampleVocab.phonetic})', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
-                          Text('Arti: ${sampleVocab.indonesianMeaning}', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0FFF4ADE80))),
+                          Text('Arti: ${sampleVocab.indonesianMeaning}', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF4ADE80))),
                         ],
                       ),
                     ),

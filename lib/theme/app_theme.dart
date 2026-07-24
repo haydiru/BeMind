@@ -3,28 +3,28 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Brand Light Colors (Matching Design Reference Image)
-  static const Color background = Color(0FFF4F7FC); // Soft bluish-gray background
-  static const Color surface = Color(0FFFFFFFF); // Crisp white card surface
-  static const Color surfaceElevated = Color(0FFF8FAFC);
-  static const Color surfaceLight = Color(0FFEBF5FF); // Light blue tint
-  static const Color surfaceBorder = Color(0FFE2E8F0);
+  static const Color background = Color(0xFFF4F7FC); // Soft bluish-gray background
+  static const Color surface = Color(0xFFFFFFFF); // Crisp white card surface
+  static const Color surfaceElevated = Color(0xFFF8FAFC);
+  static const Color surfaceLight = Color(0xFFEBF5FF); // Light blue tint
+  static const Color surfaceBorder = Color(0xFFE2E8F0);
 
   // Vibrant Gradients & Accent Colors
   static const Color primaryCyan = Color(0FF00E5FF);
   static const Color primaryPurple = Color(0FF9333EA);
   static const Color primaryBlue = Color(0FF007AFF);
   static const Color accentEmerald = Color(0FF16A34A);
-  static const Color accentRose = Color(0FFFF3366);
+  static const Color accentRose = Color(0xFFFF3366);
   static const Color accentOrange = Color(0FFEA580C);
 
   // Colorful Chip Backgrounds (Source Integration)
-  static const Color chipTextBg = Color(0FFEBF5FF);
+  static const Color chipTextBg = Color(0xFFEBF5FF);
   static const Color chipTextColor = Color(0FF007AFF);
-  static const Color chipVoiceBg = Color(0FFF3E8FF);
+  static const Color chipVoiceBg = Color(0xFFF3E8FF);
   static const Color chipVoiceColor = Color(0FF9333EA);
   static const Color chipPdfBg = Color(0FFDCFCE7);
   static const Color chipPdfColor = Color(0FF16A34A);
-  static const Color chipOcrBg = Color(0FFFFEDD5);
+  static const Color chipOcrBg = Color(0xFFFFEDD5);
   static const Color chipOcrColor = Color(0FFEA580C);
 
   // Text Colors
@@ -46,7 +46,7 @@ class AppTheme {
   );
 
   static const LinearGradient playButtonGradient = LinearGradient(
-    colors: [Color(0FFFF3366), Color(0FFFF5E62)],
+    colors: [Color(0xFFFF3366), Color(0xFFFF5E62)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

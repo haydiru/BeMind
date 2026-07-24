@@ -36,10 +36,10 @@ class _ContextVaultPageState extends State<ContextVaultPage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: const Color(0FFE2E8F0)),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0FFF0F172A).withOpacity(0.06),
+                      color: const Color(0xFF0F172A).withOpacity(0.06),
                       blurRadius: 40,
                       offset: const Offset(0, 16),
                     ),
@@ -80,7 +80,7 @@ class _ContextVaultPageState extends State<ContextVaultPage> {
                             child: CircularProgressIndicator(
                               value: 0.95,
                               strokeWidth: 6.5,
-                              backgroundColor: const Color(0FFEBF2FA),
+                              backgroundColor: const Color(0xFFEBF2FA),
                               valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryPurple),
                             ),
                           ),
@@ -96,7 +96,7 @@ class _ContextVaultPageState extends State<ContextVaultPage> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 32,
                                       fontWeight: FontWeight.w800,
-                                      color: const Color(0FFF0F172A),
+                                      color: const Color(0xFF0F172A),
                                       letterSpacing: -1.2,
                                     ),
                                   ),
@@ -110,7 +110,7 @@ class _ContextVaultPageState extends State<ContextVaultPage> {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 7,
                                   fontWeight: FontWeight.w800,
-                                  color: const Color(0FFF475569),
+                                  color: const Color(0xFF475569),
                                   letterSpacing: 0.6,
                                 ),
                               ),
@@ -131,7 +131,7 @@ class _ContextVaultPageState extends State<ContextVaultPage> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
-                              color: const Color(0FFF0F172A),
+                              color: const Color(0xFF0F172A),
                               letterSpacing: -0.4,
                             ),
                           ),
@@ -160,10 +160,10 @@ class _ContextVaultPageState extends State<ContextVaultPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: const [
-                              Text('WEEK 1', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0FFF94A3B8))),
-                              Text('WEEK 2', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0FFF94A3B8))),
-                              Text('WEEK 3', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0FFF94A3B8))),
-                              Text('WEEK 4', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0FFF94A3B8))),
+                              Text('WEEK 1', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
+                              Text('WEEK 2', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
+                              Text('WEEK 3', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
+                              Text('WEEK 4', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
                             ],
                           ),
                         ],
@@ -222,15 +222,15 @@ class _ContextVaultPageState extends State<ContextVaultPage> {
                         hintText: 'Paste career summary...',
                         hintStyle: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted),
                         filled: true,
-                        fillColor: const Color(0FFF8FAFC),
+                        fillColor: const Color(0xFFF8FAFC),
                         contentPadding: const EdgeInsets.all(16),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Color(0FFE2E8F0)),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Color(0FFE2E8F0)),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                         ),
                       ),
                     ),
@@ -294,9 +294,9 @@ class _ContextVaultPageState extends State<ContextVaultPage> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0FFF8FAFC),
+                        color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0FFE2E8F0)),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,

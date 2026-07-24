@@ -89,7 +89,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0FFF3E8FF),
+                      color: const Color(0xFFF3E8FF),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
@@ -113,10 +113,10 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(32),
-                    border: Border.all(color: const Color(0FFE2E8F0)),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0FFF0F172A).withOpacity(0.05),
+                        color: const Color(0xFF0F172A).withOpacity(0.05),
                         blurRadius: 40,
                         offset: const Offset(0, 16),
                       ),
@@ -228,10 +228,10 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: const Color(0FFE2E8F0)),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0FFF0F172A).withOpacity(0.05),
+                          color: const Color(0xFF0F172A).withOpacity(0.05),
                           blurRadius: 25,
                           offset: const Offset(0, 10),
                         ),
@@ -244,7 +244,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                           height: 36,
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Color(0FFFFFF1F2),
+                            color: Color(0xFFFFF1F2),
                           ),
                           child: const Icon(LucideIcons.star, size: 18, color: Color(0FFFF3366)),
                         ),
@@ -266,7 +266,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                                   trackHeight: 4,
                                   thumbColor: const Color(0FF00E5FF),
                                   activeTrackColor: const Color(0FF00E5FF),
-                                  inactiveTrackColor: const Color(0FFE2E8F0),
+                                  inactiveTrackColor: const Color(0xFFE2E8F0),
                                   thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
                                 ),
                                 child: Slider(

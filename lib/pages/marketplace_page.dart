@@ -34,7 +34,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {},
         backgroundColor: AppTheme.primaryCyan,
-        foregroundColor: const Color(0FFF0F172A),
+        foregroundColor: const Color(0xFF0F172A),
         icon: const Icon(LucideIcons.plus),
         label: Text('Publish Prompt', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
       ),
@@ -89,7 +89,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: const Color(0FFF0F172A),
+                        foregroundColor: const Color(0xFF0F172A),
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
@@ -113,10 +113,10 @@ class _MarketplacePageState extends State<MarketplacePage> {
                         label: Text(cat),
                         selected: isSel,
                         selectedColor: AppTheme.primaryCyan,
-                        backgroundColor: const Color(0FFF8FAFC),
+                        backgroundColor: const Color(0xFFF8FAFC),
                         labelStyle: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
-                          color: isSel ? const Color(0FFF0F172A) : AppTheme.textSecondary,
+                          color: isSel ? const Color(0xFF0F172A) : AppTheme.textSecondary,
                           fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
                         ),
                         onSelected: (selected) {
