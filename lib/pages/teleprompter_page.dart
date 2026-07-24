@@ -48,6 +48,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
     setState(() {
       _isPlaying = !_isPlaying;
       if (_isPlaying) {
+        if (!_scrollController.hasClients) return;
         final maxScroll = _scrollController.position.maxScrollExtent;
         final currentScroll = _scrollController.offset;
         final remainingDist = maxScroll - currentScroll;
@@ -59,7 +60,9 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
           curve: Curves.linear, // BUTTER-SMOOTH CONTINUOUS 60-120 FPS SCROLL
         );
       } else {
-        _scrollController.stop();
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.offset);
+        }
       }
     });
   }
@@ -203,10 +206,10 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                       height: 60,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0FF00E5FF),
+                        color: const Color(0xFF00E5FF),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0FF00E5FF).withOpacity(0.4),
+                            color: const Color(0xFF00E5FF).withOpacity(0.4),
                             blurRadius: 24,
                             offset: const Offset(0, 10),
                           ),
@@ -214,7 +217,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                       ),
                       child: Icon(
                         _isPlaying ? LucideIcons.pause : LucideIcons.play,
-                        color: const Color(0FF0F172A),
+                        color: const Color(0xFF0F172A),
                         size: 24,
                       ),
                     ),
@@ -246,7 +249,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                             shape: BoxShape.circle,
                             color: Color(0xFFFFF1F2),
                           ),
-                          child: const Icon(LucideIcons.star, size: 18, color: Color(0FFFF3366)),
+                          child: const Icon(LucideIcons.star, size: 18, color: Color(0xFFFF3366)),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -264,8 +267,8 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                               SliderTheme(
                                 data: SliderThemeData(
                                   trackHeight: 4,
-                                  thumbColor: const Color(0FF00E5FF),
-                                  activeTrackColor: const Color(0FF00E5FF),
+                                  thumbColor: const Color(0xFF00E5FF),
+                                  activeTrackColor: const Color(0xFF00E5FF),
                                   inactiveTrackColor: const Color(0xFFE2E8F0),
                                   thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
                                 ),

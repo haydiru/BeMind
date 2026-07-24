@@ -64,7 +64,7 @@ class _ContextVaultPageState extends State<ContextVaultPage> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0FF007AFF).withOpacity(0.12),
+                            color: const Color(0xFF007AFF).withOpacity(0.12),
                             blurRadius: 24,
                             offset: const Offset(0, 8),
                           ),
@@ -209,7 +209,7 @@ class _ContextVaultPageState extends State<ContextVaultPage> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0FF334155),
+                        color: const Color(0xFF334155),
                       ),
                     ),
                     const SizedBox(height: 8),

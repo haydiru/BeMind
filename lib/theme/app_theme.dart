@@ -10,27 +10,27 @@ class AppTheme {
   static const Color surfaceBorder = Color(0xFFE2E8F0);
 
   // Vibrant Gradients & Accent Colors
-  static const Color primaryCyan = Color(0FF00E5FF);
-  static const Color primaryPurple = Color(0FF9333EA);
-  static const Color primaryBlue = Color(0FF007AFF);
-  static const Color accentEmerald = Color(0FF16A34A);
+  static const Color primaryCyan = Color(0xFF00E5FF);
+  static const Color primaryPurple = Color(0xFF9333EA);
+  static const Color primaryBlue = Color(0xFF007AFF);
+  static const Color accentEmerald = Color(0xFF16A34A);
   static const Color accentRose = Color(0xFFFF3366);
-  static const Color accentOrange = Color(0FFEA580C);
+  static const Color accentOrange = Color(0xFFEA580C);
 
   // Colorful Chip Backgrounds (Source Integration)
   static const Color chipTextBg = Color(0xFFEBF5FF);
-  static const Color chipTextColor = Color(0FF007AFF);
+  static const Color chipTextColor = Color(0xFF007AFF);
   static const Color chipVoiceBg = Color(0xFFF3E8FF);
-  static const Color chipVoiceColor = Color(0FF9333EA);
-  static const Color chipPdfBg = Color(0FFDCFCE7);
-  static const Color chipPdfColor = Color(0FF16A34A);
+  static const Color chipVoiceColor = Color(0xFF9333EA);
+  static const Color chipPdfBg = Color(0xFFDCFCE7);
+  static const Color chipPdfColor = Color(0xFF16A34A);
   static const Color chipOcrBg = Color(0xFFFFEDD5);
-  static const Color chipOcrColor = Color(0FFEA580C);
+  static const Color chipOcrColor = Color(0xFFEA580C);
 
   // Text Colors
-  static const Color textPrimary = Color(0FF0F172A);
-  static const Color textSecondary = Color(0FF64748B);
-  static const Color textMuted = Color(0FF94A3B8);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textMuted = Color(0xFF94A3B8);
 
   // Signature Gradients
   static const LinearGradient primaryGradient = LinearGradient(
@@ -40,7 +40,7 @@ class AppTheme {
   );
 
   static const LinearGradient buttonGradient = LinearGradient(
-    colors: [Color(0FF00C6FF), Color(0FF9B51E0)],
+    colors: [Color(0xFF00C6FF), Color(0xFF9B51E0)],
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
   );
@@ -80,16 +80,10 @@ class AppTheme {
         bodyMedium: GoogleFonts.plusJakartaSans(color: textSecondary, fontSize: 14, height: 1.4),
         labelLarge: GoogleFonts.plusJakartaSans(color: textPrimary, fontSize: 14, fontWeight: FontWeight.w600),
       ),
-      cardTheme: CardTheme(
-        color: surface,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: const BorderSide(color: surfaceBorder, width: 1),
-        ),
-      ),
     );
   }
+
+  static ThemeData get darkTheme => lightTheme;
 
   // Card Box Decoration
   static BoxDecoration cardDecoration({
@@ -106,7 +100,7 @@ class AppTheme {
       ),
       boxShadow: [
         BoxShadow(
-          color: const Color(0FF0F172A).withOpacity(0.03),
+          color: const Color(0xFF0F172A).withOpacity(0.03),
           blurRadius: 30,
           spreadRadius: 0,
           offset: const Offset(0, 10),

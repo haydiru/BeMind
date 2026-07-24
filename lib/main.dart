@@ -28,7 +28,7 @@ class BeMindApp extends StatelessWidget {
     return MaterialApp(
       title: 'BeMind — AI-Native English Fluency Builder',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       home: const MainScreenShell(),
     );
   }
@@ -46,7 +46,7 @@ class MainScreenShell extends StatelessWidget {
       return const OnboardingAuthPage();
     }
 
-    // Array of the 7 main application pages
+    // Array of the 6 main application pages
     final List<Widget> pages = const [
       ContextVaultPage(),   // Page 0: Context Vault
       GenerateEssayPage(),  // Page 1: AI Generator

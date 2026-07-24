@@ -32,7 +32,7 @@ class BottomNavBar extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0FF0F172A).withOpacity(0.06),
+            color: const Color(0xFF0F172A).withOpacity(0.06),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
