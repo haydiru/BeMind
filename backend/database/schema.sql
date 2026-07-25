@@ -100,9 +100,10 @@ CREATE TABLE IF NOT EXISTS public.user_settings (
     last_sync_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- =========================================================
--- AUTOMATIC USER CREATION TRIGGER FOR SUPABASE AUTH
--- =========================================================
+-- Grant privileges to standard roles
+GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+
+-- Automatic User Trigger
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -114,22 +115,21 @@ BEGIN
         'Job Interview Prep',
         COALESCE(NEW.raw_user_meta_data->>'role', 'user'),
         85
-    );
+    ) ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO public.user_settings (user_id)
-    VALUES (NEW.id);
+    VALUES (NEW.id) ON CONFLICT (user_id) DO NOTHING;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger execution on auth.users insert
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Enable Row Level Security (RLS) for privacy
+-- Enable Row Level Security (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_contexts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prompt_templates ENABLE ROW LEVEL SECURITY;
@@ -137,6 +137,12 @@ ALTER TABLE public.generated_essays ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vocabularies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
 
--- Allow public reading of prompt_templates & system_config
+-- Idempotent RLS Policies
+DROP POLICY IF EXISTS "Public prompt templates read policy" ON public.prompt_templates;
 CREATE POLICY "Public prompt templates read policy" ON public.prompt_templates FOR SELECT USING (is_public = true);
+
+DROP POLICY IF EXISTS "Public system config read policy" ON public.system_config;
 CREATE POLICY "Public system config read policy" ON public.system_config FOR SELECT USING (true);
+
+-- Notify PostgREST to reload schema cache
+NOTIFY pgrst, 'reload schema';
