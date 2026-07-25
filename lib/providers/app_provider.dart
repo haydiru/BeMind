@@ -135,7 +135,7 @@ In my own work, leveraging cloud technologies has enabled us to deploy code fast
 
   void selectEssayForTeleprompter(Essay essay) {
     _activeEssay = essay;
-    _currentPageIndex = 3; // Navigate to Teleprompter Page
+    _currentPageIndex = 2; // Navigate to Teleprompter Reader Page (index 2)
     notifyListeners();
   }
 

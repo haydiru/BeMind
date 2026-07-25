@@ -13,7 +13,7 @@ class BottomNavBar extends StatelessWidget {
     final currentIndex = provider.currentPageIndex;
 
     final navItems = [
-      {'icon': LucideIcons.layoutGrid, 'label': 'Context'},
+      {'icon': LucideIcons.layoutGrid, 'label': 'Dashboard'},
       {'icon': LucideIcons.sparkles, 'label': 'Generate'},
       {'icon': LucideIcons.playCircle, 'label': 'Prompter'},
       {'icon': LucideIcons.bookOpen, 'label': 'Vocab'},
