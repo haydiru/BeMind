@@ -16,7 +16,7 @@ class TeleprompterPage extends StatefulWidget {
 
 class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerProviderStateMixin {
   bool _isPlaying = false;
-  double _wpm = 110.0; // Comfortably readable speed: 60 - 220 WPM
+  double _wpm = 25.0; // Comfortable reading pace default
   late ScrollController _scrollController;
   Timer? _scrollTimer;
 
@@ -77,8 +77,8 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
       }
 
       // Calculate smooth pixel step based on WPM (Words Per Minute)
-      // 1 WPM ~ 3.5 pixels/sec at 20px font
-      final pixelsPerSec = (_wpm * 2.8).clamp(30.0, 450.0);
+      // Low speed: 5 - 100 WPM for comfortable reading pace
+      final pixelsPerSec = (_wpm * 0.45).clamp(2.0, 150.0);
       final step = pixelsPerSec * (16 / 1000.0);
 
       _scrollController.jumpTo((currentScroll + step).clamp(0.0, maxScroll));
@@ -354,8 +354,9 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                                 ),
                                 child: Slider(
                                   value: _wpm,
-                                  min: 50,
-                                  max: 250,
+                                  min: 5,
+                                  max: 100,
+                                  divisions: 95,
                                   onChanged: (val) {
                                     setState(() => _wpm = val);
                                   },

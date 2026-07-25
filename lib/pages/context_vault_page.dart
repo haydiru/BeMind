@@ -19,7 +19,13 @@ class ContextVaultPage extends StatelessWidget {
     final vocabCount = provider.vocabList.length;
     final isLoading = provider.isLoadingEssays;
 
-    // Calculate dynamic strength score (clamped between 60 and 98)
+    // Group essays by category (e.g. 'Job Interview', 'IELTS Part 2', etc.)
+    final Map<String, List<Essay>> groupedProjects = {};
+    for (final essay in essays) {
+      final categoryKey = essay.category.isNotEmpty ? essay.category : 'Umum';
+      groupedProjects.putIfAbsent(categoryKey, () => []).add(essay);
+    }
+
     final int strengthScore = (60 + (essays.length * 10) + (vocabCount * 2)).clamp(60, 98);
 
     return Scaffold(
@@ -30,7 +36,6 @@ class ContextVaultPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               // ─── WELCOME HEADER & CREATE PROJECT BUTTON ────────────────────
               Container(
                 padding: const EdgeInsets.all(20),
@@ -99,7 +104,7 @@ class ContextVaultPage extends StatelessWidget {
 
                     // CREATE NEW PROJECT MAIN CTA BUTTON
                     ElevatedButton.icon(
-                      onPressed: () => provider.setPageIndex(1), // Navigate to Generate Essay / Project page
+                      onPressed: () => provider.setPageIndex(1),
                       icon: const Icon(LucideIcons.plusCircle, size: 20, color: Colors.black),
                       label: Text(
                         'Buat Project Baru',
@@ -135,7 +140,7 @@ class ContextVaultPage extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        // Left Ring Widget (Dynamic Strength Index)
+                        // Left Ring Widget
                         Container(
                           width: 100,
                           height: 100,
@@ -237,8 +242,8 @@ class ContextVaultPage extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  _buildStatItem('Total Project', '${essays.length}'),
-                                  _buildStatItem('Kosakata Vault', '$vocabCount'),
+                                  _buildStatItem('Total Project', '${groupedProjects.length}'),
+                                  _buildStatItem('Total Narasi', '${essays.length}'),
                                   _buildStatItem('Fluency Rank', strengthScore > 80 ? 'Advanced' : 'Intermediate'),
                                 ],
                               ),
@@ -253,7 +258,7 @@ class ContextVaultPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // ─── DAFTAR PROJECT USER (USER'S REAL PROJECTS LIST) ───────────
+              // ─── DAFTAR PROJECT USER (GROUPED BY CATEGORY WITH MULTIPLE NARRATIVES) ─
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -265,27 +270,36 @@ class ContextVaultPage extends StatelessWidget {
                       color: AppTheme.textPrimary,
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.chipTextBg,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${essays.length} Project',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryPurple,
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(LucideIcons.refreshCw, size: 16),
+                        onPressed: () => provider.refreshEssays(),
+                        tooltip: 'Refresh dari Database',
                       ),
-                    ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppTheme.chipTextBg,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${groupedProjects.length} Project (${essays.length} Narasi)',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryPurple,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
 
               const SizedBox(height: 12),
 
-              // LIST OF USER PROJECTS (NO DUMMY DATA)
+              // LIST OF GROUPED PROJECT CARDS
               isLoading
                   ? Container(
                       padding: const EdgeInsets.all(32),
@@ -300,18 +314,19 @@ class ContextVaultPage extends StatelessWidget {
                         ),
                       ),
                     )
-                  : essays.isEmpty
-                  ? _buildEmptyProjectCard(context, provider)
-                  : ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: essays.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final essay = essays[index];
-                        return _buildProjectCard(context, provider, essay);
-                      },
-                    ),
+                  : groupedProjects.isEmpty
+                      ? _buildEmptyProjectCard(context, provider)
+                      : ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: groupedProjects.keys.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 16),
+                          itemBuilder: (context, index) {
+                            final categoryName = groupedProjects.keys.elementAt(index);
+                            final categoryEssays = groupedProjects[categoryName]!;
+                            return _buildProjectGroupCard(context, provider, categoryName, categoryEssays);
+                          },
+                        ),
 
               const SizedBox(height: 80),
             ],
@@ -380,15 +395,16 @@ class ContextVaultPage extends StatelessWidget {
     );
   }
 
-  Widget _buildProjectCard(BuildContext context, AppProvider provider, Essay essay) {
+  /// Card representation for a Project Group containing 1 or more narrative essays
+  Widget _buildProjectGroupCard(BuildContext context, AppProvider provider, String categoryName, List<Essay> essays) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: AppTheme.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Project Group Header
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
@@ -397,83 +413,115 @@ class ContextVaultPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  essay.category == 'Job Interview'
+                  categoryName == 'Job Interview'
                       ? LucideIcons.briefcase
-                      : essay.category == 'IELTS/TOEFL'
+                      : categoryName == 'IELTS/TOEFL' || categoryName == 'IELTS Part 2'
                           ? LucideIcons.graduationCap
                           : LucideIcons.presentation,
-                  size: 20,
+                  size: 22,
                   color: AppTheme.primaryCyan,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      essay.title,
+                      'Project: $categoryName',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
                         color: AppTheme.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            essay.category,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '• ${essay.difficulty}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textSecondary),
-                        ),
-                      ],
+                    const SizedBox(height: 2),
+                    Text(
+                      '${essays.length} Naskah Narasi Tersimpan',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.primaryPurple, fontWeight: FontWeight.w600),
                     ),
                   ],
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () => provider.setPageIndex(1),
+                icon: const Icon(LucideIcons.plus, size: 14),
+                label: const Text('Tambah Narasi'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF1F5F9),
+                  foregroundColor: const Color(0xFF0F172A),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  textStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 12),
-          Divider(color: Colors.black.withValues(alpha: 0.06)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 14),
+          Divider(color: Colors.black.withValues(alpha: 0.08)),
+          const SizedBox(height: 10),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                DateFormat('d MMM yyyy').format(essay.createdAt),
-                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
-              ),
-
-              ElevatedButton.icon(
-                onPressed: () => provider.selectEssayForTeleprompter(essay),
-                icon: const Icon(LucideIcons.play, size: 14),
-                label: const Text('Latihan Teleprompter'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryPurple,
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  textStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold),
+          // List of Essays / Narratives within this Project
+          Column(
+            children: essays.map((essay) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-              ),
-            ],
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            essay.title,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Text(
+                                'Level: ${essay.difficulty}',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '• ${DateFormat('d MMM HH:mm').format(essay.createdAt)}',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => provider.selectEssayForTeleprompter(essay),
+                      icon: const Icon(LucideIcons.play, size: 12),
+                      label: const Text('Latih Prompter'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryPurple,
+                        foregroundColor: Colors.white,
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        textStyle: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),

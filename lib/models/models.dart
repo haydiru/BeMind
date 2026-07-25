@@ -2,8 +2,8 @@ class UserProfile {
   final String id;
   final String name;
   final String email;
-  final String targetGoal; // e.g., 'Job Interview Prep', 'IELTS/TOEFL', 'Business Pitching', 'Casual Conversation'
-  final int profileCompleteness; // 0 - 100
+  final String targetGoal;
+  final int profileCompleteness;
 
   UserProfile({
     required this.id,
@@ -47,6 +47,19 @@ class ContextItem {
   });
 
   int get wordCount => content.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
+}
+
+/// Project Group Model (Container containing multiple Essay narratives)
+class ProjectGroup {
+  final String id; // Category e.g., 'Job Interview'
+  final String title; // Category Name
+  final List<Essay> essays;
+
+  ProjectGroup({
+    required this.id,
+    required this.title,
+    required this.essays,
+  });
 }
 
 class Essay {
@@ -121,9 +134,9 @@ class PromptTemplate {
 
 class NotificationSettings {
   bool isEnabled;
-  String frequency; // '3x a day', '5x a day', 'Hourly'
-  int startHour; // 8 (08:00)
-  int endHour; // 21 (21:00)
+  String frequency;
+  int startHour;
+  int endHour;
   DateTime? lastSyncTime;
 
   NotificationSettings({
