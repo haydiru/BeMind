@@ -12,7 +12,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   // Auth & Profile State
-  bool _isLoggedIn = true;
+  bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
 
   UserProfile _user = UserProfile(
