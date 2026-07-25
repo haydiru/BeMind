@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -107,7 +108,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   // 📎 Real File Picker Handler (PDF, TXT, DOCX)
   Future<void> _pickDocumentFile() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      FilePickerResult? result = await FilePicker.instance.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'txt', 'doc', 'docx'],
         withData: true,
