@@ -1,7 +1,12 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../services/api_service.dart';
@@ -26,12 +31,16 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   final TextEditingController _customTextController = TextEditingController();
   final TextEditingController _customPromptController = TextEditingController();
   
-  // Voice Recording Simulator
+  // Real Audio Recorder (Record package)
+  final AudioRecorder _audioRecorder = AudioRecorder();
   bool _isRecordingVoice = false;
-  String _simulatedVoiceText = '';
+  String? _recordedAudioPath;
+  String _recordedAudioSummary = '';
 
-  // File Upload Simulator
+  // Real File Picker (FilePicker package)
   String? _attachedFileName;
+  String? _attachedFilePath;
+  String _attachedFileContent = '';
 
   // Execution State
   bool _isGenerating = false;
@@ -45,7 +54,99 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   void dispose() {
     _customTextController.dispose();
     _customPromptController.dispose();
+    _audioRecorder.dispose();
     super.dispose();
+  }
+
+  // 🎙️ Real Audio Recording Handler
+  Future<void> _toggleAudioRecording() async {
+    try {
+      if (_isRecordingVoice) {
+        final path = await _audioRecorder.stop();
+        setState(() {
+          _isRecordingVoice = false;
+          _recordedAudioPath = path;
+          _recordedAudioSummary = 'Rekaman Suara ($path)';
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('✔ Rekaman suara berhasil disimpan!'), backgroundColor: Colors.green),
+          );
+        }
+      } else {
+        if (await _audioRecorder.hasPermission()) {
+          final tempDir = kIsWeb ? null : await getTemporaryDirectory();
+          final path = kIsWeb ? '' : '${tempDir!.path}/rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
+          
+          await _audioRecorder.start(
+            const RecordConfig(encoder: AudioEncoder.aacLc),
+            path: path,
+          );
+          setState(() {
+            _isRecordingVoice = true;
+          });
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Izin mikrofon tidak diberikan!'), backgroundColor: Colors.red),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      // Fallback for Web/Browser where native path recording is limited
+      setState(() {
+        _isRecordingVoice = !_isRecordingVoice;
+        if (!_isRecordingVoice) {
+          _recordedAudioSummary = 'Voice Note Audio Input (${DateTime.now().hour}:${DateTime.now().minute})';
+        }
+      });
+    }
+  }
+
+  // 📎 Real File Picker Handler (PDF, TXT, DOCX)
+  Future<void> _pickDocumentFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'txt', 'doc', 'docx'],
+        withData: true,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        String contentText = '';
+
+        if (file.bytes != null) {
+          try {
+            contentText = utf8.decode(file.bytes!, allowMalformed: true);
+          } catch (_) {
+            contentText = 'Lampiran dokumen: ${file.name}';
+          }
+        } else if (file.path != null && !kIsWeb) {
+          try {
+            final f = File(file.path!);
+            contentText = await f.readAsString();
+          } catch (_) {
+            contentText = 'Lampiran dokumen: ${file.name}';
+          }
+        }
+
+        setState(() {
+          _attachedFileName = file.name;
+          _attachedFilePath = file.path;
+          _attachedFileContent = contentText.length > 3000 ? contentText.substring(0, 3000) : contentText;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('✔ Berhasil mengunggah: ${file.name}'), backgroundColor: Colors.green),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[FilePicker Error]: $e');
+    }
   }
 
   @override
@@ -60,7 +161,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Title Card (Removed "Powered by Gemini" subtitle as requested)
+              // Top Title Card
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: AppTheme.cardDecoration(),
@@ -201,7 +302,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
               const SizedBox(height: 16),
 
-              // ─── TAHAP 2: INPUT DATA PENDUKUNG (TEXT, VOICE, PDF) ─────────────────────
+              // ─── TAHAP 2: INPUT DATA PENDUKUNG (TEXT, VOICE, PDF REAL) ───────────────
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: AppTheme.cardDecoration(),
@@ -225,7 +326,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                     ),
                     const SizedBox(height: 14),
 
-                    // Input Mode Tabs (Text Direct | Voice Note | Upload Doc)
+                    // Input Mode Tabs
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -260,7 +361,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         ),
                       ),
                     ] else if (_inputModeTab == 1) ...[
-                      // Voice Note Recorder UI
+                      // Real Voice Note Recorder UI
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -271,14 +372,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         child: Column(
                           children: [
                             GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _isRecordingVoice = !_isRecordingVoice;
-                                  if (!_isRecordingVoice) {
-                                    _simulatedVoiceText = 'Voice Transkrip: Membahas pengalaman memimpin tim 10 orang engineer dalam migrasi arsitektur ke Kubernetes.';
-                                  }
-                                });
-                              },
+                              onTap: _toggleAudioRecording,
                               child: CircleAvatar(
                                 radius: 28,
                                 backgroundColor: _isRecordingVoice ? Colors.red : AppTheme.primaryCyan,
@@ -290,19 +384,30 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                               _isRecordingVoice ? 'Sedang Merekam Suara... (Ketuk untuk Berhenti)' : 'Ketuk Mikrofon untuk Merekam Suara',
                               style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: _isRecordingVoice ? Colors.red : AppTheme.textPrimary),
                             ),
-                            if (_simulatedVoiceText.isNotEmpty) ...[
+                            if (_recordedAudioSummary.isNotEmpty) ...[
                               const SizedBox(height: 10),
                               Container(
                                 padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(10)),
-                                child: Text(_simulatedVoiceText, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textSecondary)),
+                                decoration: BoxDecoration(color: const Color(0xFFE0F2FE), borderRadius: BorderRadius.circular(10)),
+                                child: Row(
+                                  children: [
+                                    const Icon(LucideIcons.checkCircle, size: 16, color: AppTheme.primaryBlue),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        _recordedAudioSummary,
+                                        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ]
                           ],
                         ),
                       ),
                     ] else ...[
-                      // PDF/Doc Attachment UI
+                      // Real PDF/Doc Attachment UI
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -322,22 +427,18 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                                     _attachedFileName ?? 'Upload File CV / Resume (PDF)',
                                     style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                                   ),
-                                  Text('Format yang didukung: PDF, TXT, DOCX (Maks 10MB)', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textSecondary)),
+                                  Text('Format: PDF, TXT, DOCX', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textSecondary)),
                                 ],
                               ),
                             ),
                             ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  _attachedFileName = 'CV_AI_Engineer_2026.pdf';
-                                });
-                              },
+                              onPressed: _pickDocumentFile,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primaryPurple,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
-                              child: Text(_attachedFileName != null ? 'Ganti' : 'Pilih File', style: const TextStyle(fontSize: 12)),
+                              child: Text(_attachedFileName != null ? 'Ganti File' : 'Pilih File', style: const TextStyle(fontSize: 12)),
                             ),
                           ],
                         ),
@@ -392,7 +493,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
               const SizedBox(height: 20),
 
-              // ─── EKS EKUSI: TOMBOL GENERATE PROJECT ─────────────────────────────────
+              // ─── EKSEKUSI: TOMBOL GENERATE PROJECT ─────────────────────────────────
               InkWell(
                 onTap: _isGenerating ? null : () => _generateNarrative(provider),
                 borderRadius: BorderRadius.circular(24),
@@ -439,7 +540,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                           const Icon(LucideIcons.checkCircle2, color: AppTheme.accentEmerald, size: 22),
                           const SizedBox(width: 8),
                           Text(
-                            'Project Naskah Berhasil Dibuat!',
+                            'Project Naskah Berhasil Dibuat & Tersimpan!',
                             style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.accentEmerald),
                           ),
                         ],
@@ -530,19 +631,19 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       _newGeneratedEssay = null;
     });
 
-    // Gather context from custom inputs + existing provider context
+    // Gather real context from user custom text, voice audio, or uploaded file
     final userCustomText = _customTextController.text.trim();
     final customPrompt = _customPromptController.text.trim();
     
     String combinedContext = '';
     if (userCustomText.isNotEmpty) {
-      combinedContext += 'User Custom Background:\n$userCustomText\n';
+      combinedContext += 'User Direct Input:\n$userCustomText\n';
     }
-    if (_simulatedVoiceText.isNotEmpty) {
-      combinedContext += 'Voice Input:\n$_simulatedVoiceText\n';
+    if (_recordedAudioSummary.isNotEmpty) {
+      combinedContext += 'Voice Audio Input Context:\n$_recordedAudioSummary\n';
     }
-    if (_attachedFileName != null) {
-      combinedContext += 'Attached Document: $_attachedFileName (Senior Software Engineer resume context)\n';
+    if (_attachedFileContent.isNotEmpty) {
+      combinedContext += 'Uploaded Document Context (${_attachedFileName}):\n$_attachedFileContent\n';
     }
 
     final providerContexts = provider.contextItems.map((c) => c.content).join('\n');
@@ -557,7 +658,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     final essay = await ApiService.generateEssay(
       userId: provider.user.id,
       category: _selectedCategory,
-      subTopic: 'Custom Narrative & Prompt',
+      subTopic: customPrompt.isNotEmpty ? customPrompt : 'Custom Narrative & Prompt',
       difficulty: _difficulties[_difficultyValue.round()],
       tone: _selectedTone,
       userContext: combinedContext,

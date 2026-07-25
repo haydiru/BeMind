@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -15,15 +16,16 @@ class TeleprompterPage extends StatefulWidget {
 
 class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerProviderStateMixin {
   bool _isPlaying = false;
-  double _wpm = 164.0;
+  double _wpm = 110.0; // Comfortably readable speed: 60 - 220 WPM
   late ScrollController _scrollController;
+  Timer? _scrollTimer;
 
-  /// Splits essay content into ~8-word chunks for teleprompter reading
+  /// Splits essay content into ~6-8 word chunks for smooth teleprompter reading
   List<String> _buildScriptChunks(String content) {
     if (content.isEmpty) return [];
     final words = content.split(RegExp(r'\s+'));
     final chunks = <String>[];
-    const chunkSize = 8;
+    const chunkSize = 7;
     for (int i = 0; i < words.length; i += chunkSize) {
       chunks.add(words.sublist(i, (i + chunkSize).clamp(0, words.length)).join(' '));
     }
@@ -38,6 +40,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
 
   @override
   void dispose() {
+    _scrollTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -46,23 +49,44 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
     setState(() {
       _isPlaying = !_isPlaying;
       if (_isPlaying) {
-        if (!_scrollController.hasClients) return;
-        final maxScroll = _scrollController.position.maxScrollExtent;
-        final currentScroll = _scrollController.offset;
-        final remainingDist = maxScroll - currentScroll;
-        final durationSec = (remainingDist / (_wpm * 2)).clamp(5.0, 120.0);
-
-        _scrollController.animateTo(
-          maxScroll,
-          duration: Duration(seconds: durationSec.toInt()),
-          curve: Curves.linear, // BUTTER-SMOOTH CONTINUOUS 60-120 FPS SCROLL
-        );
+        _startSmoothScrolling();
       } else {
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(_scrollController.offset);
-        }
+        _stopSmoothScrolling();
       }
     });
+  }
+
+  void _startSmoothScrolling() {
+    _scrollTimer?.cancel();
+    // 60 FPS Smooth ticker (16ms per step)
+    const interval = Duration(milliseconds: 16);
+    
+    _scrollTimer = Timer.periodic(interval, (timer) {
+      if (!_scrollController.hasClients || !_isPlaying) {
+        timer.cancel();
+        return;
+      }
+
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.offset;
+
+      if (currentScroll >= maxScroll) {
+        setState(() => _isPlaying = false);
+        timer.cancel();
+        return;
+      }
+
+      // Calculate smooth pixel step based on WPM (Words Per Minute)
+      // 1 WPM ~ 3.5 pixels/sec at 20px font
+      final pixelsPerSec = (_wpm * 2.8).clamp(30.0, 450.0);
+      final step = pixelsPerSec * (16 / 1000.0);
+
+      _scrollController.jumpTo((currentScroll + step).clamp(0.0, maxScroll));
+    });
+  }
+
+  void _stopSmoothScrolling() {
+    _scrollTimer?.cancel();
   }
 
   @override
@@ -82,7 +106,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. Top Header Row (FULL AT TOP)
+              // 1. Top Header Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -106,7 +130,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      '60-120 FPS',
+                      '60 FPS Smooth',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -119,7 +143,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
 
               const SizedBox(height: 12),
 
-              // 2. Full Height Container Box Text (EXPANDED TO FILL ALL VERTICAL SPACE)
+              // 2. Full Height Teleprompter Box with Smooth Gradual Fade-out Mask
               Expanded(
                 child: Container(
                   width: double.infinity,
@@ -129,7 +153,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                     border: Border.all(color: const Color(0xFFE2E8F0)),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0F172A).withOpacity(0.05),
+                        color: const Color(0xFF0F172A).withValues(alpha: 0.05),
                         blurRadius: 40,
                         offset: const Offset(0, 16),
                       ),
@@ -145,7 +169,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(LucideIcons.scrollText, size: 48, color: AppTheme.primaryCyan.withOpacity(0.5)),
+                                Icon(LucideIcons.scrollText, size: 48, color: AppTheme.primaryCyan.withValues(alpha: 0.5)),
                                 const SizedBox(height: 16),
                                 Text(
                                   'Belum Ada Project Dipilih',
@@ -166,69 +190,83 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                           ),
                         ),
 
-                      // Top Mask Fade Overlay
+                      // Continuous 60 FPS Teleprompter ListView
                       if (scriptParagraphs.isNotEmpty)
-                      Positioned(
-                        top: 0, left: 0, right: 0,
-                        height: 90,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.white,
-                                Colors.white.withOpacity(0.0),
-                              ],
-                            ),
-                          ),
+                        ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.symmetric(vertical: 140, horizontal: 24),
+                          itemCount: scriptParagraphs.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 14.0),
+                              child: Text(
+                                scriptParagraphs[index],
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.textPrimary,
+                                  height: 1.6,
+                                  letterSpacing: -0.4,
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      ),
 
-                      // Bottom Mask Fade Overlay
+                      // TOP GRADUAL FADE-OUT MASK (Teks Hilang Perlahan Saat Ke Atas)
                       if (scriptParagraphs.isNotEmpty)
-                      Positioned(
-                        bottom: 0, left: 0, right: 0,
-                        height: 90,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [
-                                Colors.white,
-                                Colors.white.withOpacity(0.0),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Continuous Smooth Scroll Physics Track
-                      if (scriptParagraphs.isNotEmpty)
-                      ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(vertical: 120, horizontal: 20),
-                        itemCount: scriptParagraphs.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12.0),
-                            child: Text(
-                              scriptParagraphs[index],
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.textPrimary,
-                                height: 1.55,
-                                letterSpacing: -0.4,
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: 130,
+                          child: IgnorePointer(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  stops: const [0.0, 0.4, 0.75, 1.0],
+                                  colors: [
+                                    Colors.white,
+                                    Colors.white.withValues(alpha: 0.95),
+                                    Colors.white.withValues(alpha: 0.5),
+                                    Colors.white.withValues(alpha: 0.0),
+                                  ],
+                                ),
                               ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+
+                      // BOTTOM GRADUAL FADE-OUT MASK (Teks Muncul Perlahan Dari Bawah)
+                      if (scriptParagraphs.isNotEmpty)
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: 130,
+                          child: IgnorePointer(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  stops: const [0.0, 0.4, 0.75, 1.0],
+                                  colors: [
+                                    Colors.white,
+                                    Colors.white.withValues(alpha: 0.95),
+                                    Colors.white.withValues(alpha: 0.5),
+                                    Colors.white.withValues(alpha: 0.0),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -236,11 +274,11 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
 
               const SizedBox(height: 14),
 
-              // 3. Bottom Controls Group (FULL AT BOTTOM)
+              // 3. Bottom Controls Group
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Large Cyan Play Button
+                  // Play / Pause Button
                   GestureDetector(
                     onTap: _togglePlay,
                     child: Container(
@@ -251,7 +289,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                         color: const Color(0xFF00E5FF),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF00E5FF).withOpacity(0.4),
+                            color: const Color(0xFF00E5FF).withValues(alpha: 0.4),
                             blurRadius: 24,
                             offset: const Offset(0, 10),
                           ),
@@ -267,7 +305,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
 
                   const SizedBox(height: 12),
 
-                  // WPM Control Bar Pill
+                  // WPM Speed Control Bar Pill
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                     decoration: BoxDecoration(
@@ -276,7 +314,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0F172A).withOpacity(0.05),
+                          color: const Color(0xFF0F172A).withValues(alpha: 0.05),
                           blurRadius: 25,
                           offset: const Offset(0, 10),
                         ),
@@ -291,7 +329,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                             shape: BoxShape.circle,
                             color: Color(0xFFFFF1F2),
                           ),
-                          child: const Icon(LucideIcons.star, size: 18, color: Color(0xFFFF3366)),
+                          child: const Icon(LucideIcons.gauge, size: 18, color: Color(0xFFFF3366)),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -299,7 +337,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                '${_wpm.toInt()} WPM',
+                                '${_wpm.toInt()} WPM (Reading Pace)',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
@@ -316,14 +354,10 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                                 ),
                                 child: Slider(
                                   value: _wpm,
-                                  min: 60,
-                                  max: 300,
+                                  min: 50,
+                                  max: 250,
                                   onChanged: (val) {
                                     setState(() => _wpm = val);
-                                    if (_isPlaying) {
-                                      _togglePlay();
-                                      _togglePlay();
-                                    }
                                   },
                                 ),
                               ),

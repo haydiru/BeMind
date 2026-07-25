@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
 
@@ -64,6 +64,7 @@ class AppProvider extends ChangeNotifier {
     _isLoggedIn = false;
     _currentPageIndex = 0;
     _essays.clear();
+    _contextItems.clear();
     _user = UserProfile(
       id: '',
       name: '',
@@ -71,6 +72,8 @@ class AppProvider extends ChangeNotifier {
       targetGoal: 'Job Interview Prep',
       profileCompleteness: 10,
     );
+    // Also sign out from Supabase client
+    Supabase.instance.client.auth.signOut().catchError((_) {});
     notifyListeners();
   }
 
@@ -124,14 +127,14 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Fetch this user's essays from Supabase generated_essays table
+  /// Fetch this user's essays directly from Supabase generated_essays table
   Future<void> _loadUserEssays(String userId) async {
     if (userId.isEmpty || userId.startsWith('local_')) return;
     _isLoadingEssays = true;
     notifyListeners();
 
     try {
-      final data = await Supabase.instance.client
+      final response = await Supabase.instance.client
           .from('generated_essays')
           .select()
           .eq('user_id', userId)
@@ -139,7 +142,7 @@ class AppProvider extends ChangeNotifier {
           .limit(50);
 
       _essays.clear();
-      for (final row in data) {
+      for (final row in response) {
         _essays.add(Essay(
           id: row['id']?.toString() ?? '',
           title: row['title'] ?? 'Untitled Project',
@@ -148,23 +151,21 @@ class AppProvider extends ChangeNotifier {
           difficulty: row['difficulty'] ?? '',
           tone: row['tone'] ?? '',
           content: row['content'] ?? '',
-          createdAt: DateTime.tryParse(row['created_at'] ?? '') ?? DateTime.now(),
+          createdAt: DateTime.tryParse(row['created_at']?.toString() ?? '') ?? DateTime.now(),
         ));
       }
 
-      // Update strength score based on real essay count
       int newCompleteness = (40 + (_essays.length * 8) + (_contextItems.length * 10)).clamp(40, 100);
       _user = _user.copyWith(profileCompleteness: newCompleteness);
     } catch (e) {
-      debugPrint('[AppProvider] Failed to load essays: $e');
-      // Table might not exist yet — silently fail, keep empty list
+      debugPrint('[AppProvider] Error loading user essays from Supabase: $e');
     } finally {
       _isLoadingEssays = false;
       notifyListeners();
     }
   }
 
-  /// Called externally to refresh essays (e.g. after generating a new one)
+  /// Called externally to refresh essays from database
   Future<void> refreshEssays() => _loadUserEssays(_user.id);
 
   // ─── Vocabulary Vault State ─────────────────────────────────────────────────
@@ -256,7 +257,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   // ─── Settings & Notification Engine State ──────────────────────────────────
-  NotificationSettings _notificationSettings = NotificationSettings();
+  final NotificationSettings _notificationSettings = NotificationSettings();
   NotificationSettings get notificationSettings => _notificationSettings;
 
   void toggleNotifications(bool value) {
