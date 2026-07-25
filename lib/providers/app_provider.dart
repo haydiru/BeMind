@@ -1,4 +1,4 @@
-import 'dart:convert';
+// dart:convert removed - unused
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';

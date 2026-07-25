@@ -35,12 +35,10 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   // Real Audio Recorder (Record package)
   final AudioRecorder _audioRecorder = AudioRecorder();
   bool _isRecordingVoice = false;
-  String? _recordedAudioPath;
   String _recordedAudioSummary = '';
 
   // Real File Picker (FilePicker package)
   String? _attachedFileName;
-  String? _attachedFilePath;
   String _attachedFileContent = '';
 
   // Execution State
@@ -63,11 +61,10 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   Future<void> _toggleAudioRecording() async {
     try {
       if (_isRecordingVoice) {
-        final path = await _audioRecorder.stop();
+        await _audioRecorder.stop();
         setState(() {
           _isRecordingVoice = false;
-          _recordedAudioPath = path;
-          _recordedAudioSummary = 'Rekaman Suara ($path)';
+          _recordedAudioSummary = 'Rekaman suara berhasil direkam';
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -135,7 +132,6 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
         setState(() {
           _attachedFileName = file.name;
-          _attachedFilePath = file.path;
           _attachedFileContent = contentText.length > 3000 ? contentText.substring(0, 3000) : contentText;
         });
 

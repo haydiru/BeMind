@@ -23,7 +23,48 @@ void main() async {
 
   runApp(
     ChangeNotifierProvider(
-      create: (_) => AppProvider(),
+      create: (_) {
+        final provider = AppProvider();
+        
+        // Auto Restore Auth Session if Supabase already has an active session
+        final session = Supabase.instance.client.auth.currentSession;
+        final currentUser = Supabase.instance.client.auth.currentUser;
+        if (session != null && currentUser != null) {
+          final userName = currentUser.userMetadata?['name'] ??
+              currentUser.userMetadata?['full_name'] ??
+              currentUser.email?.split('@').first ??
+              'User';
+          final targetGoal = currentUser.userMetadata?['target_goal'] ?? 'Job Interview Prep';
+          
+          provider.loginWithProfile(
+            id: currentUser.id,
+            name: userName,
+            email: currentUser.email ?? '',
+            targetGoal: targetGoal,
+          );
+        }
+
+        // Listen for Auth Changes (Login/Logout/OAuth)
+        Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+          final AuthChangeEvent event = data.event;
+          final Session? sess = data.session;
+          if (event == AuthChangeEvent.signedIn && sess?.user != null) {
+            final u = sess!.user;
+            final name = u.userMetadata?['name'] ?? u.email?.split('@').first ?? 'User';
+            final goal = u.userMetadata?['target_goal'] ?? 'Job Interview Prep';
+            provider.loginWithProfile(
+              id: u.id,
+              name: name,
+              email: u.email ?? '',
+              targetGoal: goal,
+            );
+          } else if (event == AuthChangeEvent.signedOut) {
+            provider.logout();
+          }
+        });
+
+        return provider;
+      },
       child: const BeMindApp(),
     ),
   );
