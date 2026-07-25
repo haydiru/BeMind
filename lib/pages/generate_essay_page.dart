@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/header_bar.dart';
 
@@ -248,17 +249,18 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       _newGeneratedEssay = null;
     });
 
-    await Future.delayed(const Duration(milliseconds: 1400));
+    final userContextText = provider.contextItems.map((c) => c.content).join('\n');
+    final templateText = provider.selectedRemixTemplate?.templateStructure ?? '';
 
-    final essay = Essay(
-      id: 'ess_${DateTime.now().millisecondsSinceEpoch}',
-      title: 'STAR Method: $_selectedCategory',
+    final essay = await ApiService.generateEssay(
+      userId: provider.user.id,
       category: _selectedCategory,
       subTopic: _selectedSubTopic,
       difficulty: _difficulties[_difficultyValue.round()],
       tone: _selectedTone,
-      content: 'In my software engineering career, I spearheaded the architectural redesign of our financial transactions API. Initially, our microservices experienced severe latency bottlenecks. I instituted a audit, implemented a Redis cache layer, and reduced endpoint response latency by 45%.',
-      createdAt: DateTime.now(),
+      userContext: userContextText,
+      templateId: provider.selectedRemixTemplate?.id,
+      promptTemplate: templateText,
     );
 
     provider.addGeneratedEssay(essay);

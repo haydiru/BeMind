@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'providers/app_provider.dart';
 import 'theme/app_theme.dart';
 import 'widgets/bottom_nav_bar.dart';
@@ -10,8 +11,16 @@ import 'pages/teleprompter_page.dart';
 import 'pages/vocab_vault_page.dart';
 import 'pages/marketplace_page.dart';
 import 'pages/settings_page.dart';
+import 'services/supabase_config.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.anonKey,
+  );
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => AppProvider(),
