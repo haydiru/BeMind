@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/header_bar.dart';
 
@@ -16,18 +18,17 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
   double _wpm = 164.0;
   late ScrollController _scrollController;
 
-  final List<String> _scriptParagraphs = [
-    "In my software engineering career, I",
-    "spearheaded the architectural redesign",
-    "of our financial transactions API.",
-    "Initially, our microservices experienced",
-    "severe latency bottlenecks.",
-    "I instituted a comprehensive system audit,",
-    "implemented a high-performance Redis cache layer,",
-    "and reduced endpoint response latency by 45%.",
-    "This initiative significantly boosted transaction throughput,",
-    "ensuring uninterrupted service during peak user traffic."
-  ];
+  /// Splits essay content into ~8-word chunks for teleprompter reading
+  List<String> _buildScriptChunks(String content) {
+    if (content.isEmpty) return [];
+    final words = content.split(RegExp(r'\s+'));
+    final chunks = <String>[];
+    const chunkSize = 8;
+    for (int i = 0; i < words.length; i += chunkSize) {
+      chunks.add(words.sublist(i, (i + chunkSize).clamp(0, words.length)).join(' '));
+    }
+    return chunks;
+  }
 
   @override
   void initState() {
@@ -66,6 +67,13 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<AppProvider>(context);
+    final activeEssay = provider.activeEssay;
+    final scriptParagraphs = activeEssay != null
+        ? _buildScriptChunks(activeEssay.content)
+        : <String>[];
+    final essayTitle = activeEssay?.title ?? 'Teleprompter';
+
     return Scaffold(
       appBar: const HeaderBar(title: 'BeMind AI'),
       body: SafeArea(
@@ -78,14 +86,19 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'STAR Method Teleprompter',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
+                  Expanded(
+                    child: Text(
+                      essayTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
@@ -124,7 +137,37 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                   ),
                   child: Stack(
                     children: [
+                      // Empty state when no essay is selected
+                      if (scriptParagraphs.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(LucideIcons.scrollText, size: 48, color: AppTheme.primaryCyan.withOpacity(0.5)),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Belum Ada Project Dipilih',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Buat project narasi dari halaman Dashboard, lalu pilih "Latihan Teleprompter" untuk memulai.',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
                       // Top Mask Fade Overlay
+                      if (scriptParagraphs.isNotEmpty)
                       Positioned(
                         top: 0, left: 0, right: 0,
                         height: 90,
@@ -144,6 +187,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                       ),
 
                       // Bottom Mask Fade Overlay
+                      if (scriptParagraphs.isNotEmpty)
                       Positioned(
                         bottom: 0, left: 0, right: 0,
                         height: 90,
@@ -163,16 +207,17 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                       ),
 
                       // Continuous Smooth Scroll Physics Track
+                      if (scriptParagraphs.isNotEmpty)
                       ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.symmetric(vertical: 120, horizontal: 20),
-                        itemCount: _scriptParagraphs.length,
+                        itemCount: scriptParagraphs.length,
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 12.0),
                             child: Text(
-                              _scriptParagraphs[index],
-                              textAlign: TextAlign.center, // CENTER ALIGN
+                              scriptParagraphs[index],
+                              textAlign: TextAlign.center,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,

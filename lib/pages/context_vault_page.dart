@@ -17,6 +17,7 @@ class ContextVaultPage extends StatelessWidget {
     final user = provider.user;
     final essays = provider.essays;
     final vocabCount = provider.vocabList.length;
+    final isLoading = provider.isLoadingEssays;
 
     // Calculate dynamic strength score (clamped between 60 and 98)
     final int strengthScore = (60 + (essays.length * 10) + (vocabCount * 2)).clamp(60, 98);
@@ -285,7 +286,21 @@ class ContextVaultPage extends StatelessWidget {
               const SizedBox(height: 12),
 
               // LIST OF USER PROJECTS (NO DUMMY DATA)
-              essays.isEmpty
+              isLoading
+                  ? Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: AppTheme.cardDecoration(),
+                      child: const Center(
+                        child: Column(
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 12),
+                            Text('Memuat project kamu...'),
+                          ],
+                        ),
+                      ),
+                    )
+                  : essays.isEmpty
                   ? _buildEmptyProjectCard(context, provider)
                   : ListView.separated(
                       shrinkWrap: true,

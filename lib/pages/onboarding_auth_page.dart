@@ -21,8 +21,8 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
 
   // Form Controllers
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController(text: 'user@bemind.ai');
-  final TextEditingController _passwordController = TextEditingController(text: 'secret123');
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
   String _selectedGoal = 'Job Interview Prep';
 
@@ -75,18 +75,26 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
         password: password,
       );
 
-      if (response.user != null) {
-        final userName = response.user!.userMetadata?['name'] ?? email.split('@').first;
-        provider.login(email, password);
-        provider.updateProfileName(userName);
-        _showSnackBar('Selamat Datang Kembali! Login Supabase Berhasil.');
+      final supaUser = response.user;
+      if (supaUser != null) {
+        final userName = supaUser.userMetadata?['name'] ??
+            supaUser.userMetadata?['full_name'] ??
+            email.split('@').first;
+        final targetGoal = supaUser.userMetadata?['target_goal'] ?? 'Job Interview Prep';
+        provider.loginWithProfile(
+          id: supaUser.id,
+          name: userName,
+          email: email,
+          targetGoal: targetGoal,
+        );
+        _showSnackBar('Selamat Datang Kembali, $userName!');
       } else {
-        provider.login(email, password);
-        _showSnackBar('Login Berhasil!');
+        _showSnackBar('Login gagal. Periksa email dan password Anda.', isError: true);
       }
+    } on AuthException catch (e) {
+      _showSnackBar('Login gagal: ${e.message}', isError: true);
     } catch (e) {
-      provider.login(email, password);
-      _showSnackBar('Login Berhasil!');
+      _showSnackBar('Terjadi kesalahan koneksi. Coba lagi.', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -120,26 +128,32 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
         },
       );
 
-      provider.login(email, password);
-      provider.updateProfileName(name);
-      provider.updateTargetGoal(_selectedGoal);
-
-      if (response.user != null) {
-        _showSnackBar('Akun Berhasil Dibuat di Supabase! Selamat Belajar.');
+      final supaUser = response.user;
+      if (supaUser != null) {
+        provider.loginWithProfile(
+          id: supaUser.id,
+          name: name,
+          email: email,
+          targetGoal: _selectedGoal,
+        );
+        _showSnackBar('Akun Berhasil Dibuat! Selamat Datang, $name 🎉');
       } else {
-        _showSnackBar('Pendaftaran Berhasil! Selamat Datang di BeMind.');
+        // Supabase might require email confirmation
+        _showSnackBar(
+          'Cek email kamu untuk konfirmasi, lalu login!',
+          isError: false,
+        );
       }
+    } on AuthException catch (e) {
+      _showSnackBar('Pendaftaran gagal: ${e.message}', isError: true);
     } catch (e) {
-      provider.login(email, password);
-      provider.updateProfileName(name);
-      provider.updateTargetGoal(_selectedGoal);
-      _showSnackBar('Akun Berhasil Dibuat!');
+      _showSnackBar('Terjadi kesalahan koneksi. Coba lagi.', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // ─── GOOGLE GMAIL LOGIN (GRACEFUL OAUTH & FAST LOGIN) ─────────────────────
+  // ─── GOOGLE GMAIL LOGIN ──────────────────────────────────────────────────────
   Future<void> _handleGoogleLogin(AppProvider provider) async {
     setState(() => _isLoading = true);
 
@@ -148,11 +162,14 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
         OAuthProvider.google,
         redirectTo: 'io.supabase.bemind://login-callback/',
       );
-    } catch (e) {
-      // Gracefully handle Supabase disabled provider error without throwing raw JSON
-      provider.login('haidir.user@gmail.com', 'google123');
-      provider.updateProfileName('Haidir (Google Gmail)');
-      _showSnackBar('✔ Masuk dengan Akun Gmail Berhasil!');
+      // OAuth opens browser — auth state will update via onAuthStateChange in main.dart
+    } on AuthException {
+      _showSnackBar(
+        'Google Login belum diaktifkan di Supabase Dashboard.\nAktifkan di: Authentication → Providers → Google',
+        isError: true,
+      );
+    } catch (_) {
+      _showSnackBar('Gagal memulai Google Login. Coba login dengan email.', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
 
 class AppProvider extends ChangeNotifier {
@@ -14,24 +15,47 @@ class AppProvider extends ChangeNotifier {
   // Auth & Profile State
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
+  bool _isLoadingEssays = false;
+  bool get isLoadingEssays => _isLoadingEssays;
 
   UserProfile _user = UserProfile(
-    id: 'usr_001',
-    name: 'Alex Supriyanto',
-    email: 'alex.supriyanto@bemind.ai',
+    id: '',
+    name: '',
+    email: '',
     targetGoal: 'Job Interview Prep',
-    profileCompleteness: 85,
+    profileCompleteness: 10,
   );
   UserProfile get user => _user;
 
+  /// Called after successful Supabase auth — sets user profile from real data
+  void loginWithProfile({
+    required String id,
+    required String name,
+    required String email,
+    String targetGoal = 'Job Interview Prep',
+  }) {
+    _isLoggedIn = true;
+    _user = UserProfile(
+      id: id,
+      name: name,
+      email: email,
+      targetGoal: targetGoal,
+      profileCompleteness: 40,
+    );
+    notifyListeners();
+    // Load essays from Supabase
+    _loadUserEssays(id);
+  }
+
+  /// Legacy method kept for compat — DO NOT use for Supabase login
   void login(String email, String password) {
     _isLoggedIn = true;
     _user = UserProfile(
-      id: 'usr_001',
+      id: 'local_${email.hashCode}',
       name: email.split('@').first,
       email: email,
       targetGoal: _user.targetGoal,
-      profileCompleteness: 85,
+      profileCompleteness: 20,
     );
     notifyListeners();
   }
@@ -39,6 +63,14 @@ class AppProvider extends ChangeNotifier {
   void logout() {
     _isLoggedIn = false;
     _currentPageIndex = 0;
+    _essays.clear();
+    _user = UserProfile(
+      id: '',
+      name: '',
+      email: '',
+      targetGoal: 'Job Interview Prep',
+      profileCompleteness: 10,
+    );
     notifyListeners();
   }
 
@@ -52,30 +84,8 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Context Vault State
-  final List<ContextItem> _contextItems = [
-    ContextItem(
-      id: 'ctx_1',
-      sourceType: SourceType.text,
-      title: 'Senior Software Engineer Resume & Background',
-      content: 'I have 5 years of experience building distributed systems in Fintech. My core strengths are Golang, Microservices, System Architecture, and Leading Agile Teams.',
-      timestamp: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    ContextItem(
-      id: 'ctx_2',
-      sourceType: SourceType.voice,
-      title: 'Voice Note: Career Ambition & IELTS Target',
-      content: 'My goal is to obtain an 8.0 band score in IELTS Speaking. I want to articulate complex engineering decisions confidently without hesitation or vocal fillers.',
-      timestamp: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-    ContextItem(
-      id: 'ctx_3',
-      sourceType: SourceType.pdf,
-      title: 'Tech Lead CV - 2026.pdf',
-      content: 'Extracted PDF: Managed a team of 8 engineers, reduced API latency by 45%, migrated legacy monolithic architecture to Kubernetes infrastructure.',
-      timestamp: DateTime.now().subtract(const Duration(hours: 12)),
-    ),
-  ];
+  // ─── Context Vault State (user-uploaded context docs) ──────────────────────
+  final List<ContextItem> _contextItems = [];
   List<ContextItem> get contextItems => List.unmodifiable(_contextItems);
 
   void addContextItem(SourceType type, String title, String content) {
@@ -90,48 +100,17 @@ class AppProvider extends ChangeNotifier {
       ),
     );
     // Recalculate completeness
-    int newCompleteness = (_contextItems.length * 25).clamp(25, 100);
+    int newCompleteness = (40 + (_contextItems.length * 15)).clamp(40, 100);
     _user = _user.copyWith(profileCompleteness: newCompleteness);
     notifyListeners();
   }
 
-  // AI Narrative Generator State
-  final List<Essay> _essays = [
-    Essay(
-      id: 'ess_1',
-      title: 'STAR Method: Overcoming Architectural Bottlenecks',
-      category: 'Job Interview',
-      subTopic: 'Technical Challenge & Leadership',
-      difficulty: 'C1 (Advanced)',
-      tone: 'Formal & Professional',
-      content: '''In my previous role as a Senior Software Engineer, our microservices architecture experienced severe latency issues during peak financial traffic hours. 
-
-To address this challenge, I spearheaded a comprehensive system audit. I identified that our primary database connection pool was saturated due to unindexed queries and redundant network calls. 
-
-I restructured our query execution pipeline and implemented a high-performance Redis caching layer. As a result, we reduced overall API response latency by 45% and improved our system throughput significantly. 
-
-This experience reinforced my belief that proactive performance monitoring and decoupled architecture design are essential for building reliable, scalable software solutions.''',
-      createdAt: DateTime.now().subtract(const Duration(hours: 4)),
-    ),
-    Essay(
-      id: 'ess_2',
-      title: 'IELTS Speaking Part 2: Describing a Technological Innovation',
-      category: 'IELTS/TOEFL',
-      subTopic: 'Part 2 Cue Card',
-      difficulty: 'B2 (Upper Intermediate)',
-      tone: 'Conversational',
-      content: '''I would like to talk about cloud-native infrastructure, which has fundamentally transformed how modern applications are deployed and maintained worldwide. 
-
-Before cloud migration became widespread, companies had to purchase and manage physical servers, which was both prohibitively expensive and time-consuming. Today, cloud platforms allow software teams to scale resources dynamically within seconds. 
-
-In my own work, leveraging cloud technologies has enabled us to deploy code faster, reduce operational overhead, and maintain continuous service availability for millions of active users.''',
-      createdAt: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-  ];
+  // ─── AI Narrative / Project State ──────────────────────────────────────────
+  final List<Essay> _essays = [];
   List<Essay> get essays => List.unmodifiable(_essays);
 
   Essay? _activeEssay;
-  Essay get activeEssay => _activeEssay ?? _essays.first;
+  Essay? get activeEssay => _activeEssay ?? (_essays.isNotEmpty ? _essays.first : null);
 
   void selectEssayForTeleprompter(Essay essay) {
     _activeEssay = essay;
@@ -145,53 +124,54 @@ In my own work, leveraging cloud technologies has enabled us to deploy code fast
     notifyListeners();
   }
 
-  // Vocabulary Vault State
-  final List<VocabItem> _vocabList = [
-    VocabItem(
-      id: 'v_1',
-      word: 'Spearhead',
-      phonetic: '/ˈspɪər.hed/',
-      definition: 'To lead an attack or a course of action; initiate and direct.',
-      contextSentence: 'I spearheaded a comprehensive system audit to resolve latency.',
-      indonesianMeaning: 'Memimpin / Mendorong akselerasi',
-      masteryStatus: MasteryStatus.learning,
-      addedAt: DateTime.now().subtract(const Duration(days: 3)),
-    ),
-    VocabItem(
-      id: 'v_2',
-      word: 'Prohibitively',
-      phonetic: '/prəˈhɪb.ə.tɪv.li/',
-      definition: 'In a way that is so expensive or difficult that it prevents something.',
-      contextSentence: 'Managing physical servers was prohibitively expensive.',
-      indonesianMeaning: 'Sangat mahal / Menghalangi',
-      masteryStatus: MasteryStatus.review,
-      addedAt: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    VocabItem(
-      id: 'v_3',
-      word: 'Saturated',
-      phonetic: '/ˈsætʃ.ər.eɪ.tɪd/',
-      definition: 'Holding as much moisture or content as can be absorbed; completely full.',
-      contextSentence: 'The database connection pool was saturated during peak hours.',
-      indonesianMeaning: 'Jenuh / Sangat penuh',
-      masteryStatus: MasteryStatus.mastered,
-      addedAt: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-    VocabItem(
-      id: 'v_4',
-      word: 'Throughput',
-      phonetic: '/ˈθruː.pʊt/',
-      definition: 'The amount of material or items passing through a system or process.',
-      contextSentence: 'We improved overall system throughput significantly.',
-      indonesianMeaning: 'Kapasitas pemrosesan data',
-      masteryStatus: MasteryStatus.learning,
-      addedAt: DateTime.now(),
-    ),
-  ];
+  /// Fetch this user's essays from Supabase generated_essays table
+  Future<void> _loadUserEssays(String userId) async {
+    if (userId.isEmpty || userId.startsWith('local_')) return;
+    _isLoadingEssays = true;
+    notifyListeners();
+
+    try {
+      final data = await Supabase.instance.client
+          .from('generated_essays')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .limit(50);
+
+      _essays.clear();
+      for (final row in data) {
+        _essays.add(Essay(
+          id: row['id']?.toString() ?? '',
+          title: row['title'] ?? 'Untitled Project',
+          category: row['category'] ?? '',
+          subTopic: row['sub_topic'] ?? '',
+          difficulty: row['difficulty'] ?? '',
+          tone: row['tone'] ?? '',
+          content: row['content'] ?? '',
+          createdAt: DateTime.tryParse(row['created_at'] ?? '') ?? DateTime.now(),
+        ));
+      }
+
+      // Update strength score based on real essay count
+      int newCompleteness = (40 + (_essays.length * 8) + (_contextItems.length * 10)).clamp(40, 100);
+      _user = _user.copyWith(profileCompleteness: newCompleteness);
+    } catch (e) {
+      debugPrint('[AppProvider] Failed to load essays: $e');
+      // Table might not exist yet — silently fail, keep empty list
+    } finally {
+      _isLoadingEssays = false;
+      notifyListeners();
+    }
+  }
+
+  /// Called externally to refresh essays (e.g. after generating a new one)
+  Future<void> refreshEssays() => _loadUserEssays(_user.id);
+
+  // ─── Vocabulary Vault State ─────────────────────────────────────────────────
+  final List<VocabItem> _vocabList = [];
   List<VocabItem> get vocabList => List.unmodifiable(_vocabList);
 
   void addVocabItem(VocabItem item) {
-    // Check if duplicate
     if (!_vocabList.any((v) => v.word.toLowerCase() == item.word.toLowerCase())) {
       _vocabList.insert(0, item);
       notifyListeners();
@@ -211,7 +191,7 @@ In my own work, leveraging cloud technologies has enabled us to deploy code fast
     notifyListeners();
   }
 
-  // Marketplace Prompts State
+  // ─── Marketplace Prompts State ──────────────────────────────────────────────
   final List<PromptTemplate> _promptTemplates = [
     PromptTemplate(
       id: 'tmpl_1',
@@ -275,7 +255,7 @@ In my own work, leveraging cloud technologies has enabled us to deploy code fast
     notifyListeners();
   }
 
-  // Settings & Notification Engine State
+  // ─── Settings & Notification Engine State ──────────────────────────────────
   NotificationSettings _notificationSettings = NotificationSettings();
   NotificationSettings get notificationSettings => _notificationSettings;
 
