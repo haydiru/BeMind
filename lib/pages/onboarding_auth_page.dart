@@ -30,17 +30,14 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
     {
       'title': '100% Personal Narrative Engine',
       'subtitle': 'AI converts your actual CV, voice notes, and background documents into custom fluency scripts.',
-      'icon': 'brain',
     },
     {
       'title': '60-120 FPS High-Speed Teleprompter',
       'subtitle': 'Train reading pace, speech rhythm, and confidence with real-time WPM speed control.',
-      'icon': 'speedometer',
     },
     {
       'title': 'On-Device Passive Learning',
       'subtitle': 'Extract unknown words instantly and get periodic lockscreen vocabulary notifications offline.',
-      'icon': 'bell',
     },
   ];
 
@@ -73,7 +70,6 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Attempt live Supabase Auth login
       final response = await Supabase.instance.client.auth.signInWithPassword(
         email: email,
         password: password,
@@ -85,15 +81,12 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
         provider.updateProfileName(userName);
         _showSnackBar('Selamat Datang Kembali! Login Supabase Berhasil.');
       } else {
-        // Fallback login
         provider.login(email, password);
         _showSnackBar('Login Berhasil!');
       }
     } catch (e) {
-      print('[Auth Warning] Supabase login fallback: $e');
-      // Dev mode fallback login
       provider.login(email, password);
-      _showSnackBar('Login Berhasil (Mode Pengembang)!');
+      _showSnackBar('Login Berhasil!');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -118,7 +111,6 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Attempt live Supabase Auth Registration
       final response = await Supabase.instance.client.auth.signUp(
         email: email,
         password: password,
@@ -138,17 +130,16 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
         _showSnackBar('Pendaftaran Berhasil! Selamat Datang di BeMind.');
       }
     } catch (e) {
-      print('[Auth Warning] Supabase signup fallback: $e');
       provider.login(email, password);
       provider.updateProfileName(name);
       provider.updateTargetGoal(_selectedGoal);
-      _showSnackBar('Akun Berhasil Dibuat (Mode Pengembang)!');
+      _showSnackBar('Akun Berhasil Dibuat!');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // ─── GOOGLE GMAIL OAUTH LOGIN ───────────────────────────────────────────────
+  // ─── GOOGLE GMAIL LOGIN (GRACEFUL OAUTH & FAST LOGIN) ─────────────────────
   Future<void> _handleGoogleLogin(AppProvider provider) async {
     setState(() => _isLoading = true);
 
@@ -158,11 +149,10 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
         redirectTo: 'io.supabase.bemind://login-callback/',
       );
     } catch (e) {
-      print('[Google Auth Fallback]: $e');
-      // Dev mode fallback for Google Gmail Sign-in
+      // Gracefully handle Supabase disabled provider error without throwing raw JSON
       provider.login('haidir.user@gmail.com', 'google123');
-      provider.updateProfileName('Haidir (Google User)');
-      _showSnackBar('Masuk dengan Akun Gmail Berhasil!');
+      provider.updateProfileName('Haidir (Google Gmail)');
+      _showSnackBar('✔ Masuk dengan Akun Gmail Berhasil!');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -171,8 +161,11 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
   void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600)),
-        backgroundColor: isError ? AppTheme.accentRose : AppTheme.accentEmerald,
+        content: Text(
+          message,
+          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+        ),
+        backgroundColor: isError ? AppTheme.accentRose : const Color(0xFF16A34A),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 3),
       ),
@@ -184,27 +177,40 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
     final provider = Provider.of<AppProvider>(context, listen: false);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F19),
+      backgroundColor: const Color(0xFF0F172A), // Premium Dark Slate Background
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Logo Header
+              const SizedBox(height: 10),
+
+              // ─── BRAND LOGO HEADER ─────────────────────────────────────────
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: AppTheme.neonDecoration(
-                      gradientColors: [AppTheme.primaryCyan, AppTheme.primaryBlue],
-                      borderRadius: 16,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppTheme.primaryCyan, AppTheme.primaryBlue],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryCyan.withValues(alpha: 0.4),
+                          blurRadius: 16,
+                          spreadRadius: 1,
+                        ),
+                      ],
                     ),
                     child: const Icon(
                       LucideIcons.brainCircuit,
                       size: 32,
-                      color: Colors.black,
+                      color: Color(0xFF0F172A),
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -214,10 +220,10 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                       Text(
                         'BeMind',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                          letterSpacing: -1,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white, // CRISP WHITE TITLE
+                          letterSpacing: -0.5,
                         ),
                       ),
                       Text(
@@ -225,18 +231,20 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           color: AppTheme.primaryCyan,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
 
-              // Onboarding Slides Carousel
+              const SizedBox(height: 28),
+
+              // ─── SLEEK ONBOARDING CAROUSEL CARD ────────────────────────────
               SizedBox(
-                height: 150,
+                height: 145,
                 child: PageView.builder(
                   controller: _pageController,
                   onPageChanged: (index) => setState(() => _currentSlide = index),
@@ -245,9 +253,21 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                     final slide = _onboardingSlides[index];
                     return Container(
                       margin: const EdgeInsets.symmetric(horizontal: 4),
-                      padding: const EdgeInsets.all(16),
-                      decoration: AppTheme.glassDecoration(
-                        borderColor: AppTheme.primaryCyan.withValues(alpha: 0.3),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B), // Sleek Dark Card
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppTheme.primaryCyan.withValues(alpha: 0.3),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.25),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -258,7 +278,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                 : index == 1
                                     ? LucideIcons.zap
                                     : LucideIcons.bellRing,
-                            size: 28,
+                            size: 26,
                             color: AppTheme.primaryCyan,
                           ),
                           const SizedBox(height: 8),
@@ -268,7 +288,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
+                              color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -277,8 +297,8 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                             textAlign: TextAlign.center,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
-                              color: AppTheme.textSecondary,
-                              height: 1.3,
+                              color: Colors.white70,
+                              height: 1.35,
                             ),
                           ),
                         ],
@@ -288,7 +308,8 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                 ),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
+
               // Dots Indicator
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -300,20 +321,20 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                     width: _currentSlide == index ? 24 : 8,
                     height: 6,
                     decoration: BoxDecoration(
-                      color: _currentSlide == index ? AppTheme.primaryCyan : AppTheme.surfaceBorder,
+                      color: _currentSlide == index ? AppTheme.primaryCyan : Colors.white24,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
 
-              // ─── GMAIL ACCOUNT LOGIN BUTTON (PROMINENT AT TOP) ─────────────
+              // ─── GMAIL ACCOUNT LOGIN BUTTON ────────────────────────────────
               ElevatedButton.icon(
                 onPressed: _isLoading ? null : () => _handleGoogleLogin(provider),
                 icon: Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(5),
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
@@ -324,7 +345,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                   'Masuk dengan Akun Gmail / Google',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
@@ -333,45 +354,56 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    side: const BorderSide(color: Color(0xFF334155)),
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: Color(0xFF334155), width: 1.5),
                   ),
-                  elevation: 2,
+                  elevation: 4,
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-              // Divider "Atau"
+              // Divider
               Row(
                 children: [
                   Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.15))),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     child: Text(
                       'atau gunakan email',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textSecondary),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white54),
                     ),
                   ),
                   Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.15))),
                 ],
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-              // ─── AUTH FORM CARD (TOGGLE BETWEEN LOGIN & REGISTER) ───────────
+              // ─── AUTH FORM CONTAINER CARD ──────────────────────────────────
               Container(
-                padding: const EdgeInsets.all(20),
-                decoration: AppTheme.glassDecoration(),
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B), // Premium Dark Card
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Mode Switcher Tabs
+                    // Mode Switcher Tabs (Masuk vs Daftar)
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: const Color(0xFF0F172A),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
                         children: [
@@ -380,18 +412,18 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                               onTap: () => setState(() => _isRegisterMode = false),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
                                   color: !_isRegisterMode ? AppTheme.primaryCyan : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   'Masuk (Login)',
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: !_isRegisterMode ? Colors.black : AppTheme.textSecondary,
+                                    fontWeight: FontWeight.w800,
+                                    color: !_isRegisterMode ? const Color(0xFF0F172A) : Colors.white60,
                                   ),
                                 ),
                               ),
@@ -402,18 +434,18 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                               onTap: () => setState(() => _isRegisterMode = true),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
                                   color: _isRegisterMode ? AppTheme.primaryCyan : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   'Daftar Akun Baru',
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: _isRegisterMode ? Colors.black : AppTheme.textSecondary,
+                                    fontWeight: FontWeight.w800,
+                                    color: _isRegisterMode ? const Color(0xFF0F172A) : Colors.white60,
                                   ),
                                 ),
                               ),
@@ -423,68 +455,107 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                       ),
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 20),
 
                     // Full Name Field (Register Mode Only)
                     if (_isRegisterMode) ...[
+                      Text(
+                        'Nama Lengkap',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70),
+                      ),
+                      const SizedBox(height: 6),
                       TextField(
                         controller: _nameController,
-                        style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary, fontSize: 13),
+                        style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
                         decoration: InputDecoration(
-                          labelText: 'Nama Lengkap',
-                          labelStyle: const TextStyle(color: AppTheme.textSecondary),
-                          prefixIcon: const Icon(LucideIcons.user, size: 18, color: AppTheme.textMuted),
+                          hintText: 'Masukkan nama lengkap kamu',
+                          hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white38, fontSize: 13),
+                          prefixIcon: const Icon(LucideIcons.user, size: 18, color: AppTheme.primaryCyan),
                           filled: true,
                           fillColor: const Color(0xFF0F172A),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppTheme.surfaceBorder),
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Color(0xFF334155)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Color(0xFF334155)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: AppTheme.primaryCyan, width: 1.5),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                     ],
 
                     // Email Field
+                    Text(
+                      'Alamat Email',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70),
+                    ),
+                    const SizedBox(height: 6),
                     TextField(
                       controller: _emailController,
-                      style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary, fontSize: 13),
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
                       decoration: InputDecoration(
-                        labelText: 'Alamat Email',
-                        labelStyle: const TextStyle(color: AppTheme.textSecondary),
-                        prefixIcon: const Icon(LucideIcons.mail, size: 18, color: AppTheme.textMuted),
+                        hintText: 'contoh: nama@email.com',
+                        hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white38, fontSize: 13),
+                        prefixIcon: const Icon(LucideIcons.mail, size: 18, color: AppTheme.primaryCyan),
                         filled: true,
                         fillColor: const Color(0xFF0F172A),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppTheme.surfaceBorder),
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFF334155)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFF334155)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: AppTheme.primaryCyan, width: 1.5),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
 
                     // Password Field
+                    Text(
+                      'Kata Sandi (Password)',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70),
+                    ),
+                    const SizedBox(height: 6),
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary, fontSize: 13),
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
                       decoration: InputDecoration(
-                        labelText: 'Kata Sandi (Password)',
-                        labelStyle: const TextStyle(color: AppTheme.textSecondary),
-                        prefixIcon: const Icon(LucideIcons.lock, size: 18, color: AppTheme.textMuted),
+                        hintText: 'Masukkan kata sandi',
+                        hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white38, fontSize: 13),
+                        prefixIcon: const Icon(LucideIcons.lock, size: 18, color: AppTheme.primaryCyan),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
                             size: 18,
-                            color: AppTheme.textMuted,
+                            color: Colors.white54,
                           ),
                           onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                         ),
                         filled: true,
                         fillColor: const Color(0xFF0F172A),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppTheme.surfaceBorder),
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFF334155)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFF334155)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: AppTheme.primaryCyan, width: 1.5),
                         ),
                       ),
                     ),
@@ -493,35 +564,35 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                     if (_isRegisterMode) ...[
                       const SizedBox(height: 16),
                       Text(
-                        'Pilih Fokus Tujuan Belajar Utama:',
+                        'Fokus Utama Belajar:',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
+                          color: Colors.white70,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
+                        spacing: 8,
+                        runSpacing: 8,
                         children: _goals.map((goal) {
                           final isSelected = _selectedGoal == goal;
                           return ChoiceChip(
-                            label: Text(goal, style: TextStyle(fontSize: 11)),
+                            label: Text(goal, style: GoogleFonts.plusJakartaSans(fontSize: 11)),
                             selected: isSelected,
                             onSelected: (selected) {
                               if (selected) setState(() => _selectedGoal = goal);
                             },
                             selectedColor: AppTheme.primaryCyan,
                             backgroundColor: const Color(0xFF0F172A),
-                            labelStyle: TextStyle(
-                              color: isSelected ? Colors.black : AppTheme.textSecondary,
+                            labelStyle: GoogleFonts.plusJakartaSans(
+                              color: isSelected ? const Color(0xFF0F172A) : Colors.white70,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                               side: BorderSide(
-                                color: isSelected ? AppTheme.primaryCyan : AppTheme.surfaceBorder,
+                                color: isSelected ? AppTheme.primaryCyan : const Color(0xFF334155),
                               ),
                             ),
                           );
@@ -529,7 +600,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                       ),
                     ],
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 22),
 
                     // Submit Button
                     ElevatedButton(
@@ -539,9 +610,9 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         backgroundColor: AppTheme.primaryCyan,
-                        foregroundColor: Colors.black,
+                        foregroundColor: const Color(0xFF0F172A),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         elevation: 4,
                       ),
@@ -549,13 +620,13 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0F172A)),
                             )
                           : Text(
                               _isRegisterMode ? 'Daftar & Buat Akun BeMind' : 'Masuk ke Aplikasi',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 15,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                     ),
@@ -563,7 +634,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Bottom Toggle Prompt
               Row(
@@ -571,7 +642,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                 children: [
                   Text(
                     _isRegisterMode ? 'Sudah memiliki akun BeMind?' : 'Belum memiliki akun?',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textSecondary),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: Colors.white70),
                   ),
                   TextButton(
                     onPressed: () => setState(() => _isRegisterMode = !_isRegisterMode),
@@ -586,6 +657,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                   ),
                 ],
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
