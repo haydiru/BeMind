@@ -20,14 +20,30 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
   late ScrollController _scrollController;
   Timer? _scrollTimer;
 
-  /// Splits essay content into ~6-8 word chunks for smooth teleprompter reading
+  /// Splits essay content into clean, sentence-aware chunks (new line per sentence)
+  /// and breaks long sentences gracefully to prevent orphan single-word lines.
   List<String> _buildScriptChunks(String content) {
-    if (content.isEmpty) return [];
-    final words = content.split(RegExp(r'\s+'));
+    if (content.trim().isEmpty) return [];
+    
+    // Split text by sentence terminators (. ! ?) or explicit line breaks
+    final rawSentences = content.split(RegExp(r'(?<=[.!?])\s+|\n+'));
     final chunks = <String>[];
-    const chunkSize = 7;
-    for (int i = 0; i < words.length; i += chunkSize) {
-      chunks.add(words.sublist(i, (i + chunkSize).clamp(0, words.length)).join(' '));
+
+    for (var sentence in rawSentences) {
+      final trimmed = sentence.trim();
+      if (trimmed.isEmpty) continue;
+
+      final words = trimmed.split(RegExp(r'\s+'));
+      if (words.length <= 10) {
+        chunks.add(trimmed);
+      } else {
+        // Break long sentences into natural 6-8 word sub-phrases
+        const maxChunkWords = 8;
+        for (int i = 0; i < words.length; i += maxChunkWords) {
+          final end = (i + maxChunkWords).clamp(0, words.length);
+          chunks.add(words.sublist(i, end).join(' '));
+        }
+      }
     }
     return chunks;
   }
@@ -190,25 +206,52 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                           ),
                         ),
 
-                      // Continuous 60 FPS Teleprompter ListView
+                      // Continuous 60 FPS Teleprompter ListView with Interactive Word Click Dictionary
                       if (scriptParagraphs.isNotEmpty)
                         ListView.builder(
                           controller: _scrollController,
-                          padding: const EdgeInsets.symmetric(vertical: 140, horizontal: 24),
+                          padding: const EdgeInsets.symmetric(vertical: 140, horizontal: 20),
                           itemCount: scriptParagraphs.length,
                           itemBuilder: (context, index) {
+                            final chunkText = scriptParagraphs[index];
+                            final wordsInChunk = chunkText.split(RegExp(r'\s+'));
+
                             return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 14.0),
-                              child: Text(
-                                scriptParagraphs[index],
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.textPrimary,
-                                  height: 1.6,
-                                  letterSpacing: -0.4,
-                                ),
+                              padding: const EdgeInsets.symmetric(vertical: 12.0),
+                              child: Wrap(
+                                alignment: WrapAlignment.center,
+                                cross: WrapCrossAlignment.center,
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: wordsInChunk.map((word) {
+                                  // Clean word for lookup (remove punctuation)
+                                  final cleaned = word.replaceAll(RegExp(r'[^\w\s]'), '');
+                                  return InkWell(
+                                    onTap: () {
+                                      if (cleaned.isNotEmpty) {
+                                        _showWordDefinitionSheet(context, cleaned, provider);
+                                      }
+                                    },
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        word,
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 21,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppTheme.textPrimary,
+                                          height: 1.4,
+                                          letterSpacing: -0.3,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
                               ),
                             );
                           },
@@ -520,6 +563,194 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
           ),
         ),
       ),
+    );
+  }
+
+  /// Displays interactive dictionary definition sheet & allows saving to Vocab Vault
+  void _showWordDefinitionSheet(BuildContext context, String rawWord, AppProvider provider) {
+    final word = rawWord.toLowerCase();
+    
+    // Check if word is already in Vocab Vault
+    final existingItem = provider.vocabList.firstWhere(
+      (v) => v.word.toLowerCase() == word,
+      orElse: () => VocabItem(
+        id: '',
+        word: rawWord,
+        phonetic: '/${rawWord.toLowerCase()}/',
+        definition: 'Kata kunci profesional untuk meningkatkan kefasihan berbicara.',
+        indonesianMeaning: 'Arti kata dalam bahasa Indonesia.',
+        exampleSentence: 'I used "${rawWord}" during my professional conversation.',
+        masteryStatus: MasteryStatus.learning,
+      ),
+    );
+
+    final isAlreadySaved = existingItem.id.isNotEmpty;
+
+    final meaningController = TextEditingController(
+      text: isAlreadySaved ? existingItem.indonesianMeaning : 'Terjemahan / Arti kata "${rawWord}"',
+    );
+    final exampleController = TextEditingController(
+      text: isAlreadySaved ? existingItem.exampleSentence : 'Contoh kalimat dengan "${rawWord}"',
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: EdgeInsets.only(
+                top: 24,
+                left: 24,
+                right: 24,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Drag indicator pill
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Word Header & Status Tag
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            rawWord,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                          Text(
+                            '/${rawWord.toLowerCase()}/',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF0D9488),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isAlreadySaved ? const Color(0xFFDCFCE7) : const Color(0xFFCCFBF1),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              isAlreadySaved ? LucideIcons.check : LucideIcons.bookmarkPlus,
+                              size: 14,
+                              color: isAlreadySaved ? const Color(0xFF16A34A) : const Color(0xFF0D9488),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              isAlreadySaved ? 'Tersimpan di Vocab' : 'Kosa Kata Baru',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: isAlreadySaved ? const Color(0xFF16A34A) : const Color(0xFF0D9488),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+                  const Divider(color: Color(0xFFF1F5F9)),
+                  const SizedBox(height: 10),
+
+                  // Definition / Meaning Field
+                  Text(
+                    'Arti / Terjemahan (Bahasa Indonesia):',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: meaningController,
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Action Button: Save to Vocab Vault
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        final newItem = VocabItem(
+                          id: isAlreadySaved ? existingItem.id : 'vcb_${DateTime.now().millisecondsSinceEpoch}',
+                          word: rawWord,
+                          phonetic: '/${rawWord.toLowerCase()}/',
+                          definition: 'Vocabulary saved from Teleprompter practice',
+                          indonesianMeaning: meaningController.text.trim(),
+                          exampleSentence: exampleController.text.trim(),
+                          masteryStatus: MasteryStatus.learning,
+                        );
+
+                        provider.addVocabItem(newItem);
+                        Navigator.pop(ctx);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('✔ "$rawWord" berhasil disimpan ke Vocab Vault!'),
+                            backgroundColor: const Color(0xFF0D9488),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                      icon: const Icon(LucideIcons.bookmarkCheck, size: 18, color: Colors.white),
+                      label: Text(
+                        isAlreadySaved ? 'Update Vocab Vault' : 'Simpan ke Vocab Vault',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D9488),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
