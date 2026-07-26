@@ -108,62 +108,8 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         setState(() {
           _isRecordingVoice = false;
           _recordedAudioPath = path;
-          _isTranscribing = true;
+          _isTranscribing = false;
         });
-
-        // Verify audio file size (kIsWeb bypasses file length check)
-        int audioSize = 0;
-        if (path != null && path.isNotEmpty && !kIsWeb) {
-          final file = File(path);
-          if (await file.exists()) {
-            audioSize = await file.length();
-          }
-        }
-
-        // Warn ONLY if audio file is truly empty AND no text was recognized by STT
-        if ((path == null || path.isEmpty || (audioSize < 100 && !kIsWeb)) && _transcriptTextController.text.trim().isEmpty) {
-          setState(() {
-            _recordedAudioPath = null;
-            _isTranscribing = false;
-          });
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('⚠️ Suara tidak terdeteksi! Harap periksa mikrofon kamu dan rekam ulang.'),
-                backgroundColor: Colors.orange,
-              ),
-            );
-          }
-          return;
-        }
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✔ Rekaman berhasil disimpan! Transkripsi siap.'),
-              backgroundColor: Color(0xFF0D9488),
-            ),
-          );
-        }
-
-        // Attempt Backend STT Transcription via Whisper AI
-        String transcript = await ApiService.transcribeAudio(audioPath: path ?? '');
-
-        if (mounted) {
-          setState(() {
-            if (transcript.isNotEmpty) {
-              _transcriptTextController.text = transcript;
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('💡 Suara terekam! Transkripsi otomatis kosong, kamu bisa langsung ketik poin atau rekam ulang.'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            }
-            _isTranscribing = false;
-          });
-        }
       } else {
         // Start recording
         if (await _audioRecorder.hasPermission()) {
@@ -177,11 +123,16 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
             _recordedAudioPath = null;
           });
 
-          // Start recording audio file cleanly
+          // Start recording audio file
           await _audioRecorder.start(
             const RecordConfig(encoder: AudioEncoder.aacLc),
             path: path,
           );
+
+          // Start On-device Realtime Free Speech Recognition
+          if (_sttInitialized) {
+            _startContinuousListening();
+          }
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
