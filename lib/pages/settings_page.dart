@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
+import '../services/notification_service.dart';
 import '../widgets/header_bar.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -274,7 +275,13 @@ class _SettingsPageState extends State<SettingsPage> {
                         Switch(
                           value: notif.isEnabled,
                           activeColor: const Color(0xFF0D9488),
-                          onChanged: (val) => provider.toggleNotifications(val),
+                          onChanged: (val) async {
+                            provider.toggleNotifications(val);
+                            if (val) {
+                              // Trigger notification permission request & test notification
+                              await NotificationService.showPassiveVocabNotification(vocabList);
+                            }
+                          },
                         ),
                       ],
                     ),
@@ -283,9 +290,37 @@ class _SettingsPageState extends State<SettingsPage> {
                       const SizedBox(height: 16),
                       const Divider(color: Color(0xFFF1F5F9)),
                       const SizedBox(height: 10),
-                      Text(
-                        'Frekuensi Pengiriman Notifikasi:',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Frekuensi Pengiriman Notifikasi:',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
+                          ),
+                          InkWell(
+                            onTap: () async {
+                              await NotificationService.showPassiveVocabNotification(vocabList);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('🔔 Notifikasi tes telah dikirim ke status bar HP!'),
+                                    backgroundColor: Color(0xFF0D9488),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Row(
+                              children: [
+                                const Icon(LucideIcons.send, size: 12, color: Color(0xFF0D9488)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Tes Sekarang',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Row(

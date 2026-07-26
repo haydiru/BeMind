@@ -11,6 +11,7 @@ import 'pages/teleprompter_page.dart';
 import 'pages/vocab_vault_page.dart';
 import 'pages/marketplace_page.dart';
 import 'pages/settings_page.dart';
+import 'services/notification_service.dart';
 import 'services/supabase_config.dart';
 
 void main() async {
@@ -20,6 +21,9 @@ void main() async {
     url: SupabaseConfig.url,
     anonKey: SupabaseConfig.anonKey,
   );
+
+  // Initialize Local Notifications Service
+  await NotificationService.initialize();
 
   runApp(
     ChangeNotifierProvider(
