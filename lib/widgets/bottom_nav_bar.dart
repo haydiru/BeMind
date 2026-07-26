@@ -40,40 +40,35 @@ class BottomNavBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Container(
-          height: 64,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: SizedBox(
+          height: 60,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(navItems.length, (index) {
               final item = navItems[index];
               final isSelected = currentIndex == index;
 
-              return InkWell(
-                onTap: () => provider.setPageIndex(index),
-                borderRadius: BorderRadius.circular(16),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF0D9488).withValues(alpha: 0.1) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+              return Expanded(
+                child: InkWell(
+                  onTap: () => provider.setPageIndex(index),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         item['icon'] as IconData,
                         size: 20,
                         color: isSelected ? const Color(0xFF0D9488) : const Color(0xFF94A3B8),
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        item['label'] as String,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
-                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                          color: isSelected ? const Color(0xFF0D9488) : const Color(0xFF94A3B8),
+                      const SizedBox(height: 2),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          item['label'] as String,
+                          maxLines: 1,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                            color: isSelected ? const Color(0xFF0D9488) : const Color(0xFF94A3B8),
+                          ),
                         ),
                       ),
                     ],

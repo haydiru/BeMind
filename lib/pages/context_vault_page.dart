@@ -465,15 +465,18 @@ class ContextVaultPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Daftar Project Kamu',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF0F172A),
+                  Expanded(
+                    child: Text(
+                      'Daftar Project Kamu',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0F172A),
+                      ),
                     ),
                   ),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         icon: const Icon(LucideIcons.refreshCw, size: 16, color: Color(0xFF0D9488)),

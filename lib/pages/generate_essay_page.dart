@@ -483,9 +483,11 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                       children: [
                         _buildStepBadge('1'),
                         const SizedBox(width: 10),
-                        Text(
-                          'Pilih Project & Level Fluency',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                        Expanded(
+                          child: Text(
+                            'Pilih Project & Level Fluency',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                          ),
                         ),
                       ],
                     ),
@@ -635,9 +637,11 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                       children: [
                         _buildStepBadge('2'),
                         const SizedBox(width: 10),
-                        Text(
-                          'Input Data Konteks (Context)',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                        Expanded(
+                          child: Text(
+                            'Input Data Konteks (Context)',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                          ),
                         ),
                       ],
                     ),
@@ -698,30 +702,45 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // 🌐 Language Mode Switcher (English vs Bahasa Indonesia)
+                            // 🌐 Language Mode Switcher (Dropdown for Clean Mobile Responsiveness)
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text('Bahasa Bicara:', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF475569))),
-                                const SizedBox(width: 8),
-                                ChoiceChip(
-                                  label: const Text('English 🇺🇸'),
-                                  selected: _sttLocaleId == 'en_US',
-                                  selectedColor: const Color(0xFF0D9488),
-                                  labelStyle: TextStyle(color: _sttLocaleId == 'en_US' ? Colors.white : const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.bold),
-                                  onSelected: (sel) {
-                                    if (sel) setState(() => _sttLocaleId = 'en_US');
-                                  },
+                                Text(
+                                  'Bahasa Bicara:',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
                                 ),
-                                const SizedBox(width: 6),
-                                ChoiceChip(
-                                  label: const Text('Bahasa Indonesia 🇮🇩'),
-                                  selected: _sttLocaleId == 'id_ID',
-                                  selectedColor: const Color(0xFF0D9488),
-                                  labelStyle: TextStyle(color: _sttLocaleId == 'id_ID' ? Colors.white : const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.bold),
-                                  onSelected: (sel) {
-                                    if (sel) setState(() => _sttLocaleId = 'id_ID');
-                                  },
+                                const SizedBox(width: 10),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFCCFBF1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: const Color(0xFF0D9488)),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: _sttLocaleId,
+                                      isDense: true,
+                                      icon: const Icon(LucideIcons.chevronDown, size: 16, color: Color(0xFF0D9488)),
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488)),
+                                      items: const [
+                                        DropdownMenuItem(
+                                          value: 'en_US',
+                                          child: Text('English 🇺🇸'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'id_ID',
+                                          child: Text('Bahasa Indonesia 🇮🇩'),
+                                        ),
+                                      ],
+                                      onChanged: (val) {
+                                        if (val != null) {
+                                          setState(() => _sttLocaleId = val);
+                                        }
+                                      },
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -935,9 +954,11 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                       children: [
                         _buildStepBadge('3'),
                         const SizedBox(width: 10),
-                        Text(
-                          'Kustomisasi Prompt & Instruksi AI',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                        Expanded(
+                          child: Text(
+                            'Kustomisasi Prompt & Instruksi AI',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                          ),
                         ),
                       ],
                     ),
