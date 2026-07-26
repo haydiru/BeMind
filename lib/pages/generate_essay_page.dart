@@ -404,6 +404,23 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
 
+    // Auto-bind selected project category if navigated from "+ Tambah Narasi"
+    final boundCategory = provider.selectedProjectCategory;
+    if (boundCategory != null && boundCategory.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _selectedCategory != boundCategory) {
+          setState(() {
+            _selectedCategory = boundCategory;
+            _projectTitleController.text = boundCategory;
+          });
+          // Ensure category list contains the custom bound category
+          if (!_categories.contains(boundCategory)) {
+            _categories.add(boundCategory);
+          }
+        }
+      });
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC), // Pristine Light Canvas
       appBar: const HeaderBar(title: 'BeMind AI'),
@@ -491,7 +508,33 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    if (boundCategory != null && boundCategory.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCCFBF1),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFF0D9488).withValues(alpha: 0.4)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(LucideIcons.folderInput, size: 18, color: Color(0xFF0D9488)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Menambahkan narasi baru ke Project "$boundCategory"',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF0D9488)),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () => provider.clearSelectedProjectCategory(),
+                              child: const Icon(LucideIcons.x, size: 16, color: Color(0xFF0D9488)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
 
                     // Input Nama/Judul Project
                     Text(

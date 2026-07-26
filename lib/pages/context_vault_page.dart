@@ -736,7 +736,7 @@ class ContextVaultPage extends StatelessWidget {
                 ),
               ),
               InkWell(
-                onTap: () => provider.setPageIndex(1),
+                onTap: () => provider.startNewNarrativeForProject(categoryName),
                 borderRadius: BorderRadius.circular(999),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

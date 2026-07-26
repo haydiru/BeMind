@@ -109,6 +109,21 @@ class AppProvider extends ChangeNotifier {
   Essay? _activeEssay;
   Essay? get activeEssay => _activeEssay ?? (_essays.isNotEmpty ? _essays.first : null);
 
+  // Selected Project context when clicking "+ Tambah Narasi"
+  String? _selectedProjectCategory;
+  String? get selectedProjectCategory => _selectedProjectCategory;
+
+  void startNewNarrativeForProject(String categoryName) {
+    _selectedProjectCategory = categoryName;
+    _currentPageIndex = 1; // Navigate to Generate Essay Page (index 1)
+    notifyListeners();
+  }
+
+  void clearSelectedProjectCategory() {
+    _selectedProjectCategory = null;
+    notifyListeners();
+  }
+
   void selectEssayForTeleprompter(Essay essay) {
     _activeEssay = essay;
     _currentPageIndex = 2; // Navigate to Teleprompter Reader Page (index 2)
