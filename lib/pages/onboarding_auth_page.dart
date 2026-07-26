@@ -202,6 +202,8 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
             child: Container(
               width: 320,
               height: 320,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
