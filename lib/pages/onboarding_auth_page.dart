@@ -202,10 +202,13 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
             child: Container(
               width: 320,
               height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF06B6D4).withValues(alpha: 0.15), // Cyan Glow
-                blurRadius: 120,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
+                    blurRadius: 120,
+                    spreadRadius: 40,
+                  ),
+                ],
               ),
             ),
           ),
@@ -217,8 +220,13 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
               height: 380,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.18), // Sapphire Glow
-                blurRadius: 140,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.18),
+                    blurRadius: 140,
+                    spreadRadius: 50,
+                  ),
+                ],
               ),
             ),
           ),
