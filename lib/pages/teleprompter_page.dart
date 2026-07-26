@@ -710,13 +710,14 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
 
                   // Definition / Meaning Field
                   Text(
-                    'Arti / Terjemahan (Bahasa Indonesia):',
+                    'Arti Kata & Konteks Kalimat:',
                     style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
                   ),
                   const SizedBox(height: 6),
                   TextField(
                     controller: meaningController,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
+                    maxLines: 3,
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A), height: 1.4),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),

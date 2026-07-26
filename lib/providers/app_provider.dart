@@ -42,6 +42,7 @@ class AppProvider extends ChangeNotifier {
     );
     notifyListeners();
     _loadUserEssays(userId);
+    _loadUserVocabularies(userId);
   }
 
   void loginWithProfile({required String id, required String name, required String email, required String targetGoal}) {
@@ -55,6 +56,7 @@ class AppProvider extends ChangeNotifier {
     );
     notifyListeners();
     _loadUserEssays(id);
+    _loadUserVocabularies(id);
   }
 
   void logout() {
@@ -259,24 +261,91 @@ class AppProvider extends ChangeNotifier {
   final List<VocabItem> _vocabList = [];
   List<VocabItem> get vocabList => List.unmodifiable(_vocabList);
 
-  void addVocabItem(VocabItem item) {
-    if (!_vocabList.any((v) => v.word.toLowerCase() == item.word.toLowerCase())) {
+  void addVocabItem(VocabItem item) async {
+    final idx = _vocabList.indexWhere((v) => v.word.toLowerCase() == item.word.toLowerCase());
+    if (idx != -1) {
+      _vocabList[idx] = item;
+    } else {
       _vocabList.insert(0, item);
-      notifyListeners();
+    }
+    notifyListeners();
+
+    // Sync to Supabase database for persistent storage across sessions & logins
+    try {
+      if (_user.id.isNotEmpty && !_user.id.startsWith('local_')) {
+        await Supabase.instance.client.from('vocabularies').upsert({
+          'user_id': _user.id,
+          'word': item.word,
+          'phonetic': item.phonetic,
+          'definition': item.definition,
+          'context_sentence': item.contextSentence,
+          'indonesian_meaning': item.indonesianMeaning,
+          'mastery_status': item.masteryStatus.name,
+        }, onConflict: 'user_id, word');
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] Error saving vocab to Supabase: $e');
     }
   }
 
-  void updateVocabStatus(String id, MasteryStatus status) {
+  void updateVocabStatus(String id, MasteryStatus status) async {
     final idx = _vocabList.indexWhere((v) => v.id == id);
     if (idx != -1) {
       _vocabList[idx].masteryStatus = status;
       notifyListeners();
+
+      try {
+        await Supabase.instance.client.from('vocabularies').update({
+          'mastery_status': status.name,
+        }).eq('id', id);
+      } catch (e) {
+        debugPrint('[AppProvider] Error updating vocab status: $e');
+      }
     }
   }
 
-  void deleteVocabItem(String id) {
+  void deleteVocabItem(String id) async {
     _vocabList.removeWhere((v) => v.id == id);
     notifyListeners();
+
+    try {
+      await Supabase.instance.client.from('vocabularies').delete().eq('id', id);
+    } catch (e) {
+      debugPrint('[AppProvider] Error deleting vocab: $e');
+    }
+  }
+
+  /// Fetch user's saved vocabularies directly from Supabase database
+  Future<void> _loadUserVocabularies(String userId) async {
+    if (userId.isEmpty || userId.startsWith('local_')) return;
+    try {
+      final response = await Supabase.instance.client
+          .from('vocabularies')
+          .select()
+          .eq('user_id', userId)
+          .order('added_at', ascending: false);
+
+      _vocabList.clear();
+      for (final row in response) {
+        MasteryStatus status = MasteryStatus.learning;
+        if (row['mastery_status'] == 'mastered') status = MasteryStatus.mastered;
+        if (row['mastery_status'] == 'review') status = MasteryStatus.review;
+
+        _vocabList.add(VocabItem(
+          id: row['id']?.toString() ?? '',
+          word: row['word'] ?? '',
+          phonetic: row['phonetic'] ?? '',
+          definition: row['definition'] ?? '',
+          contextSentence: row['context_sentence'] ?? '',
+          indonesianMeaning: row['indonesian_meaning'] ?? '',
+          masteryStatus: status,
+          addedAt: DateTime.tryParse(row['added_at']?.toString() ?? '') ?? DateTime.now(),
+        ));
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[AppProvider] Error loading user vocabularies from Supabase: $e');
+    }
   }
 
   // ─── Marketplace Prompts State ──────────────────────────────────────────────
