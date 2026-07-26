@@ -6,8 +6,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package02/speech_to_text/speech_to_text.dart' as stt;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
@@ -47,6 +47,9 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   final TextEditingController _transcriptTextController = TextEditingController();
   bool _isTranscribing = false;
   bool _sttInitialized = false;
+
+  // Language Locale for Speech-To-Text ('en_US' for English, 'id_ID' for Bahasa Indonesia)
+  String _sttLocaleId = 'en_US';
 
   // 📎 Real File Picker
   String? _attachedFileName;
@@ -92,7 +95,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     super.dispose();
   }
 
-  // 🎙️ Continuous Audio Recording Handler with Continuous Listening & Auto-Restart
+  // 🎙️ Audio Recording Handler
   Future<void> _toggleAudioRecording() async {
     try {
       if (_isRecordingVoice) {
@@ -108,7 +111,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           _isTranscribing = true;
         });
 
-        // Verify audio file validity & duration
+        // Verify audio file size (kIsWeb bypasses file length check)
         int audioSize = 0;
         if (path != null && path.isNotEmpty && !kIsWeb) {
           final file = File(path);
@@ -117,8 +120,8 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           }
         }
 
-        // If file is empty (< 100 bytes), inform user
-        if (path == null || path.isEmpty || (audioSize < 100 && !kIsWeb)) {
+        // Warn ONLY if audio file is truly empty AND no text was recognized by STT
+        if ((path == null || path.isEmpty || (audioSize < 100 && !kIsWeb)) && _transcriptTextController.text.trim().isEmpty) {
           setState(() {
             _recordedAudioPath = null;
             _isTranscribing = false;
@@ -137,27 +140,25 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✔ Rekaman berhasil disimpan! Memproses transkripsi suara...'),
+              content: Text('✔ Rekaman berhasil disimpan! Transkripsi siap.'),
               backgroundColor: Color(0xFF0D9488),
             ),
           );
         }
 
         // Attempt Backend STT Transcription
-        String transcript = await ApiService.transcribeAudio(audioPath: path);
+        String transcript = await ApiService.transcribeAudio(audioPath: path ?? '');
 
-        // If backend returns empty, use continuous live captured speech
+        // If backend returns empty, preserve user's captured live speech
         if (transcript.isEmpty && _transcriptTextController.text.trim().isNotEmpty) {
           transcript = _transcriptTextController.text.trim();
         }
 
-        if (transcript.isEmpty) {
-          transcript = 'Saya ingin meningkatkan kelancaran bahasa Inggris untuk kebutuhan professional interview dan diskusi teknis.';
-        }
-
         if (mounted) {
           setState(() {
-            _transcriptTextController.text = transcript;
+            if (transcript.isNotEmpty) {
+              _transcriptTextController.text = transcript;
+            }
             _isTranscribing = false;
           });
         }
@@ -174,7 +175,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
             _recordedAudioPath = null;
           });
 
-          // Start Continuous On-device Speech Recognition
+          // Start On-device Speech Recognition in selected language
           if (_sttInitialized) {
             _startContinuousListening();
           }
@@ -217,16 +218,17 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           });
         }
       },
-      listenFor: const Duration(minutes: 5), // Extended 5-minute continuous listening
-      pauseFor: const Duration(seconds: 10), // Allow pauses up to 10s without stopping
-      listenMode: stt.ListenMode.dictation, // Dictation mode for long speech
+      localeId: _sttLocaleId, // Uses user-selected language (en_US or id_ID)
+      listenFor: const Duration(minutes: 5),
+      pauseFor: const Duration(seconds: 10),
+      listenMode: stt.ListenMode.dictation,
       partialResults: true,
       onSoundLevelChange: null,
       cancelOnError: false,
     );
   }
 
-  // 🔊 Robust Audio Playback Handler
+  // 🔊 Audio Playback Handler
   Future<void> _toggleAudioPlayback() async {
     if (_recordedAudioPath == null || _recordedAudioPath!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -682,7 +684,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         ),
                       ),
                     ]
-                    // Tab Body 1: 🎙️ VOICE NOTE RECORDER & PLAYER (CONTINUOUS UNLIMITED SPEECH)
+                    // Tab Body 1: 🎙️ VOICE NOTE RECORDER & PLAYER (WITH LANGUAGE SELECTOR)
                     else if (_inputModeTab == 1) ...[
                       Container(
                         width: double.infinity,
@@ -696,6 +698,36 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
+                            // 🌐 Language Mode Switcher (English vs Bahasa Indonesia)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('Bahasa Bicara:', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF475569))),
+                                const SizedBox(width: 8),
+                                ChoiceChip(
+                                  label: const Text('English 🇺🇸'),
+                                  selected: _sttLocaleId == 'en_US',
+                                  selectedColor: const Color(0xFF0D9488),
+                                  labelStyle: TextStyle(color: _sttLocaleId == 'en_US' ? Colors.white : const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.bold),
+                                  onSelected: (sel) {
+                                    if (sel) setState(() => _sttLocaleId = 'en_US');
+                                  },
+                                ),
+                                const SizedBox(width: 6),
+                                ChoiceChip(
+                                  label: const Text('Bahasa Indonesia 🇮🇩'),
+                                  selected: _sttLocaleId == 'id_ID',
+                                  selectedColor: const Color(0xFF0D9488),
+                                  labelStyle: TextStyle(color: _sttLocaleId == 'id_ID' ? Colors.white : const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.bold),
+                                  onSelected: (sel) {
+                                    if (sel) setState(() => _sttLocaleId = 'id_ID');
+                                  },
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 16),
+
                             // 🟢 Recording Button centered perfectly
                             GestureDetector(
                               onTap: _toggleAudioRecording,
