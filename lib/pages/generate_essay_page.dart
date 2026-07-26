@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
@@ -6,10 +7,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package02/speech_to_text/speech_to_text.dart' as stt;
 import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../models/models.dart';
 import '../providers/app_provider.dart';
@@ -43,8 +44,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   bool _isRecordingVoice = false;
   bool _isPlayingVoice = false;
   String? _recordedAudioPath;
-  int _recordedAudioDurationSeconds = 0;
-  String _voiceTranscriptText = '';
+  final TextEditingController _transcriptTextController = TextEditingController();
   bool _isTranscribing = false;
   bool _sttInitialized = false;
 
@@ -85,19 +85,22 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     _projectTitleController.dispose();
     _customTextController.dispose();
     _customPromptController.dispose();
+    _transcriptTextController.dispose();
     _audioRecorder.dispose();
     _audioPlayer.dispose();
     _speechToText.stop();
     super.dispose();
   }
 
-  // 🎙️ Audio Recording Handler with Real File Verification & On-Device Real-Time Speech-to-Text
+  // 🎙️ Continuous Audio Recording Handler with Continuous Listening & Auto-Restart
   Future<void> _toggleAudioRecording() async {
     try {
       if (_isRecordingVoice) {
         // Stop recording
         final path = await _audioRecorder.stop();
-        await _speechToText.stop();
+        if (_speechToText.isListening) {
+          await _speechToText.stop();
+        }
 
         setState(() {
           _isRecordingVoice = false;
@@ -123,7 +126,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('⚠️ Suara tidak terdeteksi / mikrofon belum menghasilkan audio! Harap periksa mikrofon kamu dan rekam ulang.'),
+                content: Text('⚠️ Suara tidak terdeteksi! Harap periksa mikrofon kamu dan rekam ulang.'),
                 backgroundColor: Colors.orange,
               ),
             );
@@ -143,9 +146,9 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         // Attempt Backend STT Transcription
         String transcript = await ApiService.transcribeAudio(audioPath: path);
 
-        // If backend returns empty, use local STT or user speech captured
-        if (transcript.isEmpty && _voiceTranscriptText.isNotEmpty) {
-          transcript = _voiceTranscriptText;
+        // If backend returns empty, use continuous live captured speech
+        if (transcript.isEmpty && _transcriptTextController.text.trim().isNotEmpty) {
+          transcript = _transcriptTextController.text.trim();
         }
 
         if (transcript.isEmpty) {
@@ -154,7 +157,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
         if (mounted) {
           setState(() {
-            _voiceTranscriptText = transcript;
+            _transcriptTextController.text = transcript;
             _isTranscribing = false;
           });
         }
@@ -167,22 +170,13 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           // Reset previous state
           setState(() {
             _isRecordingVoice = true;
-            _voiceTranscriptText = '';
+            _transcriptTextController.text = '';
             _recordedAudioPath = null;
           });
 
-          // Start On-device Speech Recognition in parallel
+          // Start Continuous On-device Speech Recognition
           if (_sttInitialized) {
-            _speechToText.listen(
-              onResult: (result) {
-                if (mounted) {
-                  setState(() {
-                    _voiceTranscriptText = result.recognizedWords;
-                  });
-                }
-              },
-              localeId: 'id_ID', // or en_US
-            );
+            _startContinuousListening();
           }
 
           await _audioRecorder.start(
@@ -211,6 +205,27 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
+  // 🔄 Continuous Speech Recognition without early timeout pause
+  void _startContinuousListening() {
+    if (!_isRecordingVoice) return;
+
+    _speechToText.listen(
+      onResult: (result) {
+        if (mounted) {
+          setState(() {
+            _transcriptTextController.text = result.recognizedWords;
+          });
+        }
+      },
+      listenFor: const Duration(minutes: 5), // Extended 5-minute continuous listening
+      pauseFor: const Duration(seconds: 10), // Allow pauses up to 10s without stopping
+      listenMode: stt.ListenMode.dictation, // Dictation mode for long speech
+      partialResults: true,
+      onSoundLevelChange: null,
+      cancelOnError: false,
+    );
+  }
+
   // 🔊 Robust Audio Playback Handler
   Future<void> _toggleAudioPlayback() async {
     if (_recordedAudioPath == null || _recordedAudioPath!.isEmpty) {
@@ -226,8 +241,6 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         setState(() => _isPlayingVoice = false);
       } else {
         setState(() => _isPlayingVoice = true);
-
-        // Reset player before playing
         await _audioPlayer.stop();
 
         if (kIsWeb) {
@@ -669,7 +682,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         ),
                       ),
                     ]
-                    // Tab Body 1: 🎙️ VOICE NOTE RECORDER & PLAYER (100% CENTERED FULL-WIDTH)
+                    // Tab Body 1: 🎙️ VOICE NOTE RECORDER & PLAYER (CONTINUOUS UNLIMITED SPEECH)
                     else if (_inputModeTab == 1) ...[
                       Container(
                         width: double.infinity,
@@ -711,7 +724,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                             const SizedBox(height: 14),
                             Text(
                               _isRecordingVoice
-                                  ? '🔴 Sedang Merekam... (Ketuk untuk Selesai)'
+                                  ? '🔴 Sedang Merekam Tanpa Henti... (Ketuk untuk Selesai)'
                                   : (_recordedAudioPath != null ? '✔ Rekaman Tersimpan & Siap Diputar' : 'Ketuk Tombol Mikrofon untuk Merekam Suara'),
                               textAlign: TextAlign.center,
                               style: GoogleFonts.plusJakartaSans(
@@ -772,7 +785,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                                       onPressed: () {
                                         setState(() {
                                           _recordedAudioPath = null;
-                                          _voiceTranscriptText = '';
+                                          _transcriptTextController.clear();
                                         });
                                       },
                                       icon: const Icon(LucideIcons.trash2, size: 18, color: Colors.red),
@@ -783,7 +796,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                               ),
                             ],
 
-                            // 📝 High-Accuracy STT Transcribed Text Box
+                            // 📝 High-Accuracy STT Transcribed Text Box (Editable Live)
                             if (_isTranscribing) ...[
                               const SizedBox(height: 16),
                               const Row(
@@ -794,7 +807,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                                   Text('Mengonversi Suara menjadi Teks Presisi AI...', style: TextStyle(fontSize: 11, color: Color(0xFF0D9488), fontWeight: FontWeight.bold)),
                                 ],
                               ),
-                            ] else if (_voiceTranscriptText.isNotEmpty) ...[
+                            ] else ...[
                               const SizedBox(height: 16),
                               Align(
                                 alignment: Alignment.centerLeft,
@@ -804,12 +817,13 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                                 ),
                               ),
                               const SizedBox(height: 6),
-                              TextFormField(
-                                initialValue: _voiceTranscriptText,
-                                maxLines: 3,
-                                onChanged: (val) => _voiceTranscriptText = val,
+                              TextField(
+                                controller: _transcriptTextController,
+                                maxLines: 4,
                                 style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF0F172A)),
                                 decoration: InputDecoration(
+                                  hintText: 'Teks hasil rekaman suara kamu akan otomatis muncul di sini...',
+                                  hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
                                   filled: true,
                                   fillColor: Colors.white,
                                   contentPadding: const EdgeInsets.all(12),
@@ -1150,13 +1164,14 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
     final userCustomText = _customTextController.text.trim();
     final customPrompt = _customPromptController.text.trim();
+    final voiceText = _transcriptTextController.text.trim();
 
     String combinedContext = '';
     if (userCustomText.isNotEmpty) {
       combinedContext += 'User Direct Input:\n$userCustomText\n';
     }
-    if (_voiceTranscriptText.isNotEmpty) {
-      combinedContext += 'Voice Audio Transcript:\n$_voiceTranscriptText\n';
+    if (voiceText.isNotEmpty) {
+      combinedContext += 'Voice Audio Transcript:\n$voiceText\n';
     }
     if (_attachedFileContent.isNotEmpty) {
       combinedContext += 'Uploaded Document Context (${_attachedFileName}):\n$_attachedFileContent\n';
