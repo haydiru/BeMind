@@ -391,26 +391,10 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                       const SizedBox(height: 24),
 
                       // ─── GOOGLE LOGIN BUTTON ──────────────────────────────────────
-                      ElevatedButton.icon(
+                      ElevatedButton(
                         onPressed: _isLoading ? null : () => _handleGoogleLogin(provider),
-                        icon: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF1F5F9),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(LucideIcons.globe, size: 16, color: Color(0xFFEA4335)),
-                        ),
-                        label: Text(
-                          'Masuk dengan Google',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF0F172A),
-                          ),
-                        ),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           backgroundColor: Colors.white,
                           elevation: 2,
                           shadowColor: const Color(0xFF0F172A).withValues(alpha: 0.08),
@@ -418,6 +402,34 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                             borderRadius: BorderRadius.circular(999), // Pill Button
                             side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
                           ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Official Google 4-Color Styled Badge
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              alignment: Alignment.center,
+                              child: CustomPaint(
+                                size: const Size(18, 18),
+                                painter: GoogleLogoPainter(),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Masuk dengan Google',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 
@@ -767,4 +779,65 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
       ),
     );
   }
+}
+
+/// CustomPainter for rendering official 4-color Google G Logo
+class GoogleLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double w = size.width;
+    final double h = size.height;
+
+    // Red Arc
+    final Paint redPaint = Paint()
+      ..color = const Color(0xFFEA4335)
+      ..style = PaintingStyle.fill;
+    // Blue Arc / Bar
+    final Paint bluePaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..style = PaintingStyle.fill;
+    // Yellow Arc
+    final Paint yellowPaint = Paint()
+      ..color = const Color(0xFFFBBC05)
+      ..style = PaintingStyle.fill;
+    // Green Arc
+    final Paint greenPaint = Paint()
+      ..color = const Color(0xFF34A853)
+      ..style = PaintingStyle.fill;
+
+    final center = Offset(w / 2, h / 2);
+    final radius = w / 2;
+
+    // Draw Google 4 Color arcs
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -0.6, 2.2, true, redPaint);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), 1.6, 1.2, true, yellowPaint);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), 2.8, 1.2, true, greenPaint);
+
+    // Blue Bar on right
+    final Path bluePath = Path()
+      ..moveTo(center.dx, center.dy - radius * 0.25)
+      ..lineTo(center.dx + radius, center.dy - radius * 0.25)
+      ..lineTo(center.dx + radius, center.dy + radius * 0.25)
+      ..lineTo(center.dx, center.dy + radius * 0.25)
+      ..close();
+    canvas.drawPath(bluePath, bluePaint);
+
+    // Inner White Circle cutout
+    final Paint whitePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, radius * 0.55, whitePaint);
+
+    // Re-draw Blue Center Bar
+    final Path innerBluePath = Path()
+      ..moveTo(center.dx, center.dy - radius * 0.25)
+      ..lineTo(center.dx + radius * 0.9, center.dy - radius * 0.25)
+      ..lineTo(center.dx + radius * 0.9, center.dy + radius * 0.25)
+      ..lineTo(center.dx, center.dy + radius * 0.25)
+      ..close();
+    canvas.drawPath(innerBluePath, bluePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
