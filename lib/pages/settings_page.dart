@@ -4,8 +4,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
-import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 import '../widgets/header_bar.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -17,54 +15,28 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   late TextEditingController _nameController;
+  late TextEditingController _emailController;
+  bool _isEditingProfile = false;
 
-  // Admin Model Switcher state
-  String _activeModel = 'Qwen3.6-35B-A3B';
-  List<String> _availableModels = ['Qwen3.6-35B-A3B', 'gpt-4o', 'gpt-4o-mini', 'gemini-1.5-flash', 'deepseek-coder'];
-  bool _isLoadingModel = false;
-  bool _isAdminExpanded = false;
+  final List<String> _goals = [
+    'Job Interview Prep',
+    'IELTS/TOEFL Practice',
+    'Business Pitching',
+    'Casual Conversation',
+  ];
 
   @override
   void initState() {
     super.initState();
     final user = Provider.of<AppProvider>(context, listen: false).user;
     _nameController = TextEditingController(text: user.name);
-    _loadAdminModelInfo();
-  }
-
-  Future<void> _loadAdminModelInfo() async {
-    final info = await ApiService.fetchAdminModelInfo();
-    if (mounted) {
-      setState(() {
-        _activeModel = info['activeModel'] ?? 'Qwen3.6-35B-A3B';
-        _availableModels = List<String>.from(info['availableModels'] ?? _availableModels);
-      });
-    }
-  }
-
-  Future<void> _switchModel(String model) async {
-    setState(() => _isLoadingModel = true);
-    final success = await ApiService.updateAdminActiveModel(model);
-    if (mounted) {
-      setState(() {
-        _isLoadingModel = false;
-        if (success) _activeModel = model;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          success ? '✔ Model switched to $model' : '✖ Failed to switch model — backend may be offline',
-          style: GoogleFonts.plusJakartaSans(fontSize: 13),
-        ),
-        backgroundColor: success ? const Color(0xFF16A34A) : AppTheme.accentRose,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ));
-    }
+    _emailController = TextEditingController(text: user.email);
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -88,6 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
           );
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: const HeaderBar(title: 'BeMind AI'),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -96,21 +69,48 @@ class _SettingsPageState extends State<SettingsPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
 
-              // ─── Profile Section ─────────────────────────────────────────
+              // ─── 1. USER PROFILE CARD ──────────────────────────────────────
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: AppTheme.cardDecoration(),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        CircleAvatar(
-                          radius: 26,
-                          backgroundColor: AppTheme.primaryCyan,
+                        Container(
+                          width: 54,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
                           child: Text(
                             user.name.isNotEmpty ? user.name[0].toUpperCase() : 'A',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
                           ),
                         ),
                         const SizedBox(width: 14),
@@ -118,22 +118,100 @@ class _SettingsPageState extends State<SettingsPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(user.name, style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
-                              Text(user.email, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary)),
+                              Text(
+                                user.name,
+                                style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                              ),
+                              Text(
+                                user.email,
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
+                              ),
                             ],
                           ),
                         ),
+                        IconButton(
+                          icon: Icon(_isEditingProfile ? LucideIcons.check : LucideIcons.pencil, size: 18, color: const Color(0xFF0D9488)),
+                          onPressed: () {
+                            if (_isEditingProfile) {
+                              // Save profile changes
+                              provider.loginWithProfile(
+                                id: user.id,
+                                name: _nameController.text.trim(),
+                                email: _emailController.text.trim(),
+                                targetGoal: user.targetGoal,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('✔ Profil berhasil diperbarui!'), backgroundColor: Color(0xFF0D9488)),
+                              );
+                            }
+                            setState(() => _isEditingProfile = !_isEditingProfile);
+                          },
+                        ),
                       ],
                     ),
+
+                    if (_isEditingProfile) ...[
+                      const SizedBox(height: 16),
+                      const Divider(color: Color(0xFFF1F5F9)),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _nameController,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
+                        decoration: InputDecoration(
+                          labelText: 'Nama Lengkap',
+                          prefixIcon: const Icon(LucideIcons.user, size: 18, color: Color(0xFF94A3B8)),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                    ],
+
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: _nameController,
-                      style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary, fontSize: 13),
-                      decoration: InputDecoration(
-                        labelText: 'Display Name',
-                        filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    const Divider(color: Color(0xFFF1F5F9)),
+                    const SizedBox(height: 12),
+
+                    // Target Goal Selection
+                    Text(
+                      'Target Karir & Belajar:',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
+                    ),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _goals.map((g) {
+                          final isSel = user.targetGoal == g;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: InkWell(
+                              onTap: () {
+                                provider.loginWithProfile(
+                                  id: user.id,
+                                  name: user.name,
+                                  email: user.email,
+                                  targetGoal: g,
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(999),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: isSel ? const Color(0xFF0D9488) : const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(color: isSel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
+                                ),
+                                child: Text(
+                                  g,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: isSel ? Colors.white : const Color(0xFF64748B),
+                                    fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
                   ],
@@ -142,188 +220,141 @@ class _SettingsPageState extends State<SettingsPage> {
 
               const SizedBox(height: 16),
 
-              // ─── Passive Learning Settings ────────────────────────────────
+              // ─── 2. ON-DEVICE PASSIVE LEARNING & NOTIFICATIONS ────────────
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: AppTheme.cardDecoration(),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'On-Device Passive Learning',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFCCFBF1),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(LucideIcons.bellRing, size: 20, color: Color(0xFF0D9488)),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Passive Learning Engine',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                                ),
+                                Text(
+                                  'Notifikasi lockscreen HP otomatis',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                         Switch(
                           value: notif.isEnabled,
-                          activeColor: AppTheme.primaryCyan,
+                          activeColor: const Color(0xFF0D9488),
                           onChanged: (val) => provider.toggleNotifications(val),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Pushes random vocabulary cards to smartphone lockscreen.',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
 
-              const SizedBox(height: 16),
-
-              // ─── Admin AI Model Switcher ──────────────────────────────────
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [const Color(0xFF1E1B4B), const Color(0xFF0F172A)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.primaryPurple.withValues(alpha: 0.4)),
-                ),
-                child: Column(
-                  children: [
-                    // Header — tap to expand/collapse
-                    GestureDetector(
-                      onTap: () => setState(() => _isAdminExpanded = !_isAdminExpanded),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryPurple.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(LucideIcons.cpu, size: 18, color: AppTheme.primaryPurple),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '⚡ Admin: AI Model Control',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
-                                  ),
-                                  Text(
-                                    'Active: $_activeModel',
-                                    style: GoogleFonts.jetBrainsMono(fontSize: 11, color: AppTheme.primaryPurple),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            AnimatedRotation(
-                              turns: _isAdminExpanded ? 0.5 : 0.0,
-                              duration: const Duration(milliseconds: 250),
-                              child: Icon(LucideIcons.chevronDown, size: 18, color: Colors.white54),
-                            ),
-                          ],
-                        ),
+                    if (notif.isEnabled) ...[
+                      const SizedBox(height: 16),
+                      const Divider(color: Color(0xFFF1F5F9)),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Frekuensi Pengiriman Notifikasi:',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
                       ),
-                    ),
-
-                    // Expanded Model Selection Panel
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      child: _isAdminExpanded
-                          ? Container(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Divider(color: Colors.white.withValues(alpha: 0.08)),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Switch Active LLM Model',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white54),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: ['Every 2 hours', 'Every 4 hours', 'Once a day'].map((freq) {
+                          final isSel = notif.frequency == freq;
+                          return Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: InkWell(
+                                onTap: () => provider.updateNotificationFrequency(freq),
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isSel ? const Color(0xFF0D9488) : const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: isSel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
                                   ),
-                                  const SizedBox(height: 10),
-                                  _isLoadingModel
-                                      ? const Center(
-                                          child: Padding(
-                                            padding: EdgeInsets.symmetric(vertical: 12),
-                                            child: CircularProgressIndicator(strokeWidth: 2),
-                                          ),
-                                        )
-                                      : Wrap(
-                                          spacing: 8,
-                                          runSpacing: 8,
-                                          children: _availableModels.map((model) {
-                                            final isActive = model == _activeModel;
-                                            return GestureDetector(
-                                              onTap: isActive ? null : () => _switchModel(model),
-                                              child: AnimatedContainer(
-                                                duration: const Duration(milliseconds: 200),
-                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                decoration: BoxDecoration(
-                                                  color: isActive
-                                                      ? AppTheme.primaryPurple.withValues(alpha: 0.2)
-                                                      : const Color(0xFF1E293B),
-                                                  borderRadius: BorderRadius.circular(10),
-                                                  border: Border.all(
-                                                    color: isActive ? AppTheme.primaryPurple : Colors.white12,
-                                                    width: isActive ? 1.5 : 1,
-                                                  ),
-                                                ),
-                                                child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    if (isActive)
-                                                      Padding(
-                                                        padding: const EdgeInsets.only(right: 6),
-                                                        child: Icon(LucideIcons.check, size: 12, color: AppTheme.primaryPurple),
-                                                      ),
-                                                    Text(
-                                                      model,
-                                                      style: GoogleFonts.jetBrainsMono(
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.w600,
-                                                        color: isActive ? AppTheme.primaryPurple : Colors.white70,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-                                          }).toList(),
-                                        ),
-                                  const SizedBox(height: 8),
-                                  TextButton.icon(
-                                    onPressed: _loadAdminModelInfo,
-                                    icon: Icon(LucideIcons.refreshCw, size: 13, color: Colors.white38),
-                                    label: Text('Refresh from backend', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.white38)),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    freq == 'Every 2 hours'
+                                        ? '2 Jam'
+                                        : freq == 'Every 4 hours'
+                                            ? '4 Jam'
+                                            : '1x Sehari',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      color: isSel ? Colors.white : const Color(0xFF64748B),
+                                      fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                                    ),
                                   ),
-                                ],
+                                ),
                               ),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ],
                 ),
               ),
 
               const SizedBox(height: 16),
 
-              // ─── Lockscreen Preview ───────────────────────────────────────
+              // ─── 3. LOCKSCREEN PREVIEW CARD ────────────────────────────────
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: const Color(0xFF0F172A),
                   borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
-                    Text('22:15', style: GoogleFonts.plusJakartaSans(fontSize: 36, fontWeight: FontWeight.w200, color: Colors.white)),
-                    Text('Friday, July 25', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.white70)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('PREVIEW LOCKSCREEN HP', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF0D9488))),
+                        const Icon(LucideIcons.smartphone, size: 16, color: Colors.white54),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text('22:15', style: GoogleFonts.plusJakartaSans(fontSize: 34, fontWeight: FontWeight.w200, color: Colors.white)),
+                    Text('Minggu, 26 Juli', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 14),
                     Container(
+                      width: double.infinity,
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E293B),
@@ -333,10 +364,17 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('BeMind Passive Flashcard', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.primaryCyan)),
-                          const SizedBox(height: 4),
-                          Text('${sampleVocab.word} (${sampleVocab.phonetic})', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
-                          Text('Arti: ${sampleVocab.indonesianMeaning}', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF4ADE80))),
+                          Row(
+                            children: [
+                              const Icon(LucideIcons.sparkles, size: 12, color: Color(0xFF0D9488)),
+                              const SizedBox(width: 6),
+                              Text('BeMind Passive Flashcard', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF0D9488))),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text('${sampleVocab.word} ${sampleVocab.phonetic}', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+                          const SizedBox(height: 2),
+                          Text('Arti: ${sampleVocab.indonesianMeaning}', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF4ADE80), fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ),
@@ -346,13 +384,45 @@ class _SettingsPageState extends State<SettingsPage> {
 
               const SizedBox(height: 20),
 
+              // ─── 4. APP SYSTEM INFO & LOGOUT ────────────────────────────────
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFF1F5F9)),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Versi Aplikasi', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                        Text('v2.4.0 (Build 2026)', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Backend API Cloud', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                        Text('be-mind.vercel.app', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488))),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
               ElevatedButton.icon(
                 onPressed: () => provider.logout(),
                 icon: const Icon(LucideIcons.logOut, size: 18),
-                label: const Text('Log Out'),
+                label: Text('Keluar / Log Out', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.chipTextBg,
-                  foregroundColor: AppTheme.accentRose,
+                  backgroundColor: const Color(0xFFFEE2E2),
+                  foregroundColor: const Color(0xFFEF4444),
+                  elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
