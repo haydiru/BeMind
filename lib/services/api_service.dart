@@ -140,4 +140,32 @@ class ApiService {
     }
     return false;
   }
+
+  /// Free Dictionary & Translation API lookup (Zero AI token cost)
+  static Future<Map<String, String>?> fetchWordDictionary(String rawWord) async {
+    try {
+      final cleanWord = rawWord.trim().toLowerCase();
+      if (cleanWord.isEmpty) return null;
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/ai/dictionary/$cleanWord'),
+      ).timeout(const Duration(seconds: 4));
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['status'] == 'success' && body['data'] != null) {
+          final d = body['data'];
+          return {
+            'word': d['word'] ?? cleanWord,
+            'phonetic': d['phonetic'] ?? '/$cleanWord/',
+            'definition': d['definition'] ?? '',
+            'indonesianMeaning': d['indonesianMeaning'] ?? '',
+          };
+        }
+      }
+    } catch (e) {
+      print('[ApiService] Dictionary lookup error or offline fallback: $e');
+    }
+    return null;
+  }
 }

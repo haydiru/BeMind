@@ -580,7 +580,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
         phonetic: '/${rawWord.toLowerCase()}/',
         definition: 'Kata kunci profesional untuk meningkatkan kefasihan berbicara.',
         contextSentence: 'I used "${rawWord}" during my professional conversation.',
-        indonesianMeaning: 'Arti kata dalam bahasa Indonesia.',
+        indonesianMeaning: '',
         masteryStatus: MasteryStatus.learning,
         addedAt: DateTime.now(),
       ),
@@ -589,11 +589,14 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
     final isAlreadySaved = existingItem.id.isNotEmpty;
 
     final meaningController = TextEditingController(
-      text: isAlreadySaved ? existingItem.indonesianMeaning : 'Terjemahan / Arti kata "${rawWord}"',
+      text: isAlreadySaved ? existingItem.indonesianMeaning : 'Memuat terjemahan...',
     );
     final exampleController = TextEditingController(
       text: isAlreadySaved ? existingItem.contextSentence : 'Contoh kalimat dengan "${rawWord}"',
     );
+
+    String displayPhonetic = isAlreadySaved ? existingItem.phonetic : '/${rawWord.toLowerCase()}/';
+    bool isLoadingDict = !isAlreadySaved;
 
     showModalBottomSheet(
       context: context,
@@ -602,6 +605,23 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            // Trigger automatic API dictionary lookup if not saved yet
+            if (isLoadingDict) {
+              ApiService.fetchWordDictionary(rawWord).then((res) {
+                if (ctx.mounted) {
+                  setModalState(() {
+                    isLoadingDict = false;
+                    if (res != null) {
+                      displayPhonetic = res['phonetic'] ?? displayPhonetic;
+                      meaningController.text = res['indonesianMeaning'] ?? rawWord;
+                    } else {
+                      meaningController.text = rawWord;
+                    }
+                  });
+                }
+              });
+            }
+
             return Container(
               padding: EdgeInsets.only(
                 top: 24,
@@ -646,7 +666,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                             ),
                           ),
                           Text(
-                            '/${rawWord.toLowerCase()}/',
+                            displayPhonetic,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
