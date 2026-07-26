@@ -90,7 +90,41 @@ Please synthesize the final narrative essay now:`;
   }
 }
 
+/**
+ * Transcribe recorded voice audio via OpenAI Whisper API
+ */
+async function transcribeAudioWithWhisper(fileBuffer, originalName) {
+  try {
+    const FormData = require('form-data');
+    const formData = new FormData();
+    formData.append('file', fileBuffer, { filename: originalName || 'audio.m4a' });
+    formData.append('model', 'whisper-1');
+
+    const whisperUrl = AI_PROXY_URL.includes('/chat/completions')
+      ? AI_PROXY_URL.replace('/chat/completions', '/audio/transcriptions')
+      : 'https://api.openai.com/v1/audio/transcriptions';
+
+    const response = await axios.post(
+      whisperUrl,
+      formData,
+      {
+        headers: {
+          'Authorization': `Bearer ${AI_API_KEY}`,
+          ...formData.getHeaders()
+        },
+        timeout: 25000
+      }
+    );
+
+    return response.data?.text || '';
+  } catch (error) {
+    console.error('[Whisper STT Error]:', error.response?.data || error.message);
+    return '';
+  }
+}
+
 module.exports = {
   getActiveModel,
-  generatePersonalizedEssay
+  generatePersonalizedEssay,
+  transcribeAudioWithWhisper
 };

@@ -1,7 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const { generatePersonalizedEssay } = require('../services/ai_service');
+const { generatePersonalizedEssay, transcribeAudioWithWhisper } = require('../services/ai_service');
 const supabase = require('../services/supabase_service');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
+
+/**
+ * POST /api/ai/transcribe
+ * High-accuracy audio transcription via Whisper AI
+ */
+router.post('/transcribe', upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ status: 'error', message: 'No audio file uploaded' });
+    }
+
+    const transcript = await transcribeAudioWithWhisper(req.file.buffer, req.file.originalname);
+    res.json({
+      status: 'success',
+      transcript: transcript
+    });
+  } catch (error) {
+    console.error('Error in transcribe route:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
 
 /**
  * POST /api/ai/generate-essay
