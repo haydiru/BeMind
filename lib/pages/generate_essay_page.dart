@@ -175,11 +175,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
             _recordedAudioPath = null;
           });
 
-          // Start On-device Speech Recognition in selected language
-          if (_sttInitialized) {
-            _startContinuousListening();
-          }
-
+          // Start recording clean audio file
           await _audioRecorder.start(
             const RecordConfig(encoder: AudioEncoder.aacLc),
             path: path,
