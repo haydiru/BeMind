@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
-import '../theme/app_theme.dart';
 import '../widgets/header_bar.dart';
 
 class MarketplacePage extends StatefulWidget {
@@ -15,8 +14,9 @@ class MarketplacePage extends StatefulWidget {
 
 class _MarketplacePageState extends State<MarketplacePage> {
   String _selectedCategory = 'All';
+  String _searchQuery = '';
 
-  final List<String> _categories = ['All', 'Job Interview', 'IELTS/TOEFL', 'Business Pitching'];
+  final List<String> _categories = ['All', 'Job Interview', 'IELTS/TOEFL', 'Business Pitching', 'Casual Conversation'];
 
   @override
   Widget build(BuildContext context) {
@@ -24,18 +24,23 @@ class _MarketplacePageState extends State<MarketplacePage> {
     final templates = provider.promptTemplates;
 
     final filteredTemplates = templates.where((t) {
-      if (_selectedCategory == 'All') return true;
-      return t.category == _selectedCategory;
+      final matchesCat = _selectedCategory == 'All' || t.category == _selectedCategory;
+      final matchesSearch = t.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          t.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          t.creatorName.toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchesCat && matchesSearch;
     }).toList();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: const HeaderBar(title: 'BeMind AI'),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
-        backgroundColor: AppTheme.primaryCyan,
-        foregroundColor: const Color(0xFF0F172A),
-        icon: const Icon(LucideIcons.plus),
-        label: Text('Publish Prompt', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
+        onPressed: () => _showPublishPromptDialog(context, provider),
+        backgroundColor: const Color(0xFF0D9488),
+        foregroundColor: Colors.white,
+        elevation: 4,
+        icon: const Icon(LucideIcons.plus, size: 18),
+        label: Text('Publish Prompt', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -43,15 +48,19 @@ class _MarketplacePageState extends State<MarketplacePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Banner Card
+              // ─── HERO BANNER CARD (CANVA FOR PROMPTS) ──────────────────────────
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  gradient: AppTheme.buttonGradient,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryPurple.withOpacity(0.3),
+                      color: const Color(0xFF0D9488).withValues(alpha: 0.35),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -60,39 +69,60 @@ class _MarketplacePageState extends State<MarketplacePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'CANVA FOR PROMPTS',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '✨ PROMPT MARKETPLACE',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            const Icon(LucideIcons.star, size: 14, color: Color(0xFFFDE047)),
+                            const SizedBox(width: 4),
+                            Text('4.9 (1.4k Remix)', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     Text(
-                      'STAR Method Interview Script',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
+                      'STAR Method Interview Master',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 19, fontWeight: FontWeight.w800, color: Colors.white),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'By Sarah Jenkins (Ex-Google Recruiter)',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white.withOpacity(0.9)),
+                      'Oleh Sarah Jenkins (Ex-Google Recruiter)',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white.withValues(alpha: 0.9), fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 14),
-                    ElevatedButton(
+                    ElevatedButton.icon(
                       onPressed: () {
-                        provider.selectTemplateToRemix(templates.first);
+                        if (templates.isNotEmpty) {
+                          provider.selectTemplateToRemix(templates.first);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('✔ Template terpilih! Mengarahkan ke halaman Generate...'),
+                              backgroundColor: Color(0xFF0D9488),
+                            ),
+                          );
+                        }
                       },
+                      icon: const Icon(LucideIcons.sparkles, size: 16, color: Color(0xFF0D9488)),
+                      label: Text('Remix Dengan Konteks Saya', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13, color: const Color(0xFF0F172A))),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF0F172A),
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
                       ),
-                      child: Text('Remix With My Context', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800)),
                     ),
                   ],
                 ),
@@ -100,7 +130,26 @@ class _MarketplacePageState extends State<MarketplacePage> {
 
               const SizedBox(height: 20),
 
-              // Filter Chips Row
+              // ─── SEARCH & FILTER CONTROLS ─────────────────────────────────────
+              TextField(
+                onChanged: (val) => setState(() => _searchQuery = val),
+                style: GoogleFonts.plusJakartaSans(color: const Color(0xFF0F172A), fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: 'Cari template prompt, pembuat, atau topik...',
+                  hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8), fontSize: 12),
+                  prefixIcon: const Icon(LucideIcons.search, size: 18, color: Color(0xFF94A3B8)),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Filter Chips
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -108,28 +157,50 @@ class _MarketplacePageState extends State<MarketplacePage> {
                     final isSel = _selectedCategory == cat;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        label: Text(cat),
-                        selected: isSel,
-                        selectedColor: AppTheme.primaryCyan,
-                        backgroundColor: const Color(0xFFF8FAFC),
-                        labelStyle: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: isSel ? const Color(0xFF0F172A) : AppTheme.textSecondary,
-                          fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                      child: InkWell(
+                        onTap: () => setState(() => _selectedCategory = cat),
+                        borderRadius: BorderRadius.circular(999),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isSel ? const Color(0xFF0D9488) : Colors.white,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: isSel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
+                          ),
+                          child: Text(
+                            cat,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: isSel ? Colors.white : const Color(0xFF64748B),
+                              fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                            ),
+                          ),
                         ),
-                        onSelected: (selected) {
-                          if (selected) setState(() => _selectedCategory = cat);
-                        },
                       ),
                     );
                   }).toList(),
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
-              // Prompt Feed Items
+              // ─── PROMPT FEED ITEMS ─────────────────────────────────────────────
+              Text(
+                'Template Populer (${filteredTemplates.length})',
+                style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+              ),
+
+              const SizedBox(height: 10),
+
+              if (filteredTemplates.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Text('Tidak ada template ditemukan.', style: GoogleFonts.plusJakartaSans(color: const Color(0xFF64748B))),
+                  ),
+                ),
+
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -139,32 +210,87 @@ class _MarketplacePageState extends State<MarketplacePage> {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 14),
                     padding: const EdgeInsets.all(18),
-                    decoration: AppTheme.cardDecoration(),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          item.title,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item.title,
+                                style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFCCFBF1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                item.category,
+                                style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488)),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          'By ${item.creatorName}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.accentEmerald, fontWeight: FontWeight.w700),
+                        Row(
+                          children: [
+                            const Icon(LucideIcons.user, size: 12, color: Color(0xFF64748B)),
+                            const SizedBox(width: 4),
+                            Text(
+                              item.creatorName,
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(width: 12),
+                            const Icon(LucideIcons.repeat, size: 12, color: Color(0xFF6366F1)),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${item.useCount}x dipakai',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF6366F1), fontWeight: FontWeight.bold),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Text(
                           item.description,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textSecondary),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF475569), height: 1.4),
                         ),
-                        const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          onPressed: () => provider.selectTemplateToRemix(item),
-                          icon: const Icon(LucideIcons.sparkles, size: 16),
-                          label: const Text('Remix Template'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppTheme.primaryBlue,
-                            side: const BorderSide(color: AppTheme.primaryBlue),
+                        const SizedBox(height: 14),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              provider.selectTemplateToRemix(item);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('✔ Menggunakan template "${item.title}"'),
+                                  backgroundColor: const Color(0xFF0D9488),
+                                ),
+                              );
+                            },
+                            icon: const Icon(LucideIcons.sparkles, size: 16, color: Colors.white),
+                            label: Text('Gunakan & Remix Template Ini', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13, color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0D9488),
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
                           ),
                         ),
                       ],
@@ -176,6 +302,88 @@ class _MarketplacePageState extends State<MarketplacePage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showPublishPromptDialog(BuildContext context, AppProvider provider) {
+    final titleCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    final structCtrl = TextEditingController();
+    String category = 'Job Interview';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('Publish Prompt Komunitas', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Judul Prompt Template',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: category,
+                items: ['Job Interview', 'IELTS/TOEFL', 'Business Pitching', 'Casual Conversation'].map((c) {
+                  return DropdownMenuItem(value: c, child: Text(c));
+                }).toList(),
+                onChanged: (val) => category = val!,
+                decoration: InputDecoration(
+                  labelText: 'Kategori',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descCtrl,
+                maxLines: 2,
+                decoration: InputDecoration(
+                  labelText: 'Deskripsi Singkat',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: structCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Struktur Prompt AI (Gunakan {USER_CONTEXT})',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          ElevatedButton(
+            onPressed: () {
+              final t = titleCtrl.text.trim();
+              final d = descCtrl.text.trim();
+              final s = structCtrl.text.trim();
+              if (t.isNotEmpty && d.isNotEmpty && s.isNotEmpty) {
+                provider.publishTemplate(t, category, d, s);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('✔ Prompt berhasil dipublikasikan!'), backgroundColor: Color(0xFF0D9488)),
+                );
+              }
+              Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D9488),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Publikasikan'),
+          ),
+        ],
       ),
     );
   }
