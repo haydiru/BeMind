@@ -273,7 +273,7 @@ class AppProvider extends ChangeNotifier {
     // Sync to Supabase database for persistent storage across sessions & logins
     try {
       if (_user.id.isNotEmpty && !_user.id.startsWith('local_')) {
-        await Supabase.instance.client.from('vocabularies').upsert({
+        final payload = <String, dynamic>{
           'user_id': _user.id,
           'word': item.word,
           'phonetic': item.phonetic,
@@ -281,7 +281,21 @@ class AppProvider extends ChangeNotifier {
           'context_sentence': item.contextSentence,
           'indonesian_meaning': item.indonesianMeaning,
           'mastery_status': item.masteryStatus.name,
-        }, onConflict: 'user_id, word');
+        };
+        
+        // If item.id is a valid UUID, include it
+        if (RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(item.id)) {
+          payload['id'] = item.id;
+        }
+
+        final res = await Supabase.instance.client.from('vocabularies').upsert(
+          payload,
+        ).select().maybeSingle();
+
+        if (res != null && res['id'] != null) {
+          // Update in-memory item with DB generated UUID
+          item.id = res['id'].toString();
+        }
       }
     } catch (e) {
       debugPrint('[AppProvider] Error saving vocab to Supabase: $e');
@@ -295,9 +309,15 @@ class AppProvider extends ChangeNotifier {
       notifyListeners();
 
       try {
-        await Supabase.instance.client.from('vocabularies').update({
-          'mastery_status': status.name,
-        }).eq('id', id);
+        if (RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(id)) {
+          await Supabase.instance.client.from('vocabularies').update({
+            'mastery_status': status.name,
+          }).eq('id', id);
+        } else if (_user.id.isNotEmpty) {
+          await Supabase.instance.client.from('vocabularies').update({
+            'mastery_status': status.name,
+          }).eq('user_id', _user.id).eq('word', _vocabList[idx].word);
+        }
       } catch (e) {
         debugPrint('[AppProvider] Error updating vocab status: $e');
       }
@@ -305,11 +325,16 @@ class AppProvider extends ChangeNotifier {
   }
 
   void deleteVocabItem(String id) async {
+    final targetItem = _vocabList.firstWhere((v) => v.id == id, orElse: () => VocabItem(id: '', word: '', phonetic: '', definition: '', contextSentence: '', indonesianMeaning: ''));
     _vocabList.removeWhere((v) => v.id == id);
     notifyListeners();
 
     try {
-      await Supabase.instance.client.from('vocabularies').delete().eq('id', id);
+      if (RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(id)) {
+        await Supabase.instance.client.from('vocabularies').delete().eq('id', id);
+      } else if (_user.id.isNotEmpty && targetItem.word.isNotEmpty) {
+        await Supabase.instance.client.from('vocabularies').delete().eq('user_id', _user.id).eq('word', targetItem.word);
+      }
     } catch (e) {
       debugPrint('[AppProvider] Error deleting vocab: $e');
     }
