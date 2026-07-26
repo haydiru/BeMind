@@ -447,9 +447,9 @@ class ContextVaultPage extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              _buildStatItem('Total Project', '${groupedProjects.length}'),
-                              _buildStatItem('Total Narasi', '${essays.length}'),
-                              _buildStatItem('Fluency Rank', strengthScore > 80 ? 'Advanced' : 'Intermediate'),
+                              Expanded(child: _buildStatItem('Total Project', '${groupedProjects.length}')),
+                              Expanded(child: _buildStatItem('Total Narasi', '${essays.length}')),
+                              Expanded(child: _buildStatItem('Fluency Rank', strengthScore > 80 ? 'Advanced' : 'Intermediate')),
                             ],
                           ),
                         ],
@@ -550,20 +550,26 @@ class ContextVaultPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          value,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-            color: const Color(0xFF0F172A),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
+            ),
           ),
         ),
-        Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 10,
-            color: const Color(0xFF64748B),
-            fontWeight: FontWeight.w600,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 9,
+              color: const Color(0xFF64748B),
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -775,9 +781,12 @@ class ContextVaultPage extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                DateFormat('d MMM HH:mm').format(essay.createdAt),
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF94A3B8)),
+                              Flexible(
+                                child: Text(
+                                  DateFormat('d MMM HH:mm').format(essay.createdAt),
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF94A3B8)),
+                                ),
                               ),
                             ],
                           ),
