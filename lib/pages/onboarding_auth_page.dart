@@ -781,61 +781,59 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
   }
 }
 
-/// CustomPainter for rendering official 4-color Google G Logo
+/// CustomPainter for rendering authentic 4-color Google G Logo
 class GoogleLogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final double w = size.width;
     final double h = size.height;
+    final double cx = w / 2;
+    final double cy = h / 2;
+    final double r = w / 2;
 
-    // Red Arc
-    final Paint redPaint = Paint()
-      ..color = const Color(0xFFEA4335)
-      ..style = PaintingStyle.fill;
-    // Blue Arc / Bar
-    final Paint bluePaint = Paint()
-      ..color = const Color(0xFF4285F4)
-      ..style = PaintingStyle.fill;
-    // Yellow Arc
-    final Paint yellowPaint = Paint()
-      ..color = const Color(0xFFFBBC05)
-      ..style = PaintingStyle.fill;
-    // Green Arc
-    final Paint greenPaint = Paint()
-      ..color = const Color(0xFF34A853)
-      ..style = PaintingStyle.fill;
+    // Paints for 4 Google brand colors
+    final Paint bluePaint = Paint()..color = const Color(0xFF4285F4)..style = PaintingStyle.fill;
+    final Paint greenPaint = Paint()..color = const Color(0xFF34A853)..style = PaintingStyle.fill;
+    final Paint yellowPaint = Paint()..color = const Color(0xFFFBBC05)..style = PaintingStyle.fill;
+    final Paint redPaint = Paint()..color = const Color(0xFFEA4335)..style = PaintingStyle.fill;
 
-    final center = Offset(w / 2, h / 2);
-    final radius = w / 2;
+    // Outer & Inner Radius for G Ring
+    final double outerR = r;
+    final double innerR = r * 0.52;
 
-    // Draw Google 4 Color arcs
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -0.6, 2.2, true, redPaint);
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), 1.6, 1.2, true, yellowPaint);
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), 2.8, 1.2, true, greenPaint);
+    final Rect outerRect = Rect.fromCircle(center: Offset(cx, cy), radius: outerR);
+    final Rect innerRect = Rect.fromCircle(center: Offset(cx, cy), radius: innerR);
 
-    // Blue Bar on right
-    final Path bluePath = Path()
-      ..moveTo(center.dx, center.dy - radius * 0.25)
-      ..lineTo(center.dx + radius, center.dy - radius * 0.25)
-      ..lineTo(center.dx + radius, center.dy + radius * 0.25)
-      ..lineTo(center.dx, center.dy + radius * 0.25)
+    // Helper to draw ring segment arc
+    Path createSegment(double startAngleRad, double sweepAngleRad) {
+      final Path path = Path();
+      path.arcTo(outerRect, startAngleRad, sweepAngleRad, false);
+      path.arcTo(innerRect, startAngleRad + sweepAngleRad, -sweepAngleRad, false);
+      path.close();
+      return path;
+    }
+
+    // 1. Red Top Arc (-0.75 rad to ~2.2 rad)
+    canvas.drawPath(createSegment(-0.75, 2.15), redPaint);
+
+    // 2. Yellow Left Arc (~1.4 rad to ~1.2 rad)
+    canvas.drawPath(createSegment(1.4, 1.2), yellowPaint);
+
+    // 3. Green Bottom Arc (~2.6 rad to ~1.2 rad)
+    canvas.drawPath(createSegment(2.6, 1.25), greenPaint);
+
+    // 4. Blue Right Arc & Horizontal Bar
+    final Path blueSegment = createSegment(-0.75, 0.95);
+    canvas.drawPath(blueSegment, bluePaint);
+
+    // Blue Center Horizontal Bar
+    final Path barPath = Path()
+      ..moveTo(cx, cy - r * 0.24)
+      ..lineTo(cx + outerR, cy - r * 0.24)
+      ..lineTo(cx + outerR, cy + r * 0.24)
+      ..lineTo(cx, cy + r * 0.24)
       ..close();
-    canvas.drawPath(bluePath, bluePaint);
-
-    // Inner White Circle cutout
-    final Paint whitePaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, radius * 0.55, whitePaint);
-
-    // Re-draw Blue Center Bar
-    final Path innerBluePath = Path()
-      ..moveTo(center.dx, center.dy - radius * 0.25)
-      ..lineTo(center.dx + radius * 0.9, center.dy - radius * 0.25)
-      ..lineTo(center.dx + radius * 0.9, center.dy + radius * 0.25)
-      ..lineTo(center.dx, center.dy + radius * 0.25)
-      ..close();
-    canvas.drawPath(innerBluePath, bluePaint);
+    canvas.drawPath(barPath, bluePaint);
   }
 
   @override
