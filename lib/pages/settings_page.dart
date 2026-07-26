@@ -241,31 +241,35 @@ class _SettingsPageState extends State<SettingsPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFCCFBF1),
-                                borderRadius: BorderRadius.circular(14),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFCCFBF1),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(LucideIcons.bellRing, size: 20, color: Color(0xFF0D9488)),
                               ),
-                              child: const Icon(LucideIcons.bellRing, size: 20, color: Color(0xFF0D9488)),
-                            ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Passive Learning Engine',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Passive Learning Engine',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                                    ),
+                                    Text(
+                                      'Notifikasi lockscreen HP otomatis',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
                                 ),
-                                Text(
-                                  'Notifikasi lockscreen HP otomatis',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
-                                ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
                         Switch(
                           value: notif.isEnabled,
