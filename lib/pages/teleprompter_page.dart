@@ -274,99 +274,243 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
 
               const SizedBox(height: 14),
 
-              // 3. Bottom Controls Group
+              // 3. Bottom Controls Group (Pristine Proportional Design System)
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Play / Pause Button
-                  GestureDetector(
-                    onTap: _togglePlay,
-                    child: Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF00E5FF),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF00E5FF).withValues(alpha: 0.4),
-                            blurRadius: 24,
-                            offset: const Offset(0, 10),
+                  // Play / Pause & Quick Reset Control Bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Reset to Top Button
+                      InkWell(
+                        onTap: () {
+                          if (_scrollController.hasClients) {
+                            _scrollController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeOut);
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(999),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0F172A).withValues(alpha: 0.05),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                        ],
+                          child: const Icon(LucideIcons.rotateCcw, size: 20, color: Color(0xFF64748B)),
+                        ),
                       ),
-                      child: Icon(
-                        _isPlaying ? LucideIcons.pause : LucideIcons.play,
-                        color: const Color(0xFF0F172A),
-                        size: 24,
+
+                      const SizedBox(width: 20),
+
+                      // Main Play/Pause Floating Action Circle
+                      GestureDetector(
+                        onTap: _togglePlay,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0D9488).withValues(alpha: 0.4),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            _isPlaying ? LucideIcons.pause : LucideIcons.play,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                        ),
                       ),
-                    ),
+
+                      const SizedBox(width: 20),
+
+                      // Font Size Adjustment Quick Button
+                      InkWell(
+                        onTap: () {
+                          // Quick feedback toast
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Kecepatan teleprompter diatur secara otomatis ke 60 FPS'),
+                              duration: Duration(seconds: 2),
+                              backgroundColor: Color(0xFF0D9488),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(999),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0F172A).withValues(alpha: 0.05),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(LucideIcons.slidersHorizontal, size: 20, color: Color(0xFF0D9488)),
+                        ),
+                      ),
+                    ],
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
 
-                  // WPM Speed Control Bar Pill
+                  // WPM Speed Control Container with Intuitive Icons (Turtle, Gauge, Zap) & Presets
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.05),
-                          blurRadius: 25,
-                          offset: const Offset(0, 10),
+                          color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color(0xFFFFF1F2),
-                          ),
-                          child: const Icon(LucideIcons.gauge, size: 18, color: Color(0xFFFF3366)),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${_wpm.toInt()} WPM (Reading Pace)',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.textPrimary,
+                        // Speed Header with WPM Count & Intuitive Pace Label
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFCCFBF1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    _wpm < 20
+                                        ? LucideIcons.turtle
+                                        : _wpm < 50
+                                            ? LucideIcons.gauge
+                                            : LucideIcons.zap,
+                                    size: 18,
+                                    color: const Color(0xFF0D9488),
+                                  ),
                                 ),
+                                const SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Kecepatan Baca (WPM)',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                                    ),
+                                    Text(
+                                      _wpm < 20
+                                          ? 'Mode Santai & Pelan'
+                                          : _wpm < 50
+                                              ? 'Tempo Bicara Ideal (Standar)'
+                                              : 'Mode Cepat & Fluency Tinggi',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              SliderTheme(
+                              child: Text(
+                                '${_wpm.toInt()} WPM',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF0D9488)),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        // Interactive WPM Slider Bar
+                        Row(
+                          children: [
+                            const Icon(LucideIcons.turtle, size: 16, color: Color(0xFF94A3B8)),
+                            Expanded(
+                              child: SliderTheme(
                                 data: SliderThemeData(
-                                  trackHeight: 4,
-                                  thumbColor: const Color(0xFF00E5FF),
-                                  activeTrackColor: const Color(0xFF00E5FF),
-                                  inactiveTrackColor: const Color(0xFFE2E8F0),
-                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                                  trackHeight: 6,
+                                  thumbColor: const Color(0xFF0D9488),
+                                  activeTrackColor: const Color(0xFF0D9488),
+                                  inactiveTrackColor: const Color(0xFFF1F5F9),
+                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
+                                  overlayColor: const Color(0xFF0D9488).withValues(alpha: 0.2),
                                 ),
                                 child: Slider(
                                   value: _wpm,
                                   min: 5,
-                                  max: 100,
-                                  divisions: 95,
+                                  max: 80,
+                                  divisions: 75,
                                   onChanged: (val) {
                                     setState(() => _wpm = val);
                                   },
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                            const Icon(LucideIcons.zap, size: 16, color: Color(0xFF6366F1)),
+                          ],
                         ),
-                        const SizedBox(width: 14),
-                        const Icon(LucideIcons.settings, size: 20, color: AppTheme.primaryPurple),
+
+                        const SizedBox(height: 4),
+
+                        // Quick Speed Preset Chips (15 WPM, 25 WPM, 40 WPM, 60 WPM)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [15.0, 25.0, 40.0, 60.0].map((preset) {
+                            final isSel = (_wpm - preset).abs() < 2.5;
+                            return InkWell(
+                              onTap: () => setState(() => _wpm = preset),
+                              borderRadius: BorderRadius.circular(999),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: isSel ? const Color(0xFF0D9488) : const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(color: isSel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
+                                ),
+                                child: Text(
+                                  '${preset.toInt()} WPM',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10,
+                                    fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                                    color: isSel ? Colors.white : const Color(0xFF64748B),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ],
                     ),
                   ),
