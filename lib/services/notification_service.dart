@@ -50,8 +50,15 @@ class NotificationService {
       return;
     }
 
-    final vocab = vocabList.isNotEmpty
-        ? vocabList[Random().nextInt(vocabList.length)]
+    // Priority filter: Only pick words that user is actively learning or needs to review!
+    final learningItems = vocabList.where((v) =>
+      v.masteryStatus == MasteryStatus.learning || v.masteryStatus == MasteryStatus.review
+    ).toList();
+
+    final candidateList = learningItems.isNotEmpty ? learningItems : vocabList;
+
+    final vocab = candidateList.isNotEmpty
+        ? candidateList[Random().nextInt(candidateList.length)]
         : VocabItem(
             id: 'demo',
             word: 'Spearheaded',
