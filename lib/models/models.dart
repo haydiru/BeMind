@@ -87,7 +87,7 @@ class Essay {
 enum MasteryStatus { learning, mastered, review }
 
 class VocabItem {
-  final String id;
+  String id;
   final String word;
   final String phonetic;
   final String definition;

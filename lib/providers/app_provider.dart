@@ -325,7 +325,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   void deleteVocabItem(String id) async {
-    final targetItem = _vocabList.firstWhere((v) => v.id == id, orElse: () => VocabItem(id: '', word: '', phonetic: '', definition: '', contextSentence: '', indonesianMeaning: ''));
+    final targetItem = _vocabList.firstWhere((v) => v.id == id, orElse: () => VocabItem(id: '', word: '', phonetic: '', definition: '', contextSentence: '', indonesianMeaning: '', addedAt: DateTime.now()));
     _vocabList.removeWhere((v) => v.id == id);
     notifyListeners();
 
