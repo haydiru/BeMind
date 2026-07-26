@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/header_bar.dart';
@@ -220,7 +221,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                               padding: const EdgeInsets.symmetric(vertical: 12.0),
                               child: Wrap(
                                 alignment: WrapAlignment.center,
-                                cross: WrapCrossAlignment.center,
+                                runAlignment: WrapAlignment.center,
                                 spacing: 6,
                                 runSpacing: 6,
                                 children: wordsInChunk.map((word) {
@@ -578,9 +579,10 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
         word: rawWord,
         phonetic: '/${rawWord.toLowerCase()}/',
         definition: 'Kata kunci profesional untuk meningkatkan kefasihan berbicara.',
+        contextSentence: 'I used "${rawWord}" during my professional conversation.',
         indonesianMeaning: 'Arti kata dalam bahasa Indonesia.',
-        exampleSentence: 'I used "${rawWord}" during my professional conversation.',
         masteryStatus: MasteryStatus.learning,
+        addedAt: DateTime.now(),
       ),
     );
 
@@ -590,7 +592,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
       text: isAlreadySaved ? existingItem.indonesianMeaning : 'Terjemahan / Arti kata "${rawWord}"',
     );
     final exampleController = TextEditingController(
-      text: isAlreadySaved ? existingItem.exampleSentence : 'Contoh kalimat dengan "${rawWord}"',
+      text: isAlreadySaved ? existingItem.contextSentence : 'Contoh kalimat dengan "${rawWord}"',
     );
 
     showModalBottomSheet(
@@ -717,9 +719,10 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                           word: rawWord,
                           phonetic: '/${rawWord.toLowerCase()}/',
                           definition: 'Vocabulary saved from Teleprompter practice',
+                          contextSentence: exampleController.text.trim(),
                           indonesianMeaning: meaningController.text.trim(),
-                          exampleSentence: exampleController.text.trim(),
                           masteryStatus: MasteryStatus.learning,
+                          addedAt: isAlreadySaved ? existingItem.addedAt : DateTime.now(),
                         );
 
                         provider.addVocabItem(newItem);
