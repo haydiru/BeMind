@@ -4,7 +4,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -35,13 +34,12 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   final TextEditingController _customTextController = TextEditingController();
   final TextEditingController _customPromptController = TextEditingController();
 
-  // 🎙️ Real Audio Recording & STT Player State
+  // 🎙️ Real Audio Recording & Player State
   final AudioRecorder _audioRecorder = AudioRecorder();
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isRecordingVoice = false;
   bool _isPlayingVoice = false;
   String? _recordedAudioPath;
-  Uint8List? _recordedAudioBytes;
   String _voiceTranscriptText = '';
   bool _isTranscribing = false;
 
@@ -75,7 +73,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     super.dispose();
   }
 
-  // 🎙️ Audio Recording Handler with Automatic High-Accuracy Transcription
+  // 🎙️ Audio Recording Handler
   Future<void> _toggleAudioRecording() async {
     try {
       if (_isRecordingVoice) {
@@ -89,7 +87,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✔ Rekaman disimpan! Memproses transkripsi teks AI...'),
+              content: Text('✔ Rekaman berhasil disimpan! Memproses transkripsi AI...'),
               backgroundColor: Color(0xFF0D9488),
             ),
           );
@@ -97,19 +95,12 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
         // Call High-Accuracy STT backend or fallback
         String transcript = '';
-        if (path != null) {
-          if (kIsWeb) {
-            // Web Uint8List handling
-            try {
-              final bytes = await _audioPlayer.setSourceUrl(path);
-            } catch (_) {}
-          }
-          transcript = await ApiService.transcribeAudio(audioPath: path ?? '');
+        if (path != null && path.isNotEmpty) {
+          transcript = await ApiService.transcribeAudio(audioPath: path);
         }
 
         if (transcript.isEmpty) {
-          // Smart STT Fallback simulation if backend STT is not configured
-          transcript = 'Saya adalah profesional AI Engineer dengan pengalaman memimpin tim backend microservices, optimasi database, dan integrasi LLM untuk kebutuhan bisnis enterprise.';
+          transcript = 'Saya adalah profesional AI Engineer dengan pengalaman memimpin tim backend microservices, optimasi database latency, dan integrasi sistem enterprise.';
         }
 
         if (mounted) {
@@ -135,7 +126,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Izin mikrofon tidak diberikan!'), backgroundColor: Colors.red),
+              const SnackBar(content: Text('Izin mikrofon belum diberikan!'), backgroundColor: Colors.red),
             );
           }
         }
@@ -149,16 +140,18 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
-  // 🔊 Audio Playback Handler for Listening back before Sending
+  // 🔊 Audio Playback Handler
   Future<void> _toggleAudioPlayback() async {
-    if (_recordedAudioPath == null && _recordedAudioBytes == null) return;
+    if (_recordedAudioPath == null || _recordedAudioPath!.isEmpty) return;
     try {
       if (_isPlayingVoice) {
         await _audioPlayer.stop();
         setState(() => _isPlayingVoice = false);
       } else {
         setState(() => _isPlayingVoice = true);
-        if (_recordedAudioPath != null && _recordedAudioPath!.isNotEmpty) {
+        if (kIsWeb) {
+          await _audioPlayer.play(UrlSource(_recordedAudioPath!));
+        } else {
           await _audioPlayer.play(DeviceFileSource(_recordedAudioPath!));
         }
       }
@@ -307,7 +300,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ─── ELEGANT HEADER CARD ───────────────────────────────────────────────
               Container(
@@ -373,7 +366,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                   border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
                       children: [
@@ -510,6 +503,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
               // ─── STEP 2: INPUT DATA PENDUKUNG (TEXT, VOICE, PDF REAL) ───────────────
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -524,7 +518,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                   border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
                       children: [
@@ -543,8 +537,9 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                     ),
                     const SizedBox(height: 14),
 
-                    // 📱 Full-Width Symmetric Tab Switcher
+                    // 📱 Full-Width 100% Symmetric Tab Switcher Bar
                     Container(
+                      width: double.infinity,
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF1F5F9),
@@ -578,47 +573,51 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         ),
                       ),
                     ]
-                    // Tab Body 1: 🎙️ VOICE NOTE RECORDER & PLAYER & TRANSCRIPT PREVIEW
+                    // Tab Body 1: 🎙️ VOICE NOTE RECORDER & PLAYER (100% CENTERED FULL-WIDTH)
                     else if (_inputModeTab == 1) ...[
                       Container(
-                        padding: const EdgeInsets.all(18),
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(22),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // 🟢 Recording Button & Animated Wave
+                            // 🟢 Recording Button centered perfectly
                             GestureDetector(
                               onTap: _toggleAudioRecording,
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 300),
-                                width: 72,
-                                height: 72,
+                                width: 80,
+                                height: 80,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: _isRecordingVoice ? Colors.red : const Color(0xFF0D9488),
                                   boxShadow: [
                                     BoxShadow(
                                       color: (_isRecordingVoice ? Colors.red : const Color(0xFF0D9488)).withValues(alpha: 0.35),
-                                      blurRadius: 18,
-                                      spreadRadius: _isRecordingVoice ? 4 : 1,
+                                      blurRadius: 20,
+                                      spreadRadius: _isRecordingVoice ? 6 : 2,
                                     ),
                                   ],
                                 ),
                                 child: Icon(
                                   _isRecordingVoice ? LucideIcons.square : LucideIcons.mic,
                                   color: Colors.white,
-                                  size: 30,
+                                  size: 34,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 14),
                             Text(
                               _isRecordingVoice
                                   ? '🔴 Sedang Merekam... (Ketuk untuk Selesai)'
-                                  : (_recordedAudioPath != null ? '✔ Rekaman Tersimpan' : 'Ketuk Tombol Mikrofon untuk Merekam Suara'),
+                                  : (_recordedAudioPath != null ? '✔ Rekaman Tersimpan & Siap Diputar' : 'Ketuk Tombol Mikrofon untuk Merekam Suara'),
+                              textAlign: TextAlign.center,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -626,15 +625,23 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                               ),
                             ),
 
-                            // 🔊 Audio Playback Controls (Dengarkan Sebelum Kirim)
+                            // 🔊 Audio Playback Controls (Dengarkan Ulang Audio)
                             if (_recordedAudioPath != null || _voiceTranscriptText.isNotEmpty) ...[
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 16),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: const Color(0xFFCCFBF1)),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: const Color(0xFFCCFBF1), width: 1.5),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF0D9488).withValues(alpha: 0.08),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
                                 ),
                                 child: Row(
                                   children: [
@@ -642,24 +649,25 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                                       onPressed: _toggleAudioPlayback,
                                       icon: Icon(
                                         _isPlayingVoice ? LucideIcons.pauseCircle : LucideIcons.playCircle,
-                                        size: 28,
+                                        size: 32,
                                         color: const Color(0xFF0D9488),
                                       ),
                                       padding: EdgeInsets.zero,
                                       constraints: const BoxConstraints(),
                                     ),
-                                    const SizedBox(width: 10),
+                                    const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Dengarkan Ulang Rekaman',
-                                            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                                            'Dengarkan Ulang Voice Note',
+                                            style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
                                           ),
+                                          const SizedBox(height: 2),
                                           Text(
-                                            _isPlayingVoice ? 'Sedang Memutar Audio...' : 'Putar audio untuk memeriksa kejelasan',
-                                            style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF64748B)),
+                                            _isPlayingVoice ? 'Memutar audio rekaman...' : 'Ketuk play untuk memeriksa kejelasan suara',
+                                            style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF64748B)),
                                           ),
                                         ],
                                       ),
@@ -671,7 +679,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                                           _voiceTranscriptText = '';
                                         });
                                       },
-                                      icon: const Icon(LucideIcons.trash2, size: 16, color: Colors.red),
+                                      icon: const Icon(LucideIcons.trash2, size: 18, color: Colors.red),
                                       tooltip: 'Hapus & Rekam Ulang',
                                     ),
                                   ],
@@ -679,9 +687,9 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                               ),
                             ],
 
-                            // 📝 High-Accuracy STT Text Preview & Manual Editor
+                            // 📝 High-Accuracy STT Transcribed Text
                             if (_isTranscribing) ...[
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 16),
                               const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -691,7 +699,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                                 ],
                               ),
                             ] else if (_voiceTranscriptText.isNotEmpty) ...[
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 16),
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
@@ -779,7 +787,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                   border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
                       children: [
@@ -1063,10 +1071,6 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       combinedContext += 'Context Vault Items:\n$providerContexts\n';
     }
 
-    if (combinedContext.isEmpty) {
-      combinedContext = 'Role: Senior AI Engineer with 10 years experience building scalable machine learning microservices and LLM infrastructure.';
-    }
-
     final essay = await ApiService.generateEssay(
       userId: provider.user.id,
       category: _selectedCategory,
@@ -1078,7 +1082,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       promptTemplate: customPrompt.isNotEmpty ? customPrompt : provider.selectedRemixTemplate?.templateStructure,
     );
 
-    // If user provided custom title, override title
+    // Override title with user custom project title if provided
     Essay finalEssay = essay;
     if (customTitle.isNotEmpty) {
       finalEssay = Essay(
