@@ -115,20 +115,34 @@ router.get('/dictionary/:word', async (req, res) => {
       console.warn(`[DictionaryAPI] Failed lookup for ${rawWord}:`, err.message);
     }
 
-    // 2. Fetch Indonesian translation from MyMemory Free API (Free 1000 requests/day without key)
+    // 2. Fetch Contextual Indonesian translation from MyMemory Free API
+    // Passing full sentence context ensures translation reflects exact meaning in that sentence!
     try {
-      const transRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(rawWord)}&langpair=en|id`);
+      const sentenceContext = req.query.context ? req.query.context.trim() : '';
+      let translateQuery = rawWord;
+      
+      // If context sentence is provided, pass full sentence to MyMemory for context translation
+      if (sentenceContext && sentenceContext.length > 5) {
+        translateQuery = sentenceContext;
+      }
+
+      const transRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(translateQuery)}&langpair=en|id`);
       if (transRes.ok) {
         const transData = await transRes.json();
         if (transData.responseData && transData.responseData.translatedText) {
-          const text = transData.responseData.translatedText.trim();
-          if (text && text.toLowerCase() !== rawWord) {
-            indonesianMeaning = text;
+          const fullTranslation = transData.responseData.translatedText.trim();
+          
+          if (sentenceContext && sentenceContext.length > 5) {
+            // MyMemory returned contextual sentence translation!
+            // We set contextSentence to original English and indonesianMeaning to contextual translation
+            indonesianMeaning = `(Arti Konteks): "${fullTranslation}"`;
+          } else if (fullTranslation && fullTranslation.toLowerCase() !== rawWord) {
+            indonesianMeaning = fullTranslation;
           }
         }
       }
     } catch (err) {
-      console.warn(`[MyMemory] Failed translation for ${rawWord}:`, err.message);
+      console.warn(`[MyMemory] Failed contextual translation for ${rawWord}:`, err.message);
     }
 
     if (!indonesianMeaning) {
@@ -142,8 +156,9 @@ router.get('/dictionary/:word', async (req, res) => {
       indonesianMeaning
     };
 
-    // Save to cache
-    dictionaryCache.set(rawWord, resultData);
+    // Save to cache (cache key includes context if present)
+    const cacheKey = req.query.context ? `${rawWord}_${req.query.context.slice(0, 30)}` : rawWord;
+    dictionaryCache.set(cacheKey, resultData);
 
     res.json({
       status: 'success',

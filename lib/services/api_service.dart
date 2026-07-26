@@ -142,14 +142,17 @@ class ApiService {
   }
 
   /// Free Dictionary & Translation API lookup (Zero AI token cost)
-  static Future<Map<String, String>?> fetchWordDictionary(String rawWord) async {
+  static Future<Map<String, String>?> fetchWordDictionary(String rawWord, {String? contextSentence}) async {
     try {
       final cleanWord = rawWord.trim().toLowerCase();
       if (cleanWord.isEmpty) return null;
 
-      final response = await http.get(
-        Uri.parse('$baseUrl/ai/dictionary/$cleanWord'),
-      ).timeout(const Duration(seconds: 4));
+      String url = '$baseUrl/ai/dictionary/$cleanWord';
+      if (contextSentence != null && contextSentence.isNotEmpty) {
+        url += '?context=${Uri.encodeComponent(contextSentence)}';
+      }
+
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);

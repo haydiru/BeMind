@@ -231,7 +231,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                                   return InkWell(
                                     onTap: () {
                                       if (cleaned.isNotEmpty) {
-                                        _showWordDefinitionSheet(context, cleaned, provider);
+                                        _showWordDefinitionSheet(context, cleaned, provider, contextSentence: chunkText);
                                       }
                                     },
                                     borderRadius: BorderRadius.circular(6),
@@ -569,7 +569,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
   }
 
   /// Displays interactive dictionary definition sheet & allows saving to Vocab Vault
-  void _showWordDefinitionSheet(BuildContext context, String rawWord, AppProvider provider) {
+  void _showWordDefinitionSheet(BuildContext context, String rawWord, AppProvider provider, {String? contextSentence}) {
     final word = rawWord.toLowerCase();
     
     // Check if word is already in Vocab Vault
@@ -580,7 +580,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
         word: rawWord,
         phonetic: '/${rawWord.toLowerCase()}/',
         definition: 'Kata kunci profesional untuk meningkatkan kefasihan berbicara.',
-        contextSentence: 'I used "${rawWord}" during my professional conversation.',
+        contextSentence: contextSentence ?? 'I used "${rawWord}" during my professional conversation.',
         indonesianMeaning: '',
         masteryStatus: MasteryStatus.learning,
         addedAt: DateTime.now(),
@@ -590,10 +590,10 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
     final isAlreadySaved = existingItem.id.isNotEmpty;
 
     final meaningController = TextEditingController(
-      text: isAlreadySaved ? existingItem.indonesianMeaning : 'Memuat terjemahan...',
+      text: isAlreadySaved ? existingItem.indonesianMeaning : 'Memuat terjemahan konteks...',
     );
     final exampleController = TextEditingController(
-      text: isAlreadySaved ? existingItem.contextSentence : 'Contoh kalimat dengan "${rawWord}"',
+      text: isAlreadySaved ? existingItem.contextSentence : (contextSentence ?? 'Contoh kalimat dengan "${rawWord}"'),
     );
 
     String displayPhonetic = isAlreadySaved ? existingItem.phonetic : '/${rawWord.toLowerCase()}/';
@@ -606,9 +606,9 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            // Trigger automatic API dictionary lookup if not saved yet
+            // Trigger automatic API dictionary & context lookup if not saved yet
             if (isLoadingDict) {
-              ApiService.fetchWordDictionary(rawWord).then((res) {
+              ApiService.fetchWordDictionary(rawWord, contextSentence: contextSentence).then((res) {
                 if (ctx.mounted) {
                   setModalState(() {
                     isLoadingDict = false;
