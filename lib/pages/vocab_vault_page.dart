@@ -271,14 +271,22 @@ class _VocabVaultPageState extends State<VocabVaultPage> {
                   Expanded(
                     child: Row(
                       children: [
-                        Text(
-                          item.word,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                        Flexible(
+                          child: Text(
+                            item.word,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+                          ),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          item.phonetic,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF0D9488)),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            item.phonetic,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF0D9488)),
+                          ),
                         ),
                       ],
                     ),

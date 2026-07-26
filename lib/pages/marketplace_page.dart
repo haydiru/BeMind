@@ -252,16 +252,20 @@ class _MarketplacePageState extends State<MarketplacePage> {
                           children: [
                             const Icon(LucideIcons.user, size: 12, color: Color(0xFF64748B)),
                             const SizedBox(width: 4),
-                            Text(
-                              item.creatorName,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
+                            Flexible(
+                              child: Text(
+                                item.creatorName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
+                              ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             const Icon(LucideIcons.repeat, size: 12, color: Color(0xFF6366F1)),
                             const SizedBox(width: 4),
                             Text(
                               '${item.useCount}x dipakai',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF6366F1), fontWeight: FontWeight.bold),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF6366F1), fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
