@@ -138,7 +138,6 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
         );
         _showSnackBar('Akun Berhasil Dibuat! Selamat Datang, $name 🎉');
       } else {
-        // Supabase might require email confirmation
         _showSnackBar(
           'Cek email kamu untuk konfirmasi, lalu login!',
           isError: false,
@@ -162,7 +161,6 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
         OAuthProvider.google,
         redirectTo: 'io.supabase.bemind://login-callback/',
       );
-      // OAuth opens browser — auth state will update via onAuthStateChange in main.dart
     } on AuthException {
       _showSnackBar(
         'Google Login belum diaktifkan di Supabase Dashboard.\nAktifkan di: Authentication → Providers → Google',
@@ -182,7 +180,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
           message,
           style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
         ),
-        backgroundColor: isError ? AppTheme.accentRose : const Color(0xFF16A34A),
+        backgroundColor: isError ? AppTheme.accentRose : const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 3),
       ),
@@ -194,490 +192,599 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
     final provider = Provider.of<AppProvider>(context, listen: false);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Premium Dark Slate Background
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 10),
-
-              // ─── BRAND LOGO HEADER ─────────────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppTheme.primaryCyan, AppTheme.primaryBlue],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryCyan.withValues(alpha: 0.4),
-                          blurRadius: 16,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      LucideIcons.brainCircuit,
-                      size: 32,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'BeMind',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white, // CRISP WHITE TITLE
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      Text(
-                        'AI-Native Fluency Builder',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: AppTheme.primaryCyan,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+      backgroundColor: const Color(0xFF0B0F19), // Midnight Obsidian Base
+      body: Stack(
+        children: [
+          // ─── ATMOSPHERIC BACKGROUND SHADERS & GLOWS ───────────────────────
+          Positioned(
+            top: -100,
+            left: -80,
+            child: Container(
+              width: 320,
+              height: 320,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF06B6D4).withValues(alpha: 0.15), // Cyan Glow
+                blurRadius: 120,
               ),
+            ),
+          ),
+          Positioned(
+            bottom: -80,
+            right: -80,
+            child: Container(
+              width: 380,
+              height: 380,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.18), // Sapphire Glow
+                blurRadius: 140,
+              ),
+            ),
+          ),
 
-              const SizedBox(height: 28),
+          SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 12),
 
-              // ─── SLEEK ONBOARDING CAROUSEL CARD ────────────────────────────
-              SizedBox(
-                height: 145,
-                child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: (index) => setState(() => _currentSlide = index),
-                  itemCount: _onboardingSlides.length,
-                  itemBuilder: (context, index) {
-                    final slide = _onboardingSlides[index];
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B), // Sleek Dark Card
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppTheme.primaryCyan.withValues(alpha: 0.3),
-                          width: 1.5,
+                      // ─── BRAND LOGO HEADER ─────────────────────────────────────────
+                      Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0F172A).withValues(alpha: 0.8),
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(
+                                  color: const Color(0xFF06B6D4).withValues(alpha: 0.4),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.35),
+                                    blurRadius: 24,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                LucideIcons.brainCircuit,
+                                size: 36,
+                                color: Color(0xFF06B6D4),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'BeMind',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFF06B6D4).withValues(alpha: 0.4)),
+                                  ),
+                                  child: Text(
+                                    'AI-NATIVE',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: const Color(0xFF06B6D4),
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'English Fluency Builder',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                color: const Color(0xFF94A3B8),
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.25),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      // ─── GLASSMORPHIC ONBOARDING CAROUSEL ─────────────────────────
+                      Container(
+                        height: 135,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0F172A).withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: const Color(0xFF06B6D4).withValues(alpha: 0.25),
+                            width: 1,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.35),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: PageView.builder(
+                          controller: _pageController,
+                          onPageChanged: (index) => setState(() => _currentSlide = index),
+                          itemCount: _onboardingSlides.length,
+                          itemBuilder: (context, index) {
+                            final slide = _onboardingSlides[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        index == 0
+                                            ? LucideIcons.sparkles
+                                            : index == 1
+                                                ? LucideIcons.zap
+                                                : LucideIcons.bellRing,
+                                        size: 20,
+                                        color: const Color(0xFF06B6D4),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        slide['title']!,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    slide['subtitle']!,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: const Color(0xFF94A3B8),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Dots Indicator
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          _onboardingSlides.length,
+                          (index) => AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: _currentSlide == index ? 24 : 8,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: _currentSlide == index ? const Color(0xFF06B6D4) : const Color(0xFF334155),
+                              borderRadius: BorderRadius.circular(4),
+                              boxShadow: _currentSlide == index
+                                  ? [
+                                      BoxShadow(
+                                        color: const Color(0xFF06B6D4).withValues(alpha: 0.5),
+                                        blurRadius: 8,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      // ─── GOOGLE LOGIN BUTTON ──────────────────────────────────────
+                      OutlinedButton.icon(
+                        onPressed: _isLoading ? null : () => _handleGoogleLogin(provider),
+                        icon: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(LucideIcons.globe, size: 16, color: Color(0xFFEA4335)),
+                        ),
+                        label: Text(
+                          'Masuk dengan Gmail / Google',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: const Color(0xFF0F172A).withValues(alpha: 0.6),
+                          side: BorderSide(
+                            color: const Color(0xFF334155).withValues(alpha: 0.8),
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(999), // Pill radius
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Divider
+                      Row(
+                        children: [
+                          Expanded(child: Divider(color: const Color(0xFF334155).withValues(alpha: 0.6))),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            child: Text(
+                              'atau gunakan email',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B)),
+                            ),
+                          ),
+                          Expanded(child: Divider(color: const Color(0xFF334155).withValues(alpha: 0.6))),
                         ],
                       ),
-                      child: Column(
+
+                      const SizedBox(height: 20),
+
+                      // ─── GLASSMORPHIC AUTH FORM CONTAINER ──────────────────────────
+                      Container(
+                        padding: const EdgeInsets.all(22),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0F172A).withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.4),
+                              blurRadius: 28,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Dual Pill Tab Switcher
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0B0F19),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => setState(() => _isRegisterMode = false),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 200),
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: !_isRegisterMode ? const Color(0xFF06B6D4) : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(999),
+                                          boxShadow: !_isRegisterMode
+                                              ? [
+                                                  BoxShadow(
+                                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.3),
+                                                    blurRadius: 10,
+                                                  ),
+                                                ]
+                                              : null,
+                                        ),
+                                        child: Text(
+                                          'Masuk',
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                            color: !_isRegisterMode ? const Color(0xFF0B0F19) : const Color(0xFF94A3B8),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => setState(() => _isRegisterMode = true),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 200),
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: _isRegisterMode ? const Color(0xFF06B6D4) : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(999),
+                                          boxShadow: _isRegisterMode
+                                              ? [
+                                                  BoxShadow(
+                                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.3),
+                                                    blurRadius: 10,
+                                                  ),
+                                                ]
+                                              : null,
+                                        ),
+                                        child: Text(
+                                          'Daftar Akun',
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                            color: _isRegisterMode ? const Color(0xFF0B0F19) : const Color(0xFF94A3B8),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 22),
+
+                            // Full Name Field (Register Mode Only)
+                            if (_isRegisterMode) ...[
+                              Text(
+                                'Nama Lengkap',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF94A3B8)),
+                              ),
+                              const SizedBox(height: 6),
+                              TextField(
+                                controller: _nameController,
+                                style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
+                                decoration: InputDecoration(
+                                  hintText: 'Masukkan nama lengkap kamu',
+                                  hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF475569), fontSize: 13),
+                                  prefixIcon: const Icon(LucideIcons.user, size: 18, color: Color(0xFF06B6D4)),
+                                  filled: true,
+                                  fillColor: const Color(0xFF0B0F19),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: const BorderSide(color: Color(0xFF06B6D4), width: 1.5),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                            ],
+
+                            // Email Field
+                            Text(
+                              'Alamat Email',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF94A3B8)),
+                            ),
+                            const SizedBox(height: 6),
+                            TextField(
+                              controller: _emailController,
+                              style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
+                              decoration: InputDecoration(
+                                hintText: 'contoh: nama@email.com',
+                                hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF475569), fontSize: 13),
+                                prefixIcon: const Icon(LucideIcons.mail, size: 18, color: Color(0xFF06B6D4)),
+                                filled: true,
+                                fillColor: const Color(0xFF0B0F19),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Color(0xFF06B6D4), width: 1.5),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Password Field
+                            Text(
+                              'Kata Sandi (Password)',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF94A3B8)),
+                            ),
+                            const SizedBox(height: 6),
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
+                              decoration: InputDecoration(
+                                hintText: 'Masukkan kata sandi',
+                                hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF475569), fontSize: 13),
+                                prefixIcon: const Icon(LucideIcons.lock, size: 18, color: Color(0xFF06B6D4)),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
+                                    size: 18,
+                                    color: const Color(0xFF64748B),
+                                  ),
+                                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                ),
+                                filled: true,
+                                fillColor: const Color(0xFF0B0F19),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Color(0xFF06B6D4), width: 1.5),
+                                ),
+                              ),
+                            ),
+
+                            // Target Goal Selector (Register Mode Only)
+                            if (_isRegisterMode) ...[
+                              const SizedBox(height: 16),
+                              Text(
+                                'Fokus Utama Belajar:',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF94A3B8),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: _goals.map((goal) {
+                                  final isSelected = _selectedGoal == goal;
+                                  return ChoiceChip(
+                                    label: Text(goal, style: GoogleFonts.plusJakartaSans(fontSize: 11)),
+                                    selected: isSelected,
+                                    onSelected: (selected) {
+                                      if (selected) setState(() => _selectedGoal = goal);
+                                    },
+                                    selectedColor: const Color(0xFF06B6D4),
+                                    backgroundColor: const Color(0xFF0B0F19),
+                                    labelStyle: GoogleFonts.plusJakartaSans(
+                                      color: isSelected ? const Color(0xFF0B0F19) : const Color(0xFF94A3B8),
+                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(999),
+                                      side: BorderSide(
+                                        color: isSelected ? const Color(0xFF06B6D4) : const Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+
+                            const SizedBox(height: 24),
+
+                            // Primary Action Button (Gradient Cyan to Sapphire)
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(999),
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF06B6D4), Color(0xFF0566D9)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.35),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton(
+                                onPressed: _isLoading
+                                    ? null
+                                    : () => _isRegisterMode ? _handleRegister(provider) : _handleLogin(provider),
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  foregroundColor: const Color(0xFF0B0F19),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0B0F19)),
+                                      )
+                                    : Text(
+                                        _isRegisterMode ? 'Daftar & Buat Akun BeMind' : 'Masuk ke Aplikasi',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFF0B0F19),
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Bottom Toggle Prompt
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            index == 0
-                                ? LucideIcons.sparkles
-                                : index == 1
-                                    ? LucideIcons.zap
-                                    : LucideIcons.bellRing,
-                            size: 26,
-                            color: AppTheme.primaryCyan,
-                          ),
-                          const SizedBox(height: 8),
                           Text(
-                            slide['title']!,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                            _isRegisterMode ? 'Sudah memiliki akun BeMind?' : 'Belum memiliki akun?',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF94A3B8)),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            slide['subtitle']!,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              color: Colors.white70,
-                              height: 1.35,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Dots Indicator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _onboardingSlides.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: _currentSlide == index ? 24 : 8,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: _currentSlide == index ? AppTheme.primaryCyan : Colors.white24,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 28),
-
-              // ─── GMAIL ACCOUNT LOGIN BUTTON ────────────────────────────────
-              ElevatedButton.icon(
-                onPressed: _isLoading ? null : () => _handleGoogleLogin(provider),
-                icon: Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(LucideIcons.globe, size: 16, color: Color(0xFFEA4335)),
-                ),
-                label: Text(
-                  'Masuk dengan Akun Gmail / Google',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E293B),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: Color(0xFF334155), width: 1.5),
-                  ),
-                  elevation: 4,
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Divider
-              Row(
-                children: [
-                  Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.15))),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Text(
-                      'atau gunakan email',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white54),
-                    ),
-                  ),
-                  Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.15))),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // ─── AUTH FORM CONTAINER CARD ──────────────────────────────────
-              Container(
-                padding: const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B), // Premium Dark Card
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Mode Switcher Tabs (Masuk vs Daftar)
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _isRegisterMode = false),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: !_isRegisterMode ? AppTheme.primaryCyan : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  'Masuk (Login)',
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w800,
-                                    color: !_isRegisterMode ? const Color(0xFF0F172A) : Colors.white60,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _isRegisterMode = true),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: _isRegisterMode ? AppTheme.primaryCyan : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  'Daftar Akun Baru',
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w800,
-                                    color: _isRegisterMode ? const Color(0xFF0F172A) : Colors.white60,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Full Name Field (Register Mode Only)
-                    if (_isRegisterMode) ...[
-                      Text(
-                        'Nama Lengkap',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70),
-                      ),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: _nameController,
-                        style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
-                        decoration: InputDecoration(
-                          hintText: 'Masukkan nama lengkap kamu',
-                          hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white38, fontSize: 13),
-                          prefixIcon: const Icon(LucideIcons.user, size: 18, color: AppTheme.primaryCyan),
-                          filled: true,
-                          fillColor: const Color(0xFF0F172A),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(color: Color(0xFF334155)),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(color: Color(0xFF334155)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(color: AppTheme.primaryCyan, width: 1.5),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-
-                    // Email Field
-                    Text(
-                      'Alamat Email',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _emailController,
-                      style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: 'contoh: nama@email.com',
-                        hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white38, fontSize: 13),
-                        prefixIcon: const Icon(LucideIcons.mail, size: 18, color: AppTheme.primaryCyan),
-                        filled: true,
-                        fillColor: const Color(0xFF0F172A),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Color(0xFF334155)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Color(0xFF334155)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: AppTheme.primaryCyan, width: 1.5),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Password Field
-                    Text(
-                      'Kata Sandi (Password)',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: 'Masukkan kata sandi',
-                        hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white38, fontSize: 13),
-                        prefixIcon: const Icon(LucideIcons.lock, size: 18, color: AppTheme.primaryCyan),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
-                            size: 18,
-                            color: Colors.white54,
-                          ),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFF0F172A),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Color(0xFF334155)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Color(0xFF334155)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: AppTheme.primaryCyan, width: 1.5),
-                        ),
-                      ),
-                    ),
-
-                    // Target Learning Goal Selector (Register Mode Only)
-                    if (_isRegisterMode) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        'Fokus Utama Belajar:',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _goals.map((goal) {
-                          final isSelected = _selectedGoal == goal;
-                          return ChoiceChip(
-                            label: Text(goal, style: GoogleFonts.plusJakartaSans(fontSize: 11)),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              if (selected) setState(() => _selectedGoal = goal);
-                            },
-                            selectedColor: AppTheme.primaryCyan,
-                            backgroundColor: const Color(0xFF0F172A),
-                            labelStyle: GoogleFonts.plusJakartaSans(
-                              color: isSelected ? const Color(0xFF0F172A) : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              side: BorderSide(
-                                color: isSelected ? AppTheme.primaryCyan : const Color(0xFF334155),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-
-                    const SizedBox(height: 22),
-
-                    // Submit Button
-                    ElevatedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () => _isRegisterMode ? _handleRegister(provider) : _handleLogin(provider),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: AppTheme.primaryCyan,
-                        foregroundColor: const Color(0xFF0F172A),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 4,
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0F172A)),
-                            )
-                          : Text(
-                              _isRegisterMode ? 'Daftar & Buat Akun BeMind' : 'Masuk ke Aplikasi',
+                          TextButton(
+                            onPressed: () => setState(() => _isRegisterMode = !_isRegisterMode),
+                            child: Text(
+                              _isRegisterMode ? 'Masuk di sini' : 'Daftar sekarang',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF06B6D4),
                               ),
                             ),
-                    ),
-                  ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
               ),
-
-              const SizedBox(height: 20),
-
-              // Bottom Toggle Prompt
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _isRegisterMode ? 'Sudah memiliki akun BeMind?' : 'Belum memiliki akun?',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: Colors.white70),
-                  ),
-                  TextButton(
-                    onPressed: () => setState(() => _isRegisterMode = !_isRegisterMode),
-                    child: Text(
-                      _isRegisterMode ? 'Masuk di sini' : 'Daftar sekarang',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryCyan,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
