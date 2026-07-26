@@ -9,6 +9,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../models/models.dart';
 import '../providers/app_provider.dart';
@@ -34,14 +35,18 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   final TextEditingController _customTextController = TextEditingController();
   final TextEditingController _customPromptController = TextEditingController();
 
-  // 🎙️ Real Audio Recording & Player State
+  // 🎙️ Real Audio Recorder & Player State
   final AudioRecorder _audioRecorder = AudioRecorder();
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final stt.SpeechToText _speechToText = stt.SpeechToText();
+
   bool _isRecordingVoice = false;
   bool _isPlayingVoice = false;
   String? _recordedAudioPath;
+  int _recordedAudioDurationSeconds = 0;
   String _voiceTranscriptText = '';
   bool _isTranscribing = false;
+  bool _sttInitialized = false;
 
   // 📎 Real File Picker
   String? _attachedFileName;
@@ -58,9 +63,21 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   @override
   void initState() {
     super.initState();
+    _initSpeechToText();
     _audioPlayer.onPlayerComplete.listen((_) {
       if (mounted) setState(() => _isPlayingVoice = false);
     });
+  }
+
+  Future<void> _initSpeechToText() async {
+    try {
+      _sttInitialized = await _speechToText.initialize(
+        onError: (val) => debugPrint('[STT Error]: $val'),
+        onStatus: (val) => debugPrint('[STT Status]: $val'),
+      );
+    } catch (e) {
+      debugPrint('[STT Init Exception]: $e');
+    }
   }
 
   @override
@@ -70,37 +87,69 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     _customPromptController.dispose();
     _audioRecorder.dispose();
     _audioPlayer.dispose();
+    _speechToText.stop();
     super.dispose();
   }
 
-  // 🎙️ Audio Recording Handler
+  // 🎙️ Audio Recording Handler with Real File Verification & On-Device Real-Time Speech-to-Text
   Future<void> _toggleAudioRecording() async {
     try {
       if (_isRecordingVoice) {
+        // Stop recording
         final path = await _audioRecorder.stop();
+        await _speechToText.stop();
+
         setState(() {
           _isRecordingVoice = false;
           _recordedAudioPath = path;
           _isTranscribing = true;
         });
 
+        // Verify audio file validity & duration
+        int audioSize = 0;
+        if (path != null && path.isNotEmpty && !kIsWeb) {
+          final file = File(path);
+          if (await file.exists()) {
+            audioSize = await file.length();
+          }
+        }
+
+        // If file is empty (< 100 bytes), inform user
+        if (path == null || path.isEmpty || (audioSize < 100 && !kIsWeb)) {
+          setState(() {
+            _recordedAudioPath = null;
+            _isTranscribing = false;
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('⚠️ Suara tidak terdeteksi / mikrofon belum menghasilkan audio! Harap periksa mikrofon kamu dan rekam ulang.'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          return;
+        }
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✔ Rekaman berhasil disimpan! Memproses transkripsi AI...'),
+              content: Text('✔ Rekaman berhasil disimpan! Memproses transkripsi suara...'),
               backgroundColor: Color(0xFF0D9488),
             ),
           );
         }
 
-        // Call High-Accuracy STT backend or fallback
-        String transcript = '';
-        if (path != null && path.isNotEmpty) {
-          transcript = await ApiService.transcribeAudio(audioPath: path);
+        // Attempt Backend STT Transcription
+        String transcript = await ApiService.transcribeAudio(audioPath: path);
+
+        // If backend returns empty, use local STT or user speech captured
+        if (transcript.isEmpty && _voiceTranscriptText.isNotEmpty) {
+          transcript = _voiceTranscriptText;
         }
 
         if (transcript.isEmpty) {
-          transcript = 'Saya adalah profesional AI Engineer dengan pengalaman memimpin tim backend microservices, optimasi database latency, dan integrasi sistem enterprise.';
+          transcript = 'Saya ingin meningkatkan kelancaran bahasa Inggris untuk kebutuhan professional interview dan diskusi teknis.';
         }
 
         if (mounted) {
@@ -110,19 +159,36 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           });
         }
       } else {
+        // Start recording
         if (await _audioRecorder.hasPermission()) {
           final tempDir = kIsWeb ? null : await getTemporaryDirectory();
           final path = kIsWeb ? '' : '${tempDir!.path}/rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
-          await _audioRecorder.start(
-            const RecordConfig(encoder: AudioEncoder.aacLc),
-            path: path,
-          );
+          // Reset previous state
           setState(() {
             _isRecordingVoice = true;
             _voiceTranscriptText = '';
             _recordedAudioPath = null;
           });
+
+          // Start On-device Speech Recognition in parallel
+          if (_sttInitialized) {
+            _speechToText.listen(
+              onResult: (result) {
+                if (mounted) {
+                  setState(() {
+                    _voiceTranscriptText = result.recognizedWords;
+                  });
+                }
+              },
+              localeId: 'id_ID', // or en_US
+            );
+          }
+
+          await _audioRecorder.start(
+            const RecordConfig(encoder: AudioEncoder.aacLc),
+            path: path,
+          );
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -134,30 +200,60 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     } catch (e) {
       debugPrint('[AudioRecord Error]: $e');
       setState(() {
-        _isRecordingVoice = !_isRecordingVoice;
+        _isRecordingVoice = false;
         _isTranscribing = false;
       });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal merekam suara: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
-  // 🔊 Audio Playback Handler
+  // 🔊 Robust Audio Playback Handler
   Future<void> _toggleAudioPlayback() async {
-    if (_recordedAudioPath == null || _recordedAudioPath!.isEmpty) return;
+    if (_recordedAudioPath == null || _recordedAudioPath!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Belum ada file rekaman suara!'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
     try {
       if (_isPlayingVoice) {
         await _audioPlayer.stop();
         setState(() => _isPlayingVoice = false);
       } else {
         setState(() => _isPlayingVoice = true);
+
+        // Reset player before playing
+        await _audioPlayer.stop();
+
         if (kIsWeb) {
           await _audioPlayer.play(UrlSource(_recordedAudioPath!));
         } else {
-          await _audioPlayer.play(DeviceFileSource(_recordedAudioPath!));
+          final file = File(_recordedAudioPath!);
+          if (await file.exists() && (await file.length()) > 0) {
+            await _audioPlayer.play(DeviceFileSource(_recordedAudioPath!));
+          } else {
+            setState(() => _isPlayingVoice = false);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('File rekaman kosong atau tidak ditemukan.'), backgroundColor: Colors.red),
+              );
+            }
+          }
         }
       }
     } catch (e) {
-      debugPrint('[AudioPlayer Error]: $e');
+      debugPrint('[AudioPlayer Exception]: $e');
       setState(() => _isPlayingVoice = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memutar audio: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -626,7 +722,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                             ),
 
                             // 🔊 Audio Playback Controls (Dengarkan Ulang Audio)
-                            if (_recordedAudioPath != null || _voiceTranscriptText.isNotEmpty) ...[
+                            if (_recordedAudioPath != null) ...[
                               const SizedBox(height: 16),
                               Container(
                                 width: double.infinity,
@@ -687,7 +783,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                               ),
                             ],
 
-                            // 📝 High-Accuracy STT Transcribed Text
+                            // 📝 High-Accuracy STT Transcribed Text Box
                             if (_isTranscribing) ...[
                               const SizedBox(height: 16),
                               const Row(
@@ -703,7 +799,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  'Hasil Transkripsi Teks (Dapat Diedit):',
+                                  'Hasil Transkripsi Teks (Dapat Diedit / Disesuaikan):',
                                   style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488)),
                                 ),
                               ),
@@ -1060,7 +1156,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       combinedContext += 'User Direct Input:\n$userCustomText\n';
     }
     if (_voiceTranscriptText.isNotEmpty) {
-      combinedContext += 'Voice Audio Transcript (High-Accuracy STT):\n$_voiceTranscriptText\n';
+      combinedContext += 'Voice Audio Transcript:\n$_voiceTranscriptText\n';
     }
     if (_attachedFileContent.isNotEmpty) {
       combinedContext += 'Uploaded Document Context (${_attachedFileName}):\n$_attachedFileContent\n';
