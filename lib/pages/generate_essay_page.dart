@@ -99,8 +99,11 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   Future<void> _toggleAudioRecording() async {
     try {
       if (_isRecordingVoice) {
-        // Stop recording
-        final path = await _audioRecorder.stop();
+        // Stop recording cleanly
+        String? path;
+        if (await _audioRecorder.isRecording()) {
+          path = await _audioRecorder.stop();
+        }
         if (_speechToText.isListening) {
           await _speechToText.stop();
         }
@@ -123,15 +126,14 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
             _recordedAudioPath = null;
           });
 
-          // Start recording audio file
-          await _audioRecorder.start(
-            const RecordConfig(encoder: AudioEncoder.aacLc),
-            path: path,
-          );
-
-          // Start On-device Realtime Free Speech Recognition
+          // Start On-device Realtime Free Speech Recognition directly
           if (_sttInitialized) {
             _startContinuousListening();
+          } else {
+            await _audioRecorder.start(
+              const RecordConfig(encoder: AudioEncoder.aacLc),
+              path: path,
+            );
           }
         } else {
           if (mounted) {
