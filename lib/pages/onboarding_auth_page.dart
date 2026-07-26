@@ -29,15 +29,15 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
   final List<Map<String, String>> _onboardingSlides = [
     {
       'title': '100% Personal Narrative Engine',
-      'subtitle': 'AI converts your actual CV, voice notes, and background documents into custom fluency scripts.',
+      'subtitle': 'Ubah CV, rekaman suara, dan catatan karirmu menjadi naskah kelancaran bahasa Inggris personal.',
     },
     {
-      'title': '60-120 FPS High-Speed Teleprompter',
-      'subtitle': 'Train reading pace, speech rhythm, and confidence with real-time WPM speed control.',
+      'title': 'High-Speed Teleprompter Reader',
+      'subtitle': 'Latih kelancaran, ritme bicara, dan percaya diri dengan kontrol kecepatan baca dinamis.',
     },
     {
       'title': 'On-Device Passive Learning',
-      'subtitle': 'Extract unknown words instantly and get periodic lockscreen vocabulary notifications offline.',
+      'subtitle': 'Simpan kosakata asing instan dan dapatkan notifikasi pengingat otomatis di lockscreen.',
     },
   ];
 
@@ -180,7 +180,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
           message,
           style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
         ),
-        backgroundColor: isError ? AppTheme.accentRose : const Color(0xFF10B981),
+        backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF0D9488),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 3),
       ),
@@ -192,43 +192,31 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
     final provider = Provider.of<AppProvider>(context, listen: false);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F19), // Midnight Obsidian Base
+      backgroundColor: const Color(0xFFF8FAFC), // PRISTINE AIRY LIGHT CANVAS
       body: Stack(
         children: [
-          // ─── ATMOSPHERIC BACKGROUND SHADERS & GLOWS ───────────────────────
+          // Subtle Soft Gradient Orbs Background
           Positioned(
-            top: -100,
-            left: -80,
+            top: -60,
+            right: -60,
             child: Container(
-              width: 320,
-              height: 320,
+              width: 260,
+              height: 260,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
-                    blurRadius: 120,
-                    spreadRadius: 40,
-                  ),
-                ],
+                color: const Color(0xFF0D9488).withValues(alpha: 0.08), // Soft Teal Orb
               ),
             ),
           ),
           Positioned(
             bottom: -80,
-            right: -80,
+            left: -60,
             child: Container(
-              width: 380,
-              height: 380,
+              width: 300,
+              height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF3B82F6).withValues(alpha: 0.18),
-                    blurRadius: 140,
-                    spreadRadius: 50,
-                  ),
-                ],
+                color: const Color(0xFF6366F1).withValues(alpha: 0.07), // Soft Indigo Orb
               ),
             ),
           ),
@@ -238,105 +226,96 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 460),
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
 
-                      // ─── BRAND LOGO HEADER ─────────────────────────────────────────
+                      // ─── ELEGANT BRAND LOGO HEADER ─────────────────────────────────
                       Center(
                         child: Column(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A).withValues(alpha: 0.8),
-                                borderRadius: BorderRadius.circular(22),
-                                border: Border.all(
-                                  color: const Color(0xFF06B6D4).withValues(alpha: 0.4),
-                                  width: 1.5,
-                                ),
+                                color: const Color(0xFFCCFBF1), // Soft Emerald Tint
+                                shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.35),
-                                    blurRadius: 24,
-                                    spreadRadius: 1,
+                                    color: const Color(0xFF0D9488).withValues(alpha: 0.2),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
                               child: const Icon(
                                 LucideIcons.brainCircuit,
-                                size: 36,
-                                color: Color(0xFF06B6D4),
+                                size: 34,
+                                color: Color(0xFF0D9488), // Soft Emerald
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 14),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
                                   'BeMind',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 32,
+                                    fontSize: 30,
                                     fontWeight: FontWeight.w800,
-                                    color: Colors.white,
+                                    color: const Color(0xFF0F172A), // Crisp Slate Navy
                                     letterSpacing: -0.5,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: const Color(0xFF06B6D4).withValues(alpha: 0.4)),
+                                    color: const Color(0xFF0D9488).withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
                                     'AI-NATIVE',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w800,
-                                      color: const Color(0xFF06B6D4),
-                                      letterSpacing: 1.2,
+                                      color: const Color(0xFF0D9488),
+                                      letterSpacing: 0.8,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 4),
                             Text(
                               'English Fluency Builder',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 13,
-                                color: const Color(0xFF94A3B8),
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.2,
+                                color: const Color(0xFF64748B),
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
                       ),
 
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
 
-                      // ─── GLASSMORPHIC ONBOARDING CAROUSEL ─────────────────────────
+                      // ─── PRISTINE CAROUSEL CARD (VALUE PROP) ──────────────────────
                       Container(
-                        height: 135,
+                        height: 130,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.7),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: const Color(0xFF06B6D4).withValues(alpha: 0.25),
-                            width: 1,
-                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.35),
+                              color: const Color(0xFF0F172A).withValues(alpha: 0.05),
                               blurRadius: 20,
-                              offset: const Offset(0, 8),
+                              offset: const Offset(0, 6),
                             ),
                           ],
+                          border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
                         ),
                         child: PageView.builder(
                           controller: _pageController,
@@ -358,28 +337,28 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                             : index == 1
                                                 ? LucideIcons.zap
                                                 : LucideIcons.bellRing,
-                                        size: 20,
-                                        color: const Color(0xFF06B6D4),
+                                        size: 18,
+                                        color: const Color(0xFF0D9488),
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
                                         slide['title']!,
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0xFF0F172A),
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 6),
                                   Text(
                                     slide['subtitle']!,
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12,
-                                      color: const Color(0xFF94A3B8),
-                                      height: 1.4,
+                                      color: const Color(0xFF64748B),
+                                      height: 1.35,
                                     ),
                                   ),
                                 ],
@@ -389,7 +368,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
 
                       // Dots Indicator
                       Row(
@@ -399,94 +378,82 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                           (index) => AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: _currentSlide == index ? 24 : 8,
+                            width: _currentSlide == index ? 22 : 7,
                             height: 6,
                             decoration: BoxDecoration(
-                              color: _currentSlide == index ? const Color(0xFF06B6D4) : const Color(0xFF334155),
+                              color: _currentSlide == index ? const Color(0xFF0D9488) : const Color(0xFFCBD5E1),
                               borderRadius: BorderRadius.circular(4),
-                              boxShadow: _currentSlide == index
-                                  ? [
-                                      BoxShadow(
-                                        color: const Color(0xFF06B6D4).withValues(alpha: 0.5),
-                                        blurRadius: 8,
-                                      ),
-                                    ]
-                                  : null,
                             ),
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
 
                       // ─── GOOGLE LOGIN BUTTON ──────────────────────────────────────
-                      OutlinedButton.icon(
+                      ElevatedButton.icon(
                         onPressed: _isLoading ? null : () => _handleGoogleLogin(provider),
                         icon: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: const BoxDecoration(
-                            color: Colors.white,
+                            color: Color(0xFFF1F5F9),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(LucideIcons.globe, size: 16, color: Color(0xFFEA4335)),
                         ),
                         label: Text(
-                          'Masuk dengan Gmail / Google',
+                          'Masuk dengan Google',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: const Color(0xFF0F172A),
                           ),
                         ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: const Color(0xFF0F172A).withValues(alpha: 0.6),
-                          side: BorderSide(
-                            color: const Color(0xFF334155).withValues(alpha: 0.8),
-                            width: 1.5,
-                          ),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          backgroundColor: Colors.white,
+                          elevation: 2,
+                          shadowColor: const Color(0xFF0F172A).withValues(alpha: 0.08),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(999), // Pill radius
+                            borderRadius: BorderRadius.circular(999), // Pill Button
+                            side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 18),
 
                       // Divider
                       Row(
                         children: [
-                          Expanded(child: Divider(color: const Color(0xFF334155).withValues(alpha: 0.6))),
+                          Expanded(child: Divider(color: const Color(0xFFE2E8F0))),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                             child: Text(
-                              'atau gunakan email',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B)),
+                              'atau dengan email',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
                             ),
                           ),
-                          Expanded(child: Divider(color: const Color(0xFF334155).withValues(alpha: 0.6))),
+                          Expanded(child: Divider(color: const Color(0xFFE2E8F0))),
                         ],
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 18),
 
-                      // ─── GLASSMORPHIC AUTH FORM CONTAINER ──────────────────────────
+                      // ─── FLOATING WHITE AUTH CARD ─────────────────────────────────
                       Container(
                         padding: const EdgeInsets.all(22),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.85),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(28),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            width: 1,
-                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.4),
+                              color: const Color(0xFF0F172A).withValues(alpha: 0.06),
                               blurRadius: 28,
                               offset: const Offset(0, 10),
                             ),
                           ],
+                          border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -495,7 +462,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                             Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0B0F19),
+                                color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: Row(
@@ -505,15 +472,16 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                       onTap: () => setState(() => _isRegisterMode = false),
                                       child: AnimatedContainer(
                                         duration: const Duration(milliseconds: 200),
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        padding: const EdgeInsets.symmetric(vertical: 11),
                                         decoration: BoxDecoration(
-                                          color: !_isRegisterMode ? const Color(0xFF06B6D4) : Colors.transparent,
+                                          color: !_isRegisterMode ? const Color(0xFF0D9488) : Colors.transparent,
                                           borderRadius: BorderRadius.circular(999),
                                           boxShadow: !_isRegisterMode
                                               ? [
                                                   BoxShadow(
-                                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.3),
-                                                    blurRadius: 10,
+                                                    color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                                                    blurRadius: 8,
+                                                    offset: const Offset(0, 2),
                                                   ),
                                                 ]
                                               : null,
@@ -524,7 +492,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w700,
-                                            color: !_isRegisterMode ? const Color(0xFF0B0F19) : const Color(0xFF94A3B8),
+                                            color: !_isRegisterMode ? Colors.white : const Color(0xFF64748B),
                                           ),
                                         ),
                                       ),
@@ -535,15 +503,16 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                       onTap: () => setState(() => _isRegisterMode = true),
                                       child: AnimatedContainer(
                                         duration: const Duration(milliseconds: 200),
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        padding: const EdgeInsets.symmetric(vertical: 11),
                                         decoration: BoxDecoration(
-                                          color: _isRegisterMode ? const Color(0xFF06B6D4) : Colors.transparent,
+                                          color: _isRegisterMode ? const Color(0xFF0D9488) : Colors.transparent,
                                           borderRadius: BorderRadius.circular(999),
                                           boxShadow: _isRegisterMode
                                               ? [
                                                   BoxShadow(
-                                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.3),
-                                                    blurRadius: 10,
+                                                    color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                                                    blurRadius: 8,
+                                                    offset: const Offset(0, 2),
                                                   ),
                                                 ]
                                               : null,
@@ -554,7 +523,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w700,
-                                            color: _isRegisterMode ? const Color(0xFF0B0F19) : const Color(0xFF94A3B8),
+                                            color: _isRegisterMode ? Colors.white : const Color(0xFF64748B),
                                           ),
                                         ),
                                       ),
@@ -564,36 +533,36 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                               ),
                             ),
 
-                            const SizedBox(height: 22),
+                            const SizedBox(height: 20),
 
                             // Full Name Field (Register Mode Only)
                             if (_isRegisterMode) ...[
                               Text(
                                 'Nama Lengkap',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF94A3B8)),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF475569)),
                               ),
                               const SizedBox(height: 6),
                               TextField(
                                 controller: _nameController,
-                                style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
+                                style: GoogleFonts.plusJakartaSans(color: const Color(0xFF0F172A), fontSize: 14),
                                 decoration: InputDecoration(
                                   hintText: 'Masukkan nama lengkap kamu',
-                                  hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF475569), fontSize: 13),
-                                  prefixIcon: const Icon(LucideIcons.user, size: 18, color: Color(0xFF06B6D4)),
+                                  hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8), fontSize: 13),
+                                  prefixIcon: const Icon(LucideIcons.user, size: 18, color: Color(0xFF0D9488)),
                                   filled: true,
-                                  fillColor: const Color(0xFF0B0F19),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                  fillColor: const Color(0xFFF8FAFC),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: const BorderSide(color: Color(0xFF06B6D4), width: 1.5),
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5),
                                   ),
                                 ),
                               ),
@@ -603,30 +572,30 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                             // Email Field
                             Text(
                               'Alamat Email',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF94A3B8)),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF475569)),
                             ),
                             const SizedBox(height: 6),
                             TextField(
                               controller: _emailController,
-                              style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
+                              style: GoogleFonts.plusJakartaSans(color: const Color(0xFF0F172A), fontSize: 14),
                               decoration: InputDecoration(
                                 hintText: 'contoh: nama@email.com',
-                                hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF475569), fontSize: 13),
-                                prefixIcon: const Icon(LucideIcons.mail, size: 18, color: Color(0xFF06B6D4)),
+                                hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8), fontSize: 13),
+                                prefixIcon: const Icon(LucideIcons.mail, size: 18, color: Color(0xFF0D9488)),
                                 filled: true,
-                                fillColor: const Color(0xFF0B0F19),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                fillColor: const Color(0xFFF8FAFC),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(color: Color(0xFF06B6D4), width: 1.5),
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5),
                                 ),
                               ),
                             ),
@@ -635,52 +604,52 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                             // Password Field
                             Text(
                               'Kata Sandi (Password)',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF94A3B8)),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF475569)),
                             ),
                             const SizedBox(height: 6),
                             TextField(
                               controller: _passwordController,
                               obscureText: _obscurePassword,
-                              style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
+                              style: GoogleFonts.plusJakartaSans(color: const Color(0xFF0F172A), fontSize: 14),
                               decoration: InputDecoration(
                                 hintText: 'Masukkan kata sandi',
-                                hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF475569), fontSize: 13),
-                                prefixIcon: const Icon(LucideIcons.lock, size: 18, color: Color(0xFF06B6D4)),
+                                hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8), fontSize: 13),
+                                prefixIcon: const Icon(LucideIcons.lock, size: 18, color: Color(0xFF0D9488)),
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
                                     size: 18,
-                                    color: const Color(0xFF64748B),
+                                    color: const Color(0xFF94A3B8),
                                   ),
                                   onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                                 ),
                                 filled: true,
-                                fillColor: const Color(0xFF0B0F19),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                fillColor: const Color(0xFFF8FAFC),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: const BorderSide(color: Color(0xFF06B6D4), width: 1.5),
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5),
                                 ),
                               ),
                             ),
 
                             // Target Goal Selector (Register Mode Only)
                             if (_isRegisterMode) ...[
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 14),
                               Text(
                                 'Fokus Utama Belajar:',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF94A3B8),
+                                  color: const Color(0xFF475569),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -695,16 +664,16 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                     onSelected: (selected) {
                                       if (selected) setState(() => _selectedGoal = goal);
                                     },
-                                    selectedColor: const Color(0xFF06B6D4),
-                                    backgroundColor: const Color(0xFF0B0F19),
+                                    selectedColor: const Color(0xFF0D9488),
+                                    backgroundColor: const Color(0xFFF8FAFC),
                                     labelStyle: GoogleFonts.plusJakartaSans(
-                                      color: isSelected ? const Color(0xFF0B0F19) : const Color(0xFF94A3B8),
+                                      color: isSelected ? Colors.white : const Color(0xFF475569),
                                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
                                     ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(999),
                                       side: BorderSide(
-                                        color: isSelected ? const Color(0xFF06B6D4) : const Color(0xFF1E293B),
+                                        color: isSelected ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0),
                                       ),
                                     ),
                                   );
@@ -712,20 +681,20 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                               ),
                             ],
 
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 22),
 
-                            // Primary Action Button (Gradient Cyan to Sapphire)
+                            // Primary Action Button (Gradient Soft Emerald to Royal Indigo)
                             Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(999),
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF06B6D4), Color(0xFF0566D9)],
+                                  colors: [Color(0xFF0D9488), Color(0xFF6366F1)], // Emerald to Indigo
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF06B6D4).withValues(alpha: 0.35),
+                                    color: const Color(0xFF0D9488).withValues(alpha: 0.35),
                                     blurRadius: 16,
                                     offset: const Offset(0, 4),
                                   ),
@@ -739,7 +708,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   backgroundColor: Colors.transparent,
                                   shadowColor: Colors.transparent,
-                                  foregroundColor: const Color(0xFF0B0F19),
+                                  foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(999),
                                   ),
@@ -748,14 +717,14 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                     ? const SizedBox(
                                         height: 20,
                                         width: 20,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0B0F19)),
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                       )
                                     : Text(
                                         _isRegisterMode ? 'Daftar & Buat Akun BeMind' : 'Masuk ke Aplikasi',
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w800,
-                                          color: const Color(0xFF0B0F19),
+                                          color: Colors.white,
                                         ),
                                       ),
                               ),
@@ -764,7 +733,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 18),
 
                       // Bottom Toggle Prompt
                       Row(
@@ -772,7 +741,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                         children: [
                           Text(
                             _isRegisterMode ? 'Sudah memiliki akun BeMind?' : 'Belum memiliki akun?',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF94A3B8)),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF64748B)),
                           ),
                           TextButton(
                             onPressed: () => setState(() => _isRegisterMode = !_isRegisterMode),
@@ -781,7 +750,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF06B6D4),
+                                color: const Color(0xFF0D9488),
                               ),
                             ),
                           ),
