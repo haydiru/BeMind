@@ -4,7 +4,7 @@ import '../models/models.dart';
 import 'supabase_config.dart';
 
 class ApiService {
-  static final String baseUrl = SupabaseConfig.backendBaseUrl;
+  static String get baseUrl => SupabaseConfig.backendBaseUrl;
 
   /// High-accuracy Speech-to-Text Transcribe via Backend AI (Whisper/STT API)
   static Future<String> transcribeAudio({

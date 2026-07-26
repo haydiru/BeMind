@@ -754,38 +754,44 @@ class ContextVaultPage extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
+                    // 📜 Essay Title & Meta Info (Gets Maximum Flexible Space)
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             essay.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
                               color: const Color(0xFF0F172A),
+                              height: 1.3,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF6366F1).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(6),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   'Level ${essay.difficulty}',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF6366F1), fontWeight: FontWeight.bold),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF6366F1), fontWeight: FontWeight.w800),
                                 ),
                               ),
                               const SizedBox(width: 8),
+                              Icon(LucideIcons.clock, size: 11, color: const Color(0xFF94A3B8)),
+                              const SizedBox(width: 4),
                               Flexible(
                                 child: Text(
                                   DateFormat('d MMM HH:mm').format(essay.createdAt),
                                   overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF94A3B8)),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w600),
                                 ),
                               ),
                             ],
@@ -794,9 +800,50 @@ class ContextVaultPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Action Buttons for Narrative (Edit, Delete, Practice)
+
+                    // 🟢 Compact Elegant 'Latih' Action Button
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => provider.selectEssayForTeleprompter(essay),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0D9488).withValues(alpha: 0.25),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(LucideIcons.play, size: 13, color: Colors.white),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Latih',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // ⚙️ More Actions Menu
                     PopupMenuButton<String>(
                       icon: const Icon(LucideIcons.moreVertical, size: 16, color: Color(0xFF64748B)),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                       onSelected: (val) {
                         if (val == 'edit') {
                           _showEditNarrativeDialog(context, provider, essay);
@@ -826,29 +873,6 @@ class ContextVaultPage extends StatelessWidget {
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(width: 4),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(999),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
-                        ),
-                      ),
-                      child: ElevatedButton.icon(
-                        onPressed: () => provider.selectEssayForTeleprompter(essay),
-                        icon: const Icon(LucideIcons.play, size: 12, color: Colors.white),
-                        label: const Text('Latih Prompter'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                          textStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold),
-                        ),
-                      ),
                     ),
                   ],
                 ),
