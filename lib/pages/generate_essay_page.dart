@@ -275,7 +275,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   // 📎 Real File Picker Handler
   Future<void> _pickDocumentFile() async {
     try {
-      FilePickerResult? result = await FilePicker.pickFiles(
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'txt', 'doc', 'docx'],
         withData: true,
