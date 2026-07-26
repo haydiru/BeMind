@@ -230,47 +230,47 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
 
-                      // ─── ELEGANT BRAND LOGO HEADER ─────────────────────────────────
+                      // ─── ELEGANT BRAND LOGO HEADER (COMPACT) ───────────────────────
                       Center(
                         child: Column(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(14),
+                              padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFCCFBF1), // Soft Emerald Tint
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
                                     color: const Color(0xFF0D9488).withValues(alpha: 0.2),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 4),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 3),
                                   ),
                                 ],
                               ),
                               child: const Icon(
                                 LucideIcons.brainCircuit,
-                                size: 34,
-                                color: Color(0xFF0D9488), // Soft Emerald
+                                size: 26,
+                                color: Color(0xFF0D9488),
                               ),
                             ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 8),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
                                   'BeMind',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 30,
+                                    fontSize: 26,
                                     fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF0F172A), // Crisp Slate Navy
+                                    color: const Color(0xFF0F172A),
                                     letterSpacing: -0.5,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF0D9488).withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(20),
@@ -278,7 +278,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                   child: Text(
                                     'AI-NATIVE',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10,
+                                      fontSize: 9,
                                       fontWeight: FontWeight.w800,
                                       color: const Color(0xFF0D9488),
                                       letterSpacing: 0.8,
@@ -287,11 +287,10 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
                             Text(
                               'English Fluency Builder',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13,
+                                fontSize: 12,
                                 color: const Color(0xFF64748B),
                                 fontWeight: FontWeight.w600,
                               ),
@@ -300,19 +299,19 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 14),
 
-                      // ─── PRISTINE CAROUSEL CARD (VALUE PROP) ──────────────────────
+                      // ─── PRISTINE CAROUSEL CARD (VALUE PROP - COMPACT 96px) ────────
                       Container(
-                        height: 130,
+                        height: 96,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0F172A).withValues(alpha: 0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, 6),
+                              color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                              blurRadius: 14,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                           border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
@@ -324,7 +323,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                           itemBuilder: (context, index) {
                             final slide = _onboardingSlides[index];
                             return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -337,28 +336,30 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                                             : index == 1
                                                 ? LucideIcons.zap
                                                 : LucideIcons.bellRing,
-                                        size: 18,
+                                        size: 15,
                                         color: const Color(0xFF0D9488),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 6),
                                       Text(
                                         slide['title']!,
                                         style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 14,
+                                          fontSize: 13,
                                           fontWeight: FontWeight.bold,
                                           color: const Color(0xFF0F172A),
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 4),
                                   Text(
                                     slide['subtitle']!,
                                     textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12,
+                                      fontSize: 11,
                                       color: const Color(0xFF64748B),
-                                      height: 1.35,
+                                      height: 1.3,
                                     ),
                                   ),
                                 ],
@@ -368,7 +369,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
 
                       // Dots Indicator
                       Row(
@@ -377,9 +378,9 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                           _onboardingSlides.length,
                           (index) => AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: _currentSlide == index ? 22 : 7,
-                            height: 6,
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            width: _currentSlide == index ? 18 : 6,
+                            height: 5,
                             decoration: BoxDecoration(
                               color: _currentSlide == index ? const Color(0xFF0D9488) : const Color(0xFFCBD5E1),
                               borderRadius: BorderRadius.circular(4),
@@ -388,43 +389,42 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 14),
 
                       // ─── GOOGLE LOGIN BUTTON ──────────────────────────────────────
                       ElevatedButton(
                         onPressed: _isLoading ? null : () => _handleGoogleLogin(provider),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           backgroundColor: Colors.white,
                           elevation: 2,
                           shadowColor: const Color(0xFF0F172A).withValues(alpha: 0.08),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(999), // Pill Button
+                            borderRadius: BorderRadius.circular(999),
                             side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
                           ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Official Google 4-Color Styled Badge
                             Container(
-                              width: 24,
-                              height: 24,
+                              width: 22,
+                              height: 22,
                               decoration: const BoxDecoration(
                                 color: Colors.white,
                                 shape: BoxShape.circle,
                               ),
                               alignment: Alignment.center,
                               child: CustomPaint(
-                                size: const Size(18, 18),
+                                size: const Size(16, 16),
                                 painter: GoogleLogoPainter(),
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 8),
                             Text(
                               'Masuk dengan Google',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 14,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: const Color(0xFF0F172A),
                               ),
@@ -433,17 +433,17 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 12),
 
                       // Divider
                       Row(
                         children: [
                           Expanded(child: Divider(color: const Color(0xFFE2E8F0))),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Text(
                               'atau dengan email',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF94A3B8)),
                             ),
                           ),
                           Expanded(child: Divider(color: const Color(0xFFE2E8F0))),
