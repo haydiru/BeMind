@@ -1,4 +1,3 @@
-// dart:convert removed - unused
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
@@ -13,68 +12,63 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Auth & Profile State
-  bool _isLoggedIn = false;
-  bool get isLoggedIn => _isLoggedIn;
-  bool _isLoadingEssays = false;
-  bool get isLoadingEssays => _isLoadingEssays;
-
+  // ─── Authentication & Profile State ───────────────────────────────────────
   UserProfile _user = UserProfile(
-    id: '',
-    name: '',
-    email: '',
+    id: 'usr_guest',
+    name: 'Pengguna BeMind',
+    email: 'user@bemind.ai',
     targetGoal: 'Job Interview Prep',
-    profileCompleteness: 10,
+    profileCompleteness: 85,
   );
   UserProfile get user => _user;
 
-  /// Called after successful Supabase auth — sets user profile from real data
-  void loginWithProfile({
-    required String id,
-    required String name,
-    required String email,
-    String targetGoal = 'Job Interview Prep',
-  }) {
+  bool _isLoggedIn = false;
+  bool get isLoggedIn => _isLoggedIn;
+
+  bool _isLoadingEssays = false;
+  bool get isLoadingEssays => _isLoadingEssays;
+
+  void login(String email, String password) {
+    _isLoggedIn = true;
+    final supaUser = Supabase.instance.client.auth.currentUser;
+    final userId = supaUser?.id ?? 'usr_${DateTime.now().millisecondsSinceEpoch}';
+    final userName = supaUser?.userMetadata?['name'] ?? email.split('@').first;
+    _user = UserProfile(
+      id: userId,
+      name: userName,
+      email: email,
+      targetGoal: 'Job Interview Prep',
+      profileCompleteness: 85,
+    );
+    notifyListeners();
+    _loadUserEssays(userId);
+  }
+
+  void loginWithProfile({required String id, required String name, required String email, required String targetGoal}) {
     _isLoggedIn = true;
     _user = UserProfile(
       id: id,
       name: name,
       email: email,
       targetGoal: targetGoal,
-      profileCompleteness: 40,
+      profileCompleteness: 85,
     );
     notifyListeners();
-    // Load essays from Supabase
     _loadUserEssays(id);
-  }
-
-  /// Legacy method kept for compat — DO NOT use for Supabase login
-  void login(String email, String password) {
-    _isLoggedIn = true;
-    _user = UserProfile(
-      id: 'local_${email.hashCode}',
-      name: email.split('@').first,
-      email: email,
-      targetGoal: _user.targetGoal,
-      profileCompleteness: 20,
-    );
-    notifyListeners();
   }
 
   void logout() {
     _isLoggedIn = false;
-    _currentPageIndex = 0;
     _essays.clear();
-    _contextItems.clear();
+    _activeEssay = null;
     _user = UserProfile(
-      id: '',
-      name: '',
-      email: '',
+      id: 'usr_guest',
+      name: 'Pengguna BeMind',
+      email: 'user@bemind.ai',
       targetGoal: 'Job Interview Prep',
-      profileCompleteness: 10,
+      profileCompleteness: 40,
     );
-    // Also sign out from Supabase client
-    Supabase.instance.client.auth.signOut().catchError((_) {});
+    Supabase.instance.client.auth.signOut();
     notifyListeners();
   }
 
@@ -103,7 +97,6 @@ class AppProvider extends ChangeNotifier {
         timestamp: DateTime.now(),
       ),
     );
-    // Recalculate completeness
     int newCompleteness = (40 + (_contextItems.length * 15)).clamp(40, 100);
     _user = _user.copyWith(profileCompleteness: newCompleteness);
     notifyListeners();
@@ -126,6 +119,84 @@ class AppProvider extends ChangeNotifier {
     _essays.insert(0, essay);
     _activeEssay = essay;
     notifyListeners();
+  }
+
+  /// Update / Edit an existing essay narrative
+  Future<void> updateEssayNarrative(String id, String newTitle, String newContent, String newCategory) async {
+    final idx = _essays.indexWhere((e) => e.id == id);
+    if (idx != -1) {
+      final old = _essays[idx];
+      final updated = Essay(
+        id: old.id,
+        title: newTitle,
+        category: newCategory,
+        subTopic: old.subTopic,
+        difficulty: old.difficulty,
+        tone: old.tone,
+        content: newContent,
+        createdAt: old.createdAt,
+      );
+      _essays[idx] = updated;
+      if (_activeEssay?.id == id) {
+        _activeEssay = updated;
+      }
+      notifyListeners();
+
+      // Sync edit to Supabase database if logged in
+      try {
+        await Supabase.instance.client.from('generated_essays').update({
+          'title': newTitle,
+          'category': newCategory,
+          'content': newContent,
+        }).eq('id', id);
+      } catch (e) {
+        debugPrint('[AppProvider] Error updating essay in Supabase: $e');
+      }
+    }
+  }
+
+  /// Delete an essay narrative
+  Future<void> deleteEssayNarrative(String id) async {
+    _essays.removeWhere((e) => e.id == id);
+    if (_activeEssay?.id == id) {
+      _activeEssay = _essays.isNotEmpty ? _essays.first : null;
+    }
+    notifyListeners();
+
+    try {
+      await Supabase.instance.client.from('generated_essays').delete().eq('id', id);
+    } catch (e) {
+      debugPrint('[AppProvider] Error deleting essay from Supabase: $e');
+    }
+  }
+
+  /// Update a project category name across all its essays
+  Future<void> updateProjectCategory(String oldCategory, String newCategory) async {
+    if (oldCategory == newCategory) return;
+    for (int i = 0; i < _essays.length; i++) {
+      if (_essays[i].category == oldCategory) {
+        final old = _essays[i];
+        _essays[i] = Essay(
+          id: old.id,
+          title: old.title,
+          category: newCategory,
+          subTopic: old.subTopic,
+          difficulty: old.difficulty,
+          tone: old.tone,
+          content: old.content,
+          createdAt: old.createdAt,
+        );
+      }
+    }
+    notifyListeners();
+
+    try {
+      await Supabase.instance.client.from('generated_essays').update({
+        'category': newCategory,
+      }).eq('category', oldCategory).eq('user_id', _user.id);
+    } catch (e) {
+      debugPrint('[AppProvider] Error updating category in Supabase: $e');
+    }
   }
 
   /// Fetch this user's essays directly from Supabase generated_essays table
@@ -236,7 +307,7 @@ class AppProvider extends ChangeNotifier {
   void selectTemplateToRemix(PromptTemplate template) {
     _selectedRemixTemplate = template;
     template.useCount++;
-    _currentPageIndex = 2; // Navigate to AI Narrative Generator Page
+    _currentPageIndex = 1; // Navigate to AI Narrative Generator Page (index 1)
     notifyListeners();
   }
 

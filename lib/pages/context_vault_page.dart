@@ -5,11 +5,163 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
-import '../theme/app_theme.dart';
 import '../widgets/header_bar.dart';
 
 class ContextVaultPage extends StatelessWidget {
   const ContextVaultPage({Key? key}) : super(key: key);
+
+  void _showEditProjectDialog(BuildContext context, AppProvider provider, String oldCategory) {
+    final controller = TextEditingController(text: oldCategory);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Edit Nama Project',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: 'Nama Kategori / Project',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newName = controller.text.trim();
+              if (newName.isNotEmpty) {
+                provider.updateProjectCategory(oldCategory, newName);
+              }
+              Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D9488),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditNarrativeDialog(BuildContext context, AppProvider provider, Essay essay) {
+    final titleController = TextEditingController(text: essay.title);
+    final categoryController = TextEditingController(text: essay.category);
+    final contentController = TextEditingController(text: essay.content);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Edit Naskah Narasi',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(
+                  labelText: 'Judul Narasi',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: categoryController,
+                decoration: InputDecoration(
+                  labelText: 'Kategori / Project',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: contentController,
+                maxLines: 6,
+                decoration: InputDecoration(
+                  labelText: 'Isi Naskah',
+                  alignLabelWithHint: true,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final t = titleController.text.trim();
+              final c = categoryController.text.trim();
+              final cnt = contentController.text.trim();
+              if (t.isNotEmpty && cnt.isNotEmpty) {
+                provider.updateEssayNarrative(essay.id, t, cnt, c.isNotEmpty ? c : 'Umum');
+              }
+              Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D9488),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Simpan Perubahan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmDialog(BuildContext context, AppProvider provider, Essay essay) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Hapus Naskah?',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        content: Text(
+          'Apakah kamu yakin ingin menghapus naskah "${essay.title}" dari project ini?',
+          style: GoogleFonts.plusJakartaSans(fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              provider.deleteEssayNarrative(essay.id);
+              Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +171,7 @@ class ContextVaultPage extends StatelessWidget {
     final vocabCount = provider.vocabList.length;
     final isLoading = provider.isLoadingEssays;
 
-    // Group essays by category (e.g. 'Job Interview', 'IELTS Part 2', etc.)
+    // Group essays by category (Project)
     final Map<String, List<Essay>> groupedProjects = {};
     for (final essay in essays) {
       final categoryKey = essay.category.isNotEmpty ? essay.category : 'Umum';
@@ -507,7 +659,7 @@ class ContextVaultPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Project Group Header
+          // Project Group Header with Edit Title Option
           Row(
             children: [
               Container(
@@ -531,13 +683,26 @@ class ContextVaultPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Project: $categoryName',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF0F172A),
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Project: $categoryName',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(LucideIcons.pencil, size: 14, color: Color(0xFF64748B)),
+                          onPressed: () => _showEditProjectDialog(context, provider, categoryName),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          tooltip: 'Edit nama project',
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -617,6 +782,40 @@ class ContextVaultPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
+                    // Action Buttons for Narrative (Edit, Delete, Practice)
+                    PopupMenuButton<String>(
+                      icon: const Icon(LucideIcons.moreVertical, size: 16, color: Color(0xFF64748B)),
+                      onSelected: (val) {
+                        if (val == 'edit') {
+                          _showEditNarrativeDialog(context, provider, essay);
+                        } else if (val == 'delete') {
+                          _showDeleteConfirmDialog(context, provider, essay);
+                        }
+                      },
+                      itemBuilder: (ctx) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              const Icon(LucideIcons.pencil, size: 14, color: Color(0xFF0D9488)),
+                              const SizedBox(width: 8),
+                              Text('Edit Naskah', style: GoogleFonts.plusJakartaSans(fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              const Icon(LucideIcons.trash2, size: 14, color: Colors.red),
+                              const SizedBox(width: 8),
+                              Text('Hapus Naskah', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.red)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 4),
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(999),
@@ -634,7 +833,7 @@ class ContextVaultPage extends StatelessWidget {
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           textStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                       ),

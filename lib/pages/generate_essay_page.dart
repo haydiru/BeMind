@@ -11,7 +11,6 @@ import 'package:path_provider/path_provider.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 import '../widgets/header_bar.dart';
 
 class GenerateEssayPage extends StatefulWidget {
@@ -22,22 +21,23 @@ class GenerateEssayPage extends StatefulWidget {
 }
 
 class _GenerateEssayPageState extends State<GenerateEssayPage> {
-  // Step 1: Category & Level
+  // Step 1: Project Name, Category & Level
+  final TextEditingController _projectTitleController = TextEditingController();
   String _selectedCategory = 'Job Interview';
   double _difficultyValue = 3.0; // C1
   String _selectedTone = 'Professional';
 
   // Step 2: Context Input (Text, Voice, File)
-  int _inputModeTab = 0; // 0 = Text Direct, 1 = Voice Note, 2 = Document/PDF
+  int _inputModeTab = 0; // 0 = Ketik Teks, 1 = Voice Note, 2 = Import File
   final TextEditingController _customTextController = TextEditingController();
   final TextEditingController _customPromptController = TextEditingController();
-  
-  // Real Audio Recorder (Record package)
+
+  // Real Audio Recorder
   final AudioRecorder _audioRecorder = AudioRecorder();
   bool _isRecordingVoice = false;
   String _recordedAudioSummary = '';
 
-  // Real File Picker (FilePicker package)
+  // Real File Picker
   String? _attachedFileName;
   String _attachedFileContent = '';
 
@@ -51,6 +51,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
   @override
   void dispose() {
+    _projectTitleController.dispose();
     _customTextController.dispose();
     _customPromptController.dispose();
     _audioRecorder.dispose();
@@ -68,14 +69,14 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('✔ Rekaman suara berhasil disimpan!'), backgroundColor: Colors.green),
+            const SnackBar(content: Text('✔ Rekaman suara berhasil disimpan!'), backgroundColor: Color(0xFF0D9488)),
           );
         }
       } else {
         if (await _audioRecorder.hasPermission()) {
           final tempDir = kIsWeb ? null : await getTemporaryDirectory();
           final path = kIsWeb ? '' : '${tempDir!.path}/rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
-          
+
           await _audioRecorder.start(
             const RecordConfig(encoder: AudioEncoder.aacLc),
             path: path,
@@ -92,7 +93,6 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         }
       }
     } catch (e) {
-      // Fallback for Web/Browser where native path recording is limited
       setState(() {
         _isRecordingVoice = !_isRecordingVoice;
         if (!_isRecordingVoice) {
@@ -102,7 +102,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
-  // 📎 Real File Picker Handler (PDF, TXT, DOCX)
+  // 📎 Real File Picker Handler
   Future<void> _pickDocumentFile() async {
     try {
       FilePickerResult? result = await FilePicker.pickFiles(
@@ -137,7 +137,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('✔ Berhasil mengunggah: ${file.name}'), backgroundColor: Colors.green),
+            SnackBar(content: Text('✔ Berhasil mengunggah: ${file.name}'), backgroundColor: const Color(0xFF0D9488)),
           );
         }
       }
@@ -146,11 +146,96 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
+  void _showEditGeneratedDialog(BuildContext context, AppProvider provider) {
+    if (_newGeneratedEssay == null) return;
+    final titleCtrl = TextEditingController(text: _newGeneratedEssay!.title);
+    final categoryCtrl = TextEditingController(text: _newGeneratedEssay!.category);
+    final contentCtrl = TextEditingController(text: _newGeneratedEssay!.content);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Edit Hasil Narasi',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Judul Project / Narasi',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: categoryCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Kategori / Project',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: contentCtrl,
+                maxLines: 6,
+                decoration: InputDecoration(
+                  labelText: 'Naskah Narasi',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final t = titleCtrl.text.trim();
+              final c = categoryCtrl.text.trim();
+              final cnt = contentCtrl.text.trim();
+              if (t.isNotEmpty && cnt.isNotEmpty) {
+                provider.updateEssayNarrative(_newGeneratedEssay!.id, t, cnt, c.isNotEmpty ? c : 'Umum');
+                setState(() {
+                  _newGeneratedEssay = Essay(
+                    id: _newGeneratedEssay!.id,
+                    title: t,
+                    category: c,
+                    subTopic: _newGeneratedEssay!.subTopic,
+                    difficulty: _newGeneratedEssay!.difficulty,
+                    tone: _newGeneratedEssay!.tone,
+                    content: cnt,
+                    createdAt: _newGeneratedEssay!.createdAt,
+                  );
+                });
+              }
+              Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D9488),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC), // Pristine Light Canvas
       appBar: const HeaderBar(title: 'BeMind AI'),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -158,19 +243,30 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Title Card
+              // ─── ELEGANT HEADER CARD ───────────────────────────────────────────────
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: AppTheme.cardDecoration(),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE0F2FE),
-                        borderRadius: BorderRadius.circular(12),
+                        color: const Color(0xFFCCFBF1),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(LucideIcons.sparkles, color: AppTheme.primaryBlue, size: 22),
+                      child: const Icon(LucideIcons.sparkles, color: Color(0xFF0D9488), size: 24),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -178,13 +274,13 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Buat Project Narasi AI',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                            'Buat Project & Narasi AI',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Sintesis naskah narasi presisi berdasarkan latar belakang & kustomisasi kamu.',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B)),
                           ),
                         ],
                       ),
@@ -193,12 +289,23 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
-              // ─── TAHAP 1: KATEGORI & TARGET FLUENCY LEVEL ─────────────────────────────
+              // ─── STEP 1: NAMA PROJECT, KATEGORI & TARGET LEVEL ──────────────────────
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: AppTheme.cardDecoration(),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -207,14 +314,42 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         _buildStepBadge('1'),
                         const SizedBox(width: 10),
                         Text(
-                          'Pilih Kategori & Level Target',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                          'Pilih Project & Level Fluency',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
 
-                    // Kategori Chips
+                    // Input Nama/Judul Project
+                    Text(
+                      'Nama Project / Judul Narasi:',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _projectTitleController,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
+                      decoration: InputDecoration(
+                        hintText: 'Contoh: Persiapan Wawancara Senior AI Engineer',
+                        hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Kategori Project Chips
+                    Text(
+                      'Kategori Project:',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
+                    ),
+                    const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -223,12 +358,16 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         return ChoiceChip(
                           label: Text(cat),
                           selected: isSel,
-                          selectedColor: AppTheme.primaryCyan,
+                          selectedColor: const Color(0xFF0D9488),
                           backgroundColor: const Color(0xFFF8FAFC),
                           labelStyle: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
-                            color: isSel ? const Color(0xFF0F172A) : AppTheme.textSecondary,
+                            color: isSel ? Colors.white : const Color(0xFF64748B),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(999),
+                            side: BorderSide(color: isSel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
                           ),
                           onSelected: (selected) {
                             if (selected) setState(() => _selectedCategory = cat);
@@ -239,20 +378,20 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
                     const SizedBox(height: 18),
 
-                    // Slider Level English
+                    // Slider Target English Level
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Target English Level:', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+                        Text('Target English Level:', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569))),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryPurple.withValues(alpha: 0.15),
+                            color: const Color(0xFF6366F1).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             _difficulties[_difficultyValue.round()],
-                            style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.primaryPurple),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF6366F1)),
                           ),
                         ),
                       ],
@@ -262,17 +401,17 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                       min: 0,
                       max: 4,
                       divisions: 4,
-                      activeColor: AppTheme.primaryCyan,
+                      activeColor: const Color(0xFF0D9488),
                       inactiveColor: const Color(0xFFE2E8F0),
                       onChanged: (val) => setState(() => _difficultyValue = val),
                     ),
 
                     const SizedBox(height: 10),
 
-                    // Tone Selection Chips
+                    // Gaya Bahasa / Tone Selection Chips
                     Row(
                       children: [
-                        Text('Gaya Bahasa / Tone:', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textSecondary)),
+                        Text('Gaya Bahasa:', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569))),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Wrap(
@@ -282,8 +421,12 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                               return ChoiceChip(
                                 label: Text(t, style: GoogleFonts.plusJakartaSans(fontSize: 11)),
                                 selected: isSel,
-                                selectedColor: const Color(0xFFE0F2FE),
-                                labelStyle: TextStyle(color: isSel ? AppTheme.primaryBlue : AppTheme.textSecondary, fontWeight: isSel ? FontWeight.bold : FontWeight.normal),
+                                selectedColor: const Color(0xFFCCFBF1),
+                                labelStyle: TextStyle(color: isSel ? const Color(0xFF0D9488) : const Color(0xFF64748B), fontWeight: isSel ? FontWeight.bold : FontWeight.normal),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(999),
+                                  side: BorderSide(color: isSel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
+                                ),
                                 onSelected: (sel) {
                                   if (sel) setState(() => _selectedTone = t);
                                 },
@@ -297,12 +440,23 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
-              // ─── TAHAP 2: INPUT DATA PENDUKUNG (TEXT, VOICE, PDF REAL) ───────────────
+              // ─── STEP 2: INPUT DATA PENDUKUNG (TEXT, VOICE, PDF REAL) ───────────────
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: AppTheme.cardDecoration(),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -311,15 +465,15 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         _buildStepBadge('2'),
                         const SizedBox(width: 10),
                         Text(
-                          'Input Data Pendukung (Context)',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                          'Input Data Konteks (Context)',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Masukkan informasi pengalaman, poin penting, atau latar belakang kamu.',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B)),
                     ),
                     const SizedBox(height: 14),
 
@@ -328,13 +482,13 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(999),
                       ),
                       child: Row(
                         children: [
                           _buildTabItem(0, LucideIcons.fileText, 'Ketik Teks'),
                           _buildTabItem(1, LucideIcons.mic, 'Voice Note'),
-                          _buildTabItem(2, LucideIcons.paperclip, 'Import PDF/Doc'),
+                          _buildTabItem(2, LucideIcons.paperclip, 'Import File'),
                         ],
                       ),
                     ),
@@ -343,27 +497,26 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
                     // Tab Body
                     if (_inputModeTab == 0) ...[
-                      // Text Direct Field
                       TextField(
                         controller: _customTextController,
                         maxLines: 4,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
                         decoration: InputDecoration(
-                          hintText: 'Contoh: Saya punya pengalaman 5 tahun sebagai AI Engineer di Fintech. Berhasil membangun microservice Golang dan optimasi database latency 45%...',
-                          hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.black38),
+                          hintText: 'Contoh: Saya berpengalaman 5 tahun sebagai AI Engineer di Fintech. Berhasil membangun microservice Golang dan optimasi latency database 45%...',
+                          hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
                           filled: true,
                           fillColor: const Color(0xFFF8FAFC),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
                           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
                         ),
                       ),
                     ] else if (_inputModeTab == 1) ...[
-                      // Real Voice Note Recorder UI
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
                         child: Column(
@@ -372,28 +525,28 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                               onTap: _toggleAudioRecording,
                               child: CircleAvatar(
                                 radius: 28,
-                                backgroundColor: _isRecordingVoice ? Colors.red : AppTheme.primaryCyan,
+                                backgroundColor: _isRecordingVoice ? Colors.red : const Color(0xFF0D9488),
                                 child: Icon(_isRecordingVoice ? LucideIcons.square : LucideIcons.mic, color: Colors.white, size: 24),
                               ),
                             ),
                             const SizedBox(height: 10),
                             Text(
                               _isRecordingVoice ? 'Sedang Merekam Suara... (Ketuk untuk Berhenti)' : 'Ketuk Mikrofon untuk Merekam Suara',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: _isRecordingVoice ? Colors.red : AppTheme.textPrimary),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: _isRecordingVoice ? Colors.red : const Color(0xFF0F172A)),
                             ),
                             if (_recordedAudioSummary.isNotEmpty) ...[
                               const SizedBox(height: 10),
                               Container(
                                 padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(color: const Color(0xFFE0F2FE), borderRadius: BorderRadius.circular(10)),
+                                decoration: BoxDecoration(color: const Color(0xFFCCFBF1), borderRadius: BorderRadius.circular(10)),
                                 child: Row(
                                   children: [
-                                    const Icon(LucideIcons.checkCircle, size: 16, color: AppTheme.primaryBlue),
+                                    const Icon(LucideIcons.checkCircle, size: 16, color: Color(0xFF0D9488)),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         _recordedAudioSummary,
-                                        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
+                                        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488)),
                                       ),
                                     ),
                                   ],
@@ -404,17 +557,16 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         ),
                       ),
                     ] else ...[
-                      // Real PDF/Doc Attachment UI
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
                         child: Row(
                           children: [
-                            const Icon(LucideIcons.fileCode2, size: 32, color: AppTheme.primaryPurple),
+                            const Icon(LucideIcons.fileCode2, size: 32, color: Color(0xFF6366F1)),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -422,18 +574,18 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                                 children: [
                                   Text(
                                     _attachedFileName ?? 'Upload File CV / Resume (PDF)',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
                                   ),
-                                  Text('Format: PDF, TXT, DOCX', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textSecondary)),
+                                  Text('Format: PDF, TXT, DOCX', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF64748B))),
                                 ],
                               ),
                             ),
                             ElevatedButton(
                               onPressed: _pickDocumentFile,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryPurple,
+                                backgroundColor: const Color(0xFF6366F1),
                                 foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
                               ),
                               child: Text(_attachedFileName != null ? 'Ganti File' : 'Pilih File', style: const TextStyle(fontSize: 12)),
                             ),
@@ -445,12 +597,23 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
-              // ─── TAHAP 3: KUSTOMISASI PROMPT & ROLES (TUNE PROMPT) ───────────────────
+              // ─── STEP 3: KUSTOMISASI PROMPT (TUNE PROMPT) ─────────────────────────
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: AppTheme.cardDecoration(),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -459,112 +622,200 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         _buildStepBadge('3'),
                         const SizedBox(width: 10),
                         Text(
-                          'Kustomisasi Prompt & Spesifikasi',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                          'Kustomisasi Prompt & Instruksi AI',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Misal: Buat khusus untuk wawancara AI Engineer dengan pengalaman 10 tahun.',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary),
+                      'Atur instruksi khusus untuk AI (misal: Gunakan STAR Method, tekankan leadership).',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B)),
                     ),
                     const SizedBox(height: 12),
 
                     TextField(
                       controller: _customPromptController,
                       maxLines: 2,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
                       decoration: InputDecoration(
-                        hintText: 'Contoh: Gunakan STAR Method (Situation, Task, Action, Result). Tekankan kepemimpinan teknis dan efisiensi cloud...',
-                        hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.black38),
+                        hintText: 'Contoh: Gunakan STAR Method (Situation, Task, Action, Result) dan tekankan arsitektur cloud & efisiensi database...',
+                        hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
                         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
 
               // ─── EKSEKUSI: TOMBOL GENERATE PROJECT ─────────────────────────────────
-              InkWell(
-                onTap: _isGenerating ? null : () => _generateNarrative(provider),
-                borderRadius: BorderRadius.circular(24),
-                child: Container(
-                  width: double.infinity,
-                  height: 52,
-                  decoration: AppTheme.gradientButtonDecoration(borderRadius: 24),
-                  child: Center(
-                    child: _isGenerating
-                        ? const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)),
-                              SizedBox(width: 12),
-                              Text('Sedang Menyusun Naskah AI...', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            ],
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(LucideIcons.sparkles, color: Colors.white, size: 20),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Generate & Sintesis Narasi',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
-                              ),
-                            ],
-                          ),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0D9488).withValues(alpha: 0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: _isGenerating ? null : () => _generateNarrative(provider),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    minimumSize: const Size(double.infinity, 54),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                  ),
+                  child: _isGenerating
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)),
+                            SizedBox(width: 12),
+                            Text('Sedang Menyusun Naskah AI...', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(LucideIcons.sparkles, color: Colors.white, size: 20),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Generate & Sintesis Narasi',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+                            ),
+                          ],
+                        ),
                 ),
               ),
 
-              // ─── HASIL HASIL GENERATE & LAUNCH PROMPTER ─────────────────────────────
+              // ─── HASIL GENERATE & AKSI (EDIT / DELETE / TELEPROMPTER) ────────────────
               if (_newGeneratedEssay != null) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: 22),
                 Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: AppTheme.cardDecoration(borderColor: AppTheme.accentEmerald),
+                  padding: const EdgeInsets.all(22),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0D9488).withValues(alpha: 0.15),
+                        blurRadius: 24,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                    border: Border.all(color: const Color(0xFF0D9488), width: 1.5),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(LucideIcons.checkCircle2, color: AppTheme.accentEmerald, size: 22),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Project Naskah Berhasil Dibuat & Tersimpan!',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.accentEmerald),
+                          Row(
+                            children: [
+                              const Icon(LucideIcons.checkCircle2, color: Color(0xFF0D9488), size: 22),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Project Naskah Berhasil Dibuat!',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0D9488)),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(LucideIcons.pencil, size: 16, color: Color(0xFF0D9488)),
+                                onPressed: () => _showEditGeneratedDialog(context, provider),
+                                tooltip: 'Edit Hasil Narasi',
+                              ),
+                              IconButton(
+                                icon: const Icon(LucideIcons.trash2, size: 16, color: Colors.red),
+                                onPressed: () {
+                                  provider.deleteEssayNarrative(_newGeneratedEssay!.id);
+                                  setState(() => _newGeneratedEssay = null);
+                                },
+                                tooltip: 'Hapus Naskah Ini',
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Text(
                         _newGeneratedEssay!.title,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Project: ${_newGeneratedEssay!.category}',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF0D9488), fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Level ${_newGeneratedEssay!.difficulty}',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF6366F1), fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
                       Text(
                         _newGeneratedEssay!.content,
                         maxLines: 4,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textSecondary, height: 1.4),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF64748B), height: 1.4),
                       ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: () => provider.selectEssayForTeleprompter(_newGeneratedEssay!),
-                        icon: const Icon(LucideIcons.playCircle, size: 20),
-                        label: const Text('Buka di Teleprompter Reader'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryPurple,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                          minimumSize: const Size(double.infinity, 48),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      const SizedBox(height: 18),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                          ),
+                        ),
+                        child: ElevatedButton.icon(
+                          onPressed: () => provider.selectEssayForTeleprompter(_newGeneratedEssay!),
+                          icon: const Icon(LucideIcons.playCircle, size: 20, color: Colors.white),
+                          label: const Text('Buka di Teleprompter Reader'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                            minimumSize: const Size(double.infinity, 48),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                            textStyle: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ],
@@ -583,12 +834,12 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppTheme.primaryCyan,
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFFCCFBF1),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         'Langkah $number',
-        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
+        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFF0D9488)),
       ),
     );
   }
@@ -602,18 +853,18 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSel ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: isSel ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)] : [],
+            color: isSel ? const Color(0xFF0D9488) : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: isSel ? [BoxShadow(color: const Color(0xFF0D9488).withValues(alpha: 0.3), blurRadius: 6)] : [],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 14, color: isSel ? AppTheme.primaryPurple : AppTheme.textSecondary),
+              Icon(icon, size: 14, color: isSel ? Colors.white : const Color(0xFF64748B)),
               const SizedBox(width: 6),
               Text(
                 label,
-                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: isSel ? FontWeight.bold : FontWeight.normal, color: isSel ? AppTheme.primaryPurple : AppTheme.textSecondary),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: isSel ? FontWeight.bold : FontWeight.normal, color: isSel ? Colors.white : const Color(0xFF64748B)),
               ),
             ],
           ),
@@ -623,15 +874,16 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   }
 
   void _generateNarrative(AppProvider provider) async {
+    final customTitle = _projectTitleController.text.trim();
+
     setState(() {
       _isGenerating = true;
       _newGeneratedEssay = null;
     });
 
-    // Gather real context from user custom text, voice audio, or uploaded file
     final userCustomText = _customTextController.text.trim();
     final customPrompt = _customPromptController.text.trim();
-    
+
     String combinedContext = '';
     if (userCustomText.isNotEmpty) {
       combinedContext += 'User Direct Input:\n$userCustomText\n';
@@ -655,7 +907,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     final essay = await ApiService.generateEssay(
       userId: provider.user.id,
       category: _selectedCategory,
-      subTopic: customPrompt.isNotEmpty ? customPrompt : 'Custom Narrative & Prompt',
+      subTopic: customTitle.isNotEmpty ? customTitle : (customPrompt.isNotEmpty ? customPrompt : 'Custom Narrative & Prompt'),
       difficulty: _difficulties[_difficultyValue.round()],
       tone: _selectedTone,
       userContext: combinedContext,
@@ -663,11 +915,26 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       promptTemplate: customPrompt.isNotEmpty ? customPrompt : provider.selectedRemixTemplate?.templateStructure,
     );
 
-    provider.addGeneratedEssay(essay);
+    // If user provided custom title, override title
+    Essay finalEssay = essay;
+    if (customTitle.isNotEmpty) {
+      finalEssay = Essay(
+        id: essay.id,
+        title: customTitle,
+        category: essay.category,
+        subTopic: essay.subTopic,
+        difficulty: essay.difficulty,
+        tone: essay.tone,
+        content: essay.content,
+        createdAt: essay.createdAt,
+      );
+    }
+
+    provider.addGeneratedEssay(finalEssay);
 
     setState(() {
       _isGenerating = false;
-      _newGeneratedEssay = essay;
+      _newGeneratedEssay = finalEssay;
     });
   }
 }
