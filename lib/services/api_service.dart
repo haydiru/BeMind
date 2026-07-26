@@ -6,6 +6,36 @@ import 'supabase_config.dart';
 class ApiService {
   static final String baseUrl = SupabaseConfig.backendBaseUrl;
 
+  /// High-accuracy Speech-to-Text Transcribe via Backend AI (Whisper/STT API)
+  static Future<String> transcribeAudio({
+    required String audioPath,
+    List<int>? bytes,
+  }) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/ai/transcribe'));
+      if (bytes != null && bytes.isNotEmpty) {
+        request.files.add(http.MultipartFile.fromBytes('audio', bytes, filename: 'voice_note.m4a'));
+      } else if (audioPath.isNotEmpty) {
+        request.files.add(await http.MultipartFile.fromPath('audio', audioPath));
+      } else {
+        return '';
+      }
+
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 25));
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success' && data['transcript'] != null) {
+          return data['transcript'].toString();
+        }
+      }
+    } catch (e) {
+      print('[ApiService] STT Backend error or offline fallback: $e');
+    }
+    return '';
+  }
+
   /// Synthesizes personalized narrative essay via Express backend & AI Proxy
   static Future<Essay> generateEssay({
     required String userId,
