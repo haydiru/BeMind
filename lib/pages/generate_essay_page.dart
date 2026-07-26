@@ -175,11 +175,16 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
             _recordedAudioPath = null;
           });
 
-          // Start recording clean audio file
+          // Start recording audio file
           await _audioRecorder.start(
             const RecordConfig(encoder: AudioEncoder.aacLc),
             path: path,
           );
+
+          // Start On-device Realtime Speech Recognition
+          if (_sttInitialized) {
+            _startContinuousListening();
+          }
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
