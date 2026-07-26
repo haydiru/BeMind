@@ -658,7 +658,7 @@ class ContextVaultPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 6),
           ),
@@ -668,7 +668,7 @@ class ContextVaultPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 📌 1. Dedicated Full-Width Row for Project Title & Edit Icon
+          // 📌 1. Elegant Header Row (Icon + Title + Edit Button)
           Row(
             children: [
               Container(
@@ -694,19 +694,23 @@ class ContextVaultPage extends StatelessWidget {
                     Flexible(
                       child: Text(
                         'Project: $categoryName',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 17,
+                          fontSize: 16,
                           fontWeight: FontWeight.w800,
                           color: const Color(0xFF0F172A),
                         ),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(LucideIcons.pencil, size: 15, color: Color(0xFF64748B)),
-                      onPressed: () => _showEditProjectDialog(context, provider, categoryName),
-                      padding: const EdgeInsets.only(left: 6),
-                      constraints: const BoxConstraints(),
-                      tooltip: 'Edit nama project',
+                    const SizedBox(width: 4),
+                    InkWell(
+                      onTap: () => _showEditProjectDialog(context, provider, categoryName),
+                      borderRadius: BorderRadius.circular(20),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: Icon(LucideIcons.pencil, size: 14, color: Color(0xFF64748B)),
+                      ),
                     ),
                   ],
                 ),
@@ -716,25 +720,41 @@ class ContextVaultPage extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // 📌 2. Dedicated Row for Meta Subtitle (Naskah Count) & '+ Tambah Narasi' Button
+          // 📌 2. Subtitle Meta Badge & '+ Tambah Narasi' Action Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '${essays.length} Naskah Narasi Tersimpan',
-                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF6366F1), fontWeight: FontWeight.w700),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${essays.length} Naskah Narasi',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF6366F1), fontWeight: FontWeight.w800),
+                ),
               ),
-              OutlinedButton.icon(
-                onPressed: () => provider.setPageIndex(1),
-                icon: const Icon(LucideIcons.plus, size: 14, color: Color(0xFF0D9488)),
-                label: const Text('Tambah Narasi'),
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF8FAFC),
-                  foregroundColor: const Color(0xFF0D9488),
-                  side: const BorderSide(color: Color(0xFFCCFBF1), width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+              InkWell(
+                onTap: () => provider.setPageIndex(1),
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  textStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: const Color(0xFF0D9488).withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(LucideIcons.plus, size: 13, color: Color(0xFF0D9488)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tambah Narasi',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFF0D9488)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -742,27 +762,28 @@ class ContextVaultPage extends StatelessWidget {
 
           const SizedBox(height: 16),
           const Divider(color: Color(0xFFF1F5F9), height: 1),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // List of Essays / Narratives within this Project
+          // 📌 3. List of Essays / Narratives (Proportional 3-Segment Card Layout)
           Column(
             children: essays.map((essay) {
               return Container(
-                margin: const EdgeInsets.only(bottom: 10),
+                margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 📜 Essay Title & Meta Info (Gets Maximum Flexible Space)
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
+                    // Top Row: Narrative Title & Edit/Delete Popup Menu
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
                             essay.title,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -770,109 +791,113 @@ class ContextVaultPage extends StatelessWidget {
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
                               color: const Color(0xFF0F172A),
-                              height: 1.3,
+                              height: 1.35,
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF6366F1).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  'Level ${essay.difficulty}',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF6366F1), fontWeight: FontWeight.w800),
-                                ),
+                        ),
+                        const SizedBox(width: 8),
+                        PopupMenuButton<String>(
+                          icon: const Icon(LucideIcons.moreVertical, size: 16, color: Color(0xFF64748B)),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onSelected: (val) {
+                            if (val == 'edit') {
+                              _showEditNarrativeDialog(context, provider, essay);
+                            } else if (val == 'delete') {
+                              _showDeleteConfirmDialog(context, provider, essay);
+                            }
+                          },
+                          itemBuilder: (ctx) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  const Icon(LucideIcons.pencil, size: 14, color: Color(0xFF0D9488)),
+                                  const SizedBox(width: 8),
+                                  Text('Edit Naskah', style: GoogleFonts.plusJakartaSans(fontSize: 12)),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              Icon(LucideIcons.clock, size: 11, color: const Color(0xFF94A3B8)),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  DateFormat('d MMM HH:mm').format(essay.createdAt),
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    // 🟢 Compact Elegant 'Latih' Action Button
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => provider.selectEssayForTeleprompter(essay),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
                             ),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF0D9488).withValues(alpha: 0.25),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  const Icon(LucideIcons.trash2, size: 14, color: Colors.red),
+                                  const SizedBox(width: 8),
+                                  Text('Hapus Naskah', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.red)),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(LucideIcons.play, size: 13, color: Colors.white),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Latih',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ),
+                      ],
                     ),
 
-                    // ⚙️ More Actions Menu
-                    PopupMenuButton<String>(
-                      icon: const Icon(LucideIcons.moreVertical, size: 16, color: Color(0xFF64748B)),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onSelected: (val) {
-                        if (val == 'edit') {
-                          _showEditNarrativeDialog(context, provider, essay);
-                        } else if (val == 'delete') {
-                          _showDeleteConfirmDialog(context, provider, essay);
-                        }
-                      },
-                      itemBuilder: (ctx) => [
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              const Icon(LucideIcons.pencil, size: 14, color: Color(0xFF0D9488)),
-                              const SizedBox(width: 8),
-                              Text('Edit Naskah', style: GoogleFonts.plusJakartaSans(fontSize: 12)),
-                            ],
-                          ),
+                    const SizedBox(height: 10),
+
+                    // Bottom Row: Meta Badges (Level + Date) on Left, Centered Play Button Action on Right
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Level & Date Subtitle Info
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'Level ${essay.difficulty}',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF0D9488), fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(LucideIcons.clock, size: 11, color: Color(0xFF94A3B8)),
+                            const SizedBox(width: 4),
+                            Text(
+                              DateFormat('d MMM HH:mm').format(essay.createdAt),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              const Icon(LucideIcons.trash2, size: 14, color: Colors.red),
-                              const SizedBox(width: 8),
-                              Text('Hapus Naskah', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.red)),
-                            ],
+
+                        // 🟢 Centered High-Efficiency 'Play / Latih Prompter' Button
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => provider.selectEssayForTeleprompter(essay),
+                            borderRadius: BorderRadius.circular(999),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(999),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF0D9488).withValues(alpha: 0.25),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(LucideIcons.play, size: 12, color: Colors.white),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'Latih',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ],
