@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
-import '../theme/app_theme.dart';
 
 class BottomNavBar extends StatelessWidget {
   const BottomNavBar({Key? key}) : super(key: key);
@@ -24,15 +24,15 @@ class BottomNavBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
+        border: const Border(
           top: BorderSide(
-            color: AppTheme.surfaceBorder.withOpacity(0.8),
-            width: 1,
+            color: Color(0xFFF1F5F9),
+            width: 1.5,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withOpacity(0.06),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -56,7 +56,7 @@ class BottomNavBar extends StatelessWidget {
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.chipTextBg : Colors.transparent,
+                    color: isSelected ? const Color(0xFF0D9488).withValues(alpha: 0.1) : Colors.transparent,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -65,15 +65,15 @@ class BottomNavBar extends StatelessWidget {
                       Icon(
                         item['icon'] as IconData,
                         size: 20,
-                        color: isSelected ? AppTheme.primaryBlue : AppTheme.textMuted,
+                        color: isSelected ? const Color(0xFF0D9488) : const Color(0xFF94A3B8),
                       ),
                       const SizedBox(height: 3),
                       Text(
                         item['label'] as String,
-                        style: TextStyle(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 10,
                           fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                          color: isSelected ? AppTheme.primaryBlue : AppTheme.textMuted,
+                          color: isSelected ? const Color(0xFF0D9488) : const Color(0xFF94A3B8),
                         ),
                       ),
                     ],

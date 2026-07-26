@@ -29,6 +29,7 @@ class ContextVaultPage extends StatelessWidget {
     final int strengthScore = (60 + (essays.length * 10) + (vocabCount * 2)).clamp(60, 98);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC), // Clean Pristine Light Canvas
       appBar: const HeaderBar(title: 'BeMind AI'),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -36,24 +37,20 @@ class ContextVaultPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ─── WELCOME HEADER & CREATE PROJECT BUTTON ────────────────────
+              // ─── ELEGANT LIGHT WELCOME BANNER & CREATE PROJECT CTA ──────────────────
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppTheme.primaryCyan.withValues(alpha: 0.3)),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      blurRadius: 20,
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.05),
+                      blurRadius: 24,
                       offset: const Offset(0, 8),
                     ),
                   ],
+                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,32 +65,69 @@ class ContextVaultPage extends StatelessWidget {
                               Text(
                                 'Halo, ${user.name} 👋',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF0F172A),
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                'Fokus Utama: ${user.targetGoal}',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  color: AppTheme.primaryCyan,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      'Fokus Utama',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF0D9488),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    user.targetGoal,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      color: const Color(0xFF64748B),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: AppTheme.primaryCyan,
-                          child: Text(
-                            user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0F172A),
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0D9488).withValues(alpha: 0.25),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -103,26 +137,43 @@ class ContextVaultPage extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     // CREATE NEW PROJECT MAIN CTA BUTTON
-                    ElevatedButton.icon(
-                      onPressed: () => provider.setPageIndex(1),
-                      icon: const Icon(LucideIcons.plusCircle, size: 20, color: Colors.black),
-                      label: Text(
-                        'Buat Project Baru',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black,
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(999),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryCyan,
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                      child: ElevatedButton.icon(
+                        onPressed: () => provider.setPageIndex(1),
+                        icon: const Icon(LucideIcons.plusCircle, size: 20, color: Colors.white),
+                        label: Text(
+                          'Buat Project Baru',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
                         ),
-                        elevation: 4,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -131,164 +182,164 @@ class ContextVaultPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // ─── DASHBOARD STATISTIK (STRENGTH & ACTIVITY OVERVIEW) ─────────
+              // ─── DASHBOARD STATISTIK (STRENGTH & FLUENCY PERFORMANCE CARD) ────────
               Container(
-                padding: const EdgeInsets.all(20),
-                decoration: AppTheme.cardDecoration(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.05),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                ),
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        // Left Ring Widget
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFF0F172A),
-                            border: Border.all(color: AppTheme.primaryCyan.withValues(alpha: 0.4), width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primaryCyan.withValues(alpha: 0.15),
-                                blurRadius: 16,
-                              ),
-                            ],
+                    // Left Ring Indicator
+                    Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFF8FAFC),
+                        border: Border.all(color: const Color(0xFFCCFBF1), width: 2),
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: 86,
+                            height: 86,
+                            child: CircularProgressIndicator(
+                              value: strengthScore / 100.0,
+                              strokeWidth: 6,
+                              backgroundColor: const Color(0xFFE2E8F0),
+                              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0D9488)),
+                            ),
                           ),
-                          child: Stack(
-                            alignment: Alignment.center,
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              SizedBox(
-                                width: 90,
-                                height: 90,
-                                child: CircularProgressIndicator(
-                                  value: strengthScore / 100.0,
-                                  strokeWidth: 6,
-                                  backgroundColor: const Color(0xFF1E293B),
-                                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryCyan),
-                                ),
-                              ),
-                              Column(
+                              Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        '$strengthScore',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 26,
-                                          fontWeight: FontWeight.w800,
-                                          color: AppTheme.textPrimary,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 2),
-                                      const Icon(LucideIcons.shieldCheck, size: 16, color: AppTheme.primaryCyan),
-                                    ],
-                                  ),
                                   Text(
-                                    'STRENGTH',
+                                    '$strengthScore',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 7,
+                                      fontSize: 24,
                                       fontWeight: FontWeight.w800,
-                                      color: AppTheme.textSecondary,
-                                      letterSpacing: 0.5,
+                                      color: const Color(0xFF0F172A),
                                     ),
                                   ),
+                                  const SizedBox(width: 2),
+                                  const Icon(LucideIcons.shieldCheck, size: 15, color: Color(0xFF0D9488)),
                                 ],
                               ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-
-                        // Right Waveform & Quick Stats
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
                               Text(
-                                'Performa Fluency',
+                                'STRENGTH',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 16,
+                                  fontSize: 8,
                                   fontWeight: FontWeight.w800,
-                                  color: AppTheme.textPrimary,
+                                  color: const Color(0xFF64748B),
+                                  letterSpacing: 0.5,
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-
-                              // Dynamic Wave Graphic Simulation
-                              SizedBox(
-                                height: 38,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: List.generate(18, (i) {
-                                    final heights = [12, 22, 34, 26, 16, 32, 38, 30, 20, 28, 36, 38, 22, 30, 18, 26, 32, 20];
-                                    return Container(
-                                      width: 3.5,
-                                      height: heights[i % heights.length].toDouble(),
-                                      decoration: BoxDecoration(
-                                        gradient: AppTheme.buttonGradient,
-                                        borderRadius: BorderRadius.circular(3),
-                                      ),
-                                    );
-                                  }),
-                                ),
-                              ),
-
-                              const SizedBox(height: 10),
-
-                              // Stat Numbers
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildStatItem('Total Project', '${groupedProjects.length}'),
-                                  _buildStatItem('Total Narasi', '${essays.length}'),
-                                  _buildStatItem('Fluency Rank', strengthScore > 80 ? 'Advanced' : 'Intermediate'),
-                                ],
                               ),
                             ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Right Waveform & Stat Overview
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Performa Fluency',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Dynamic Wave Bar Simulation
+                          SizedBox(
+                            height: 34,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: List.generate(18, (i) {
+                                final heights = [12, 20, 30, 24, 14, 28, 34, 26, 18, 24, 32, 34, 20, 26, 16, 24, 28, 18];
+                                return Container(
+                                  width: 3.5,
+                                  height: heights[i % heights.length].toDouble(),
+                                  decoration: BoxDecoration(
+                                    color: i % 2 == 0 ? const Color(0xFF0D9488) : const Color(0xFF6366F1),
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          // Quick Stat Items
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildStatItem('Total Project', '${groupedProjects.length}'),
+                              _buildStatItem('Total Narasi', '${essays.length}'),
+                              _buildStatItem('Fluency Rank', strengthScore > 80 ? 'Advanced' : 'Intermediate'),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
-              // ─── DAFTAR PROJECT USER (GROUPED BY CATEGORY WITH MULTIPLE NARRATIVES) ─
+              // ─── DAFTAR PROJECT USER ──────────────────────────────────────────────
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Daftar Project Kamu',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 17,
+                      fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
+                      color: const Color(0xFF0F172A),
                     ),
                   ),
                   Row(
                     children: [
                       IconButton(
-                        icon: const Icon(LucideIcons.refreshCw, size: 16),
+                        icon: const Icon(LucideIcons.refreshCw, size: 16, color: Color(0xFF0D9488)),
                         onPressed: () => provider.refreshEssays(),
                         tooltip: 'Refresh dari Database',
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppTheme.chipTextBg,
-                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
                           '${groupedProjects.length} Project (${essays.length} Narasi)',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryPurple,
+                            color: const Color(0xFF0D9488),
                           ),
                         ),
                       ),
@@ -297,17 +348,21 @@ class ContextVaultPage extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
 
               // LIST OF GROUPED PROJECT CARDS
               isLoading
                   ? Container(
                       padding: const EdgeInsets.all(32),
-                      decoration: AppTheme.cardDecoration(),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: const Color(0xFFF1F5F9)),
+                      ),
                       child: const Center(
                         child: Column(
                           children: [
-                            CircularProgressIndicator(),
+                            CircularProgressIndicator(color: Color(0xFF0D9488)),
                             SizedBox(height: 12),
                             Text('Memuat project kamu...'),
                           ],
@@ -345,14 +400,14 @@ class ContextVaultPage extends StatelessWidget {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 13,
             fontWeight: FontWeight.w800,
-            color: AppTheme.textPrimary,
+            color: const Color(0xFF0F172A),
           ),
         ),
         Text(
           label,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 9,
-            color: AppTheme.textSecondary,
+            fontSize: 10,
+            color: const Color(0xFF64748B),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -362,32 +417,70 @@ class ContextVaultPage extends StatelessWidget {
 
   Widget _buildEmptyProjectCard(BuildContext context, AppProvider provider) {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: AppTheme.cardDecoration(),
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+      ),
       child: Column(
         children: [
-          Icon(LucideIcons.folderPlus, size: 42, color: AppTheme.primaryCyan),
-          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Color(0xFFCCFBF1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(LucideIcons.folderPlus, size: 36, color: Color(0xFF0D9488)),
+          ),
+          const SizedBox(height: 14),
           Text(
             'Belum Ada Project Bahasa Inggris',
-            style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+            style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
           ),
           const SizedBox(height: 6),
           Text(
             'Buat project narasi pertama kamu untuk dilatih di Teleprompter.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary),
+            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF64748B)),
           ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () => provider.setPageIndex(1),
-            icon: const Icon(LucideIcons.sparkles, size: 16),
-            label: const Text('Buat Project Pertama'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryCyan,
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          const SizedBox(height: 18),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton.icon(
+              onPressed: () => provider.setPageIndex(1),
+              icon: const Icon(LucideIcons.sparkles, size: 16, color: Colors.white),
+              label: Text(
+                'Buat Project Pertama',
+                style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 13),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+              ),
             ),
           ),
         ],
@@ -398,8 +491,19 @@ class ContextVaultPage extends StatelessWidget {
   /// Card representation for a Project Group containing 1 or more narrative essays
   Widget _buildProjectGroupCard(BuildContext context, AppProvider provider, String categoryName, List<Essay> essays) {
     return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: AppTheme.cardDecoration(),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -407,10 +511,10 @@ class ContextVaultPage extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryCyan.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFCCFBF1),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
                   categoryName == 'Job Interview'
@@ -419,7 +523,7 @@ class ContextVaultPage extends StatelessWidget {
                           ? LucideIcons.graduationCap
                           : LucideIcons.presentation,
                   size: 22,
-                  color: AppTheme.primaryCyan,
+                  color: const Color(0xFF0D9488),
                 ),
               ),
               const SizedBox(width: 14),
@@ -432,46 +536,46 @@ class ContextVaultPage extends StatelessWidget {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: AppTheme.textPrimary,
+                        color: const Color(0xFF0F172A),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${essays.length} Naskah Narasi Tersimpan',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.primaryPurple, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF6366F1), fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
               ),
-              ElevatedButton.icon(
+              OutlinedButton.icon(
                 onPressed: () => provider.setPageIndex(1),
-                icon: const Icon(LucideIcons.plus, size: 14),
+                icon: const Icon(LucideIcons.plus, size: 14, color: Color(0xFF0D9488)),
                 label: const Text('Tambah Narasi'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF1F5F9),
-                  foregroundColor: const Color(0xFF0F172A),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF8FAFC),
+                  foregroundColor: const Color(0xFF0D9488),
+                  side: const BorderSide(color: Color(0xFFCCFBF1), width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   textStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 14),
-          Divider(color: Colors.black.withValues(alpha: 0.08)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
+          const Divider(color: Color(0xFFF1F5F9), height: 1),
+          const SizedBox(height: 12),
 
           // List of Essays / Narratives within this Project
           Column(
             children: essays.map((essay) {
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: Row(
@@ -485,37 +589,54 @@ class ContextVaultPage extends StatelessWidget {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
+                              color: const Color(0xFF0F172A),
                             ),
                           ),
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Text(
-                                'Level: ${essay.difficulty}',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'Level ${essay.difficulty}',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF6366F1), fontWeight: FontWeight.bold),
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                '• ${DateFormat('d MMM HH:mm').format(essay.createdAt)}',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                                DateFormat('d MMM HH:mm').format(essay.createdAt),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF94A3B8)),
                               ),
                             ],
                           ),
                         ],
                       ),
                     ),
-                    ElevatedButton.icon(
-                      onPressed: () => provider.selectEssayForTeleprompter(essay),
-                      icon: const Icon(LucideIcons.play, size: 12),
-                      label: const Text('Latih Prompter'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryPurple,
-                        foregroundColor: Colors.white,
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        textStyle: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(999),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                        ),
+                      ),
+                      child: ElevatedButton.icon(
+                        onPressed: () => provider.selectEssayForTeleprompter(essay),
+                        icon: const Icon(LucideIcons.play, size: 12, color: Colors.white),
+                        label: const Text('Latih Prompter'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          textStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                   ],
