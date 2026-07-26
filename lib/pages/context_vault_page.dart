@@ -668,14 +668,14 @@ class ContextVaultPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Project Group Header with Edit Title Option
+          // 📌 1. Dedicated Full-Width Row for Project Title & Edit Icon
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: const Color(0xFFCCFBF1),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
                   categoryName == 'Job Interview'
@@ -683,43 +683,46 @@ class ContextVaultPage extends StatelessWidget {
                       : categoryName == 'IELTS/TOEFL' || categoryName == 'IELTS Part 2'
                           ? LucideIcons.graduationCap
                           : LucideIcons.presentation,
-                  size: 22,
+                  size: 20,
                   color: const Color(0xFF0D9488),
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Project: $categoryName',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFF0F172A),
-                            ),
-                          ),
+                    Flexible(
+                      child: Text(
+                        'Project: $categoryName',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF0F172A),
                         ),
-                        IconButton(
-                          icon: const Icon(LucideIcons.pencil, size: 14, color: Color(0xFF64748B)),
-                          onPressed: () => _showEditProjectDialog(context, provider, categoryName),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          tooltip: 'Edit nama project',
-                        ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${essays.length} Naskah Narasi Tersimpan',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF6366F1), fontWeight: FontWeight.w700),
+                    IconButton(
+                      icon: const Icon(LucideIcons.pencil, size: 15, color: Color(0xFF64748B)),
+                      onPressed: () => _showEditProjectDialog(context, provider, categoryName),
+                      padding: const EdgeInsets.only(left: 6),
+                      constraints: const BoxConstraints(),
+                      tooltip: 'Edit nama project',
                     ),
                   ],
                 ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // 📌 2. Dedicated Row for Meta Subtitle (Naskah Count) & '+ Tambah Narasi' Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${essays.length} Naskah Narasi Tersimpan',
+                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF6366F1), fontWeight: FontWeight.w700),
               ),
               OutlinedButton.icon(
                 onPressed: () => provider.setPageIndex(1),
@@ -730,7 +733,7 @@ class ContextVaultPage extends StatelessWidget {
                   foregroundColor: const Color(0xFF0D9488),
                   side: const BorderSide(color: Color(0xFFCCFBF1), width: 1.5),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   textStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold),
                 ),
               ),
