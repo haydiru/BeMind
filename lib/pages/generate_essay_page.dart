@@ -50,8 +50,9 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
   // Language Locale for Speech-To-Text ('en_US' for English, 'id_ID' for Bahasa Indonesia)
   String _sttLocaleId = 'en_US';
-  String _committedTranscriptBuffer = ''; // Immutable buffer holding all previous sentences/utterances
-  bool _isRestartingStt = false; // Debounce flag to prevent duplicate concurrent STT listen() restarts on Android
+  String _completeText = ''; // Permanent accumulated text across all pauses & sentences
+  String _currentWords = '';  // Temporary live words for current active spoken phrase
+  bool _isRestartingStt = false; // Debounce flag for seamless continuous restart
 
   // 📎 Real File Picker
   String? _attachedFileName;
@@ -80,16 +81,18 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         onError: (val) {
           debugPrint('[STT Error]: $val');
           if (_isRecordingVoice && mounted) {
-            _safeRestartListening();
+            _commitCurrentWordsToPermanent();
+            _restartListeningLoop();
           }
         },
         onStatus: (val) {
           debugPrint('[STT Status]: $val');
-          // On Android, pauses trigger both 'notListening' and 'done' in rapid succession.
-          // _safeRestartListening debounces these calls so STT is restarted cleanly ONCE without resetting text.
-          if (val == 'notListening' || val == 'done') {
+          // When Android SpeechRecognizer finishes an utterance (pause/silence detected):
+          // Commit currentWords into completeText and auto-restart if user hasn't clicked stop
+          if (val == 'done' || val == 'notListening') {
+            _commitCurrentWordsToPermanent();
             if (_isRecordingVoice && mounted) {
-              _safeRestartListening();
+              _restartListeningLoop();
             }
           }
         },
@@ -99,29 +102,35 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
-  /// Safely locks current text to buffer & restarts STT with debouncing to prevent Android race conditions
-  void _safeRestartListening() {
+  /// Commits current session live words into permanent accumulated completeText
+  void _commitCurrentWordsToPermanent() {
+    final live = _currentWords.trim();
+    if (live.isNotEmpty) {
+      if (_completeText.isEmpty) {
+        _completeText = live;
+      } else if (!_completeText.endsWith(live)) {
+        _completeText = "$_completeText $live".trim();
+      }
+      _currentWords = '';
+    }
+    if (mounted) {
+      setState(() {
+        _transcriptTextController.text = _completeText;
+      });
+    }
+  }
+
+  /// Debounced safe restart loop for continuous Speech-to-Text
+  void _restartListeningLoop() {
     if (!_isRecordingVoice || _isRestartingStt) return;
     _isRestartingStt = true;
 
-    _lockCurrentTextToBuffer();
-
-    Future.delayed(const Duration(milliseconds: 300), () async {
-      if (_isRecordingVoice && mounted) {
-        if (!_speechToText.isListening) {
-          await _startContinuousListening();
-        }
+    Future.delayed(const Duration(milliseconds: 150), () async {
+      if (_isRecordingVoice && mounted && !_speechToText.isListening) {
+        await _startListeningSession();
       }
       _isRestartingStt = false;
     });
-  }
-
-  /// Locks whatever is currently in the text controller into the committed buffer
-  void _lockCurrentTextToBuffer() {
-    final currentText = _transcriptTextController.text.trim();
-    if (currentText.isNotEmpty) {
-      _committedTranscriptBuffer = currentText;
-    }
   }
 
   @override
@@ -145,15 +154,16 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         if (_speechToText.isListening) {
           await _speechToText.stop();
         }
-        _lockCurrentTextToBuffer();
+        _commitCurrentWordsToPermanent();
 
         setState(() {
           _isTranscribing = false;
-          _transcriptTextController.text = _committedTranscriptBuffer;
+          _transcriptTextController.text = _completeText;
         });
       } else {
         // ── START RECORDING ──
-        _committedTranscriptBuffer = '';
+        _completeText = '';
+        _currentWords = '';
         _isRestartingStt = false;
 
         setState(() {
@@ -166,7 +176,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           await _initSpeechToText();
         }
 
-        _startContinuousListening();
+        await _startListeningSession();
       }
     } catch (e) {
       debugPrint('[STT Toggle Error]: $e');
@@ -182,28 +192,23 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
-  // 🔄 Continuous Live Dictation Engine
-  Future<void> _startContinuousListening() async {
+  // 🔄 Continuous Live Speech Listening Session
+  Future<void> _startListeningSession() async {
     if (!_isRecordingVoice) return;
 
     try {
       await _speechToText.listen(
-        onResult: (result) {
+        onResult: (val) {
           if (mounted && _isRecordingVoice) {
-            final liveWords = result.recognizedWords.trim();
-            
-            if (liveWords.isNotEmpty) {
-              final combinedText = _committedTranscriptBuffer.isEmpty
-                  ? liveWords
-                  : '$_committedTranscriptBuffer $liveWords';
+            setState(() {
+              _currentWords = val.recognizedWords;
+              _transcriptTextController.text = _completeText.isEmpty
+                  ? _currentWords
+                  : "$_completeText $_currentWords".trim();
+            });
 
-              setState(() {
-                _transcriptTextController.text = combinedText;
-              });
-
-              if (result.finalResult) {
-                _committedTranscriptBuffer = combinedText;
-              }
+            if (val.finalResult) {
+              _commitCurrentWordsToPermanent();
             }
           }
         },
