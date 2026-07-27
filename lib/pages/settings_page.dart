@@ -17,7 +17,12 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   bool _isEditingProfile = false;
+  bool _isSaving = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
 
   final List<String> _goals = [
     'Job Interview Prep',
@@ -38,7 +43,69 @@ class _SettingsPageState extends State<SettingsPage> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _showSnackBar(String msg, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          msg,
+          style: GoogleFonts.plusJakartaSans(
+              fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+        ),
+        backgroundColor:
+            isError ? const Color(0xFFEF4444) : const Color(0xFF0D9488),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Future<void> _saveProfileChanges(AppProvider provider) async {
+    final user = provider.user;
+    setState(() => _isSaving = true);
+
+    // 1. Save name if changed
+    final newName = _nameController.text.trim();
+    if (newName.isNotEmpty && newName != user.name) {
+      final err = await provider.updateUserNameInDB(newName);
+      if (err != null) {
+        _showSnackBar(err, isError: true);
+        setState(() => _isSaving = false);
+        return;
+      }
+    }
+
+    // 2. Save password if filled
+    final newPass = _passwordController.text;
+    final confirmPass = _confirmPasswordController.text;
+    if (newPass.isNotEmpty) {
+      if (newPass != confirmPass) {
+        _showSnackBar('Password dan konfirmasi tidak cocok!', isError: true);
+        setState(() => _isSaving = false);
+        return;
+      }
+      final err = await provider.updateUserPassword(newPass);
+      if (err != null) {
+        _showSnackBar(err, isError: true);
+        setState(() => _isSaving = false);
+        return;
+      }
+    }
+
+    _passwordController.clear();
+    _confirmPasswordController.clear();
+
+    setState(() {
+      _isSaving = false;
+      _isEditingProfile = false;
+    });
+
+    _showSnackBar('✔ Profil berhasil diperbarui!');
   }
 
   @override
@@ -88,6 +155,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ── User Avatar + Info + Edit Toggle ──
                     Row(
                       children: [
                         Container(
@@ -130,20 +198,19 @@ class _SettingsPageState extends State<SettingsPage> {
                             ],
                           ),
                         ),
+                        // Edit/Cancel toggle
                         IconButton(
-                          icon: Icon(_isEditingProfile ? LucideIcons.check : LucideIcons.pencil, size: 18, color: const Color(0xFF0D9488)),
+                          icon: Icon(
+                            _isEditingProfile ? LucideIcons.x : LucideIcons.pencil,
+                            size: 18,
+                            color: _isEditingProfile ? const Color(0xFFEF4444) : const Color(0xFF0D9488),
+                          ),
                           onPressed: () {
                             if (_isEditingProfile) {
-                              // Save profile changes
-                              provider.loginWithProfile(
-                                id: user.id,
-                                name: _nameController.text.trim(),
-                                email: _emailController.text.trim(),
-                                targetGoal: user.targetGoal,
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('✔ Profil berhasil diperbarui!'), backgroundColor: Color(0xFF0D9488)),
-                              );
+                              // Cancel editing — reset fields
+                              _nameController.text = user.name;
+                              _passwordController.clear();
+                              _confirmPasswordController.clear();
                             }
                             setState(() => _isEditingProfile = !_isEditingProfile);
                           },
@@ -151,17 +218,125 @@ class _SettingsPageState extends State<SettingsPage> {
                       ],
                     ),
 
+                    // ── Editable Profile Fields ──
                     if (_isEditingProfile) ...[
                       const SizedBox(height: 16),
                       const Divider(color: Color(0xFFF1F5F9)),
                       const SizedBox(height: 12),
+
+                      // Name Field
+                      Text(
+                        'Nama Lengkap',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
+                      ),
+                      const SizedBox(height: 6),
                       TextField(
                         controller: _nameController,
                         style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
                         decoration: InputDecoration(
-                          labelText: 'Nama Lengkap',
-                          prefixIcon: const Icon(LucideIcons.user, size: 18, color: Color(0xFF94A3B8)),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          hintText: 'Masukkan nama baru',
+                          hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF94A3B8)),
+                          prefixIcon: const Icon(LucideIcons.user, size: 17, color: Color(0xFF0D9488)),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
+                        ),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // New Password Field
+                      Text(
+                        'Password Baru (opsional)',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
+                        decoration: InputDecoration(
+                          hintText: 'Masukkan password baru',
+                          hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF94A3B8)),
+                          prefixIcon: const Icon(LucideIcons.lock, size: 17, color: Color(0xFF0D9488)),
+                          suffixIcon: GestureDetector(
+                            onTap: () => setState(() => _obscurePassword = !_obscurePassword),
+                            child: Icon(_obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye, size: 17, color: const Color(0xFF94A3B8)),
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Confirm Password Field
+                      TextField(
+                        controller: _confirmPasswordController,
+                        obscureText: _obscureConfirm,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
+                        decoration: InputDecoration(
+                          hintText: 'Konfirmasi password baru',
+                          hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: const Color(0xFF94A3B8)),
+                          prefixIcon: const Icon(LucideIcons.shieldCheck, size: 17, color: Color(0xFF0D9488)),
+                          suffixIcon: GestureDetector(
+                            onTap: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                            child: Icon(_obscureConfirm ? LucideIcons.eyeOff : LucideIcons.eye, size: 17, color: const Color(0xFF94A3B8)),
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Save Button
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton.icon(
+                          onPressed: _isSaving ? null : () => _saveProfileChanges(provider),
+                          icon: _isSaving
+                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Icon(LucideIcons.save, size: 16),
+                          label: Text(
+                            _isSaving ? 'Menyimpan...' : 'Simpan Perubahan',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
                         ),
                       ),
                     ],

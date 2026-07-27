@@ -84,6 +84,36 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Update user display name in Supabase Auth (user_metadata) + local state
+  Future<String?> updateUserNameInDB(String newName) async {
+    if (newName.trim().isEmpty) return 'Nama tidak boleh kosong!';
+    try {
+      await Supabase.instance.client.auth.updateUser(
+        UserAttributes(data: {'name': newName.trim(), 'full_name': newName.trim()}),
+      );
+      _user = _user.copyWith(name: newName.trim());
+      notifyListeners();
+      return null; // success
+    } catch (e) {
+      debugPrint('[AppProvider] Error updating name: $e');
+      return 'Gagal menyimpan nama: $e';
+    }
+  }
+
+  /// Update user password in Supabase Auth
+  Future<String?> updateUserPassword(String newPassword) async {
+    if (newPassword.length < 6) return 'Password minimal 6 karakter!';
+    try {
+      await Supabase.instance.client.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+      return null; // success
+    } catch (e) {
+      debugPrint('[AppProvider] Error updating password: $e');
+      return 'Gagal mengubah password: $e';
+    }
+  }
+
   // ─── Context Vault State (user-uploaded context docs) ──────────────────────
   final List<ContextItem> _contextItems = [];
   List<ContextItem> get contextItems => List.unmodifiable(_contextItems);
