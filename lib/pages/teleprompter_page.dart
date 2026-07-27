@@ -460,7 +460,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                             ],
                           ),
                           child: Icon(
-                            _isBgMusicEnabled ? LucideIcons.music : LucideIcons.musicOff,
+                            _isBgMusicEnabled ? LucideIcons.music : LucideIcons.volumeOff,
                             size: 20,
                             color: _isBgMusicEnabled ? const Color(0xFF0D9488) : const Color(0xFF64748B),
                           ),
