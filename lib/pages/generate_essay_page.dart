@@ -50,8 +50,8 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
   // Language Locale for Speech-To-Text ('en_US' for English, 'id_ID' for Bahasa Indonesia)
   String _sttLocaleId = 'en_US';
-  String _accumulatedTranscript = ''; // Stores committed text from previous speech sessions/pauses
-  String _currentSessionTranscript = ''; // Stores live words from current active STT session
+  final List<String> _committedChunks = []; // Stores committed sentence chunks from previous pauses
+  String _currentSessionChunk = ''; // Stores live words from current active STT session
 
   // 📎 Real File Picker
   String? _attachedFileName;
@@ -80,8 +80,9 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         onError: (val) {
           debugPrint('[STT Error]: $val');
           if (_isRecordingVoice && mounted) {
-            _commitCurrentSession();
-            Future.delayed(const Duration(milliseconds: 300), () {
+            _commitSessionChunk();
+            _updateDisplay();
+            Future.delayed(const Duration(milliseconds: 250), () {
               if (_isRecordingVoice && mounted && !_speechToText.isListening) {
                 _startContinuousListening();
               }
@@ -90,11 +91,12 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         },
         onStatus: (val) {
           debugPrint('[STT Status]: $val');
-          // When STT pauses automatically on silence, commit current session text and restart listening seamlessly
+          // When STT pauses on breath/silence, lock current chunk to list and restart seamlessly
           if (val == 'notListening' || val == 'done') {
             if (_isRecordingVoice) {
-              _commitCurrentSession();
-              Future.delayed(const Duration(milliseconds: 200), () {
+              _commitSessionChunk();
+              _updateDisplay();
+              Future.delayed(const Duration(milliseconds: 150), () {
                 if (_isRecordingVoice && mounted && !_speechToText.isListening) {
                   _startContinuousListening();
                 }
@@ -108,15 +110,25 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
-  void _commitCurrentSession() {
-    if (_currentSessionTranscript.trim().isNotEmpty) {
-      final chunk = _currentSessionTranscript.trim();
-      if (_accumulatedTranscript.isEmpty) {
-        _accumulatedTranscript = chunk;
-      } else if (!_accumulatedTranscript.endsWith(chunk)) {
-        _accumulatedTranscript = '$_accumulatedTranscript $chunk';
+  void _commitSessionChunk() {
+    final chunk = _currentSessionChunk.trim();
+    if (chunk.isNotEmpty) {
+      if (_committedChunks.isEmpty || _committedChunks.last != chunk) {
+        _committedChunks.add(chunk);
       }
-      _currentSessionTranscript = '';
+      _currentSessionChunk = '';
+    }
+  }
+
+  void _updateDisplay() {
+    final all = [..._committedChunks];
+    if (_currentSessionChunk.trim().isNotEmpty) {
+      all.add(_currentSessionChunk.trim());
+    }
+    if (mounted) {
+      setState(() {
+        _transcriptTextController.text = all.join(' ');
+      });
     }
   }
 
@@ -140,17 +152,17 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         if (_speechToText.isListening) {
           await _speechToText.stop();
         }
-        _commitCurrentSession();
+        _commitSessionChunk();
 
         setState(() {
           _isRecordingVoice = false;
           _isTranscribing = false;
-          _transcriptTextController.text = _accumulatedTranscript.trim();
+          _updateDisplay();
         });
       } else {
         // START RECORDING
-        _accumulatedTranscript = '';
-        _currentSessionTranscript = '';
+        _committedChunks.clear();
+        _currentSessionChunk = '';
 
         setState(() {
           _isRecordingVoice = true;
@@ -185,18 +197,12 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     _speechToText.listen(
       onResult: (result) {
         if (mounted && _isRecordingVoice) {
-          _currentSessionTranscript = result.recognizedWords.trim();
-
-          final fullDisplay = _accumulatedTranscript.isEmpty
-              ? _currentSessionTranscript
-              : '$_accumulatedTranscript $_currentSessionTranscript';
-
-          setState(() {
-            _transcriptTextController.text = fullDisplay.trim();
-          });
+          _currentSessionChunk = result.recognizedWords.trim();
+          _updateDisplay();
 
           if (result.finalResult) {
-            _commitCurrentSession();
+            _commitSessionChunk();
+            _updateDisplay();
           }
         }
       },

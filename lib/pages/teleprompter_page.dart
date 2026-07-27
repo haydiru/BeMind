@@ -472,7 +472,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  _isBgMusicEnabled ? 'Musik Latar ON' : 'Musik OFF',
+                                  _isBgMusicEnabled ? 'Musik Latar' : 'Musik OFF',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
@@ -519,6 +519,40 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                             ),
                         ],
                       ),
+                      if (_isBgMusicEnabled) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(LucideIcons.volume1, size: 14, color: Color(0xFF94A3B8)),
+                            Expanded(
+                              child: SliderTheme(
+                                data: SliderThemeData(
+                                  trackHeight: 3,
+                                  thumbColor: const Color(0xFF0D9488),
+                                  activeTrackColor: const Color(0xFF0D9488),
+                                  inactiveTrackColor: const Color(0xFFF1F5F9),
+                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                                ),
+                                child: Slider(
+                                  value: _bgMusicVolume,
+                                  min: 0.05,
+                                  max: 1.0,
+                                  onChanged: (val) {
+                                    setState(() => _bgMusicVolume = val);
+                                    _bgAudioPlayer.setVolume(val);
+                                  },
+                                ),
+                              ),
+                            ),
+                            const Icon(LucideIcons.volume2, size: 14, color: Color(0xFF0D9488)),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${(_bgMusicVolume * 100).toInt()}%',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF0D9488)),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
