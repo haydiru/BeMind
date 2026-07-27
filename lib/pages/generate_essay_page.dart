@@ -54,6 +54,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   String _currentWords = '';  // Temporary live words for current active spoken phrase
   bool _isRestartingStt = false; // Debounce flag for seamless continuous restart
   final ScrollController _mainScrollController = ScrollController(); // Auto-scroll controller for page
+  final ScrollController _textFieldScrollController = ScrollController(); // Auto-scroll controller inside TextField
 
   // 📎 Real File Picker
   String? _attachedFileName;
@@ -103,7 +104,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
-  /// Updates transcript text controller, moves cursor to end, & auto-scrolls down live
+  /// Updates transcript text controller, moves cursor to end, & auto-scrolls both TextField and page down live
   void _updateTranscriptText(String newText) {
     if (!mounted) return;
     setState(() {
@@ -113,17 +114,18 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       );
     });
 
-    if (_mainScrollController.hasClients) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_mainScrollController.hasClients) {
-          _mainScrollController.animateTo(
-            _mainScrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_textFieldScrollController.hasClients) {
+        _textFieldScrollController.jumpTo(_textFieldScrollController.position.maxScrollExtent);
+      }
+      if (_mainScrollController.hasClients) {
+        _mainScrollController.animateTo(
+          _mainScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   /// Commits current session live words into permanent accumulated completeText
@@ -160,6 +162,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     _customPromptController.dispose();
     _transcriptTextController.dispose();
     _mainScrollController.dispose();
+    _textFieldScrollController.dispose();
     _audioRecorder.dispose();
     _audioPlayer.dispose();
     _speechToText.stop();
@@ -944,13 +947,17 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      'Hasil Transkripsi Teks:',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488)),
+                                    Expanded(
+                                      child: Text(
+                                        'Hasil Transkripsi Teks (Dapat Diedit):',
+                                        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488)),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                    const Spacer(),
-                                    if (_isRecordingVoice)
+                                    if (_isRecordingVoice) ...[
+                                      const SizedBox(width: 6),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(
@@ -968,12 +975,13 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
-                                              'Kursor Otomatis Auto-Scroll',
+                                              'Auto-Scroll Kursor',
                                               style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red),
                                             ),
                                           ],
                                         ),
                                       ),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -994,6 +1002,8 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                                 ),
                                 child: TextField(
                                   controller: _transcriptTextController,
+                                  scrollController: _textFieldScrollController,
+                                  showCursor: true,
                                   minLines: 3,
                                   maxLines: 5,
                                   style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF0F172A), height: 1.5),
