@@ -53,6 +53,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   String _completeText = ''; // Permanent accumulated text across all pauses & sentences
   String _currentWords = '';  // Temporary live words for current active spoken phrase
   bool _isRestartingStt = false; // Debounce flag for seamless continuous restart
+  final ScrollController _mainScrollController = ScrollController(); // Auto-scroll controller for page
 
   // 📎 Real File Picker
   String? _attachedFileName;
@@ -102,6 +103,29 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
+  /// Updates transcript text controller, moves cursor to end, & auto-scrolls down live
+  void _updateTranscriptText(String newText) {
+    if (!mounted) return;
+    setState(() {
+      _transcriptTextController.text = newText;
+      _transcriptTextController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _transcriptTextController.text.length),
+      );
+    });
+
+    if (_mainScrollController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_mainScrollController.hasClients) {
+          _mainScrollController.animateTo(
+            _mainScrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+  }
+
   /// Commits current session live words into permanent accumulated completeText
   void _commitCurrentWordsToPermanent() {
     final live = _currentWords.trim();
@@ -113,11 +137,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       }
       _currentWords = '';
     }
-    if (mounted) {
-      setState(() {
-        _transcriptTextController.text = _completeText;
-      });
-    }
+    _updateTranscriptText(_completeText);
   }
 
   /// Debounced safe restart loop for continuous Speech-to-Text
@@ -139,6 +159,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     _customTextController.dispose();
     _customPromptController.dispose();
     _transcriptTextController.dispose();
+    _mainScrollController.dispose();
     _audioRecorder.dispose();
     _audioPlayer.dispose();
     _speechToText.stop();
@@ -158,7 +179,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
         setState(() {
           _isTranscribing = false;
-          _transcriptTextController.text = _completeText;
+          _updateTranscriptText(_completeText);
         });
       } else {
         // ── START RECORDING ──
@@ -168,8 +189,8 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
         setState(() {
           _isRecordingVoice = true;
-          _transcriptTextController.text = '';
           _recordedAudioPath = null;
+          _updateTranscriptText('');
         });
 
         if (!_sttInitialized) {
@@ -204,9 +225,6 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
             if (newWords.isEmpty) return;
 
             // 💡 Smart Real-Time Phrase Boundary Detection:
-            // If newWords does NOT start with _currentWords (and is not an extension),
-            // it means Android started a new phrase BEFORE the beep sound/onStatus fired!
-            // Instantly commit _currentWords to _completeText right now so zero words are lost!
             final currLower = _currentWords.trim().toLowerCase();
             final newLower = newWords.toLowerCase();
 
@@ -223,11 +241,11 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
             _currentWords = newWords;
 
-            setState(() {
-              _transcriptTextController.text = _completeText.isEmpty
-                  ? _currentWords
-                  : "$_completeText $_currentWords".trim();
-            });
+            final combinedDisplay = _completeText.isEmpty
+                ? _currentWords
+                : "$_completeText $_currentWords".trim();
+
+            _updateTranscriptText(combinedDisplay);
 
             if (val.finalResult) {
               _commitCurrentWordsToPermanent();
@@ -445,6 +463,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       appBar: const HeaderBar(title: 'BeMind AI'),
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _mainScrollController,
           padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -924,25 +943,73 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                               const SizedBox(height: 16),
                               Align(
                                 alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Hasil Transkripsi Teks (Dapat Diedit / Disesuaikan):',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488)),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'Hasil Transkripsi Teks:',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488)),
+                                    ),
+                                    const Spacer(),
+                                    if (_isRecordingVoice)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFEF2F2),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: Colors.red.shade200),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 6,
+                                              height: 6,
+                                              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Kursor Otomatis Auto-Scroll',
+                                              style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: 6),
-                              TextField(
-                                controller: _transcriptTextController,
-                                maxLines: 4,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF0F172A)),
-                                decoration: InputDecoration(
-                                  hintText: 'Teks hasil rekaman suara kamu akan otomatis muncul di sini...',
-                                  hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  contentPadding: const EdgeInsets.all(12),
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCCFBF1))),
-                                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCCFBF1))),
-                                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: _isRecordingVoice
+                                      ? [
+                                          BoxShadow(
+                                            color: const Color(0xFF0D9488).withValues(alpha: 0.15),
+                                            blurRadius: 10,
+                                            spreadRadius: 2,
+                                          ),
+                                        ]
+                                      : [],
+                                ),
+                                child: TextField(
+                                  controller: _transcriptTextController,
+                                  minLines: 3,
+                                  maxLines: 5,
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF0F172A), height: 1.5),
+                                  decoration: InputDecoration(
+                                    hintText: 'Teks hasil rekaman suara kamu akan otomatis muncul dan bergulir di sini...',
+                                    hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    contentPadding: const EdgeInsets.all(14),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCCFBF1))),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: _isRecordingVoice ? const Color(0xFF0D9488) : const Color(0xFFCCFBF1), width: _isRecordingVoice ? 1.5 : 1.0),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 2.0)),
+                                  ),
                                 ),
                               ),
                             ],
