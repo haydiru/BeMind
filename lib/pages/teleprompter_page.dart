@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -21,6 +22,17 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
   double _wpm = 25.0; // Comfortable reading pace default
   late ScrollController _scrollController;
   Timer? _scrollTimer;
+
+  // ─── Background Audio Player ────────────────────────────────────────────────
+  final AudioPlayer _bgAudioPlayer = AudioPlayer();
+  bool _isBgMusicEnabled = true;
+  double _bgMusicVolume = 0.3;
+  int _selectedTrackIndex = 0;
+
+  final List<Map<String, String>> _audioTracks = [
+    {'name': 'Quiet Focus', 'file': 'quiet_focus_1.mp3'},
+    {'name': 'Quiet Focus 2', 'file': 'quiet_focus_2.mp3'},
+  ];
 
   /// Splits essay content into clean, sentence-aware chunks (new line per sentence)
   /// and breaks long sentences gracefully to prevent orphan single-word lines.
@@ -54,13 +66,33 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _bgAudioPlayer.setReleaseMode(ReleaseMode.loop); // Loop background music
+    _bgAudioPlayer.setVolume(_bgMusicVolume);
   }
 
   @override
   void dispose() {
     _scrollTimer?.cancel();
     _scrollController.dispose();
+    _bgAudioPlayer.stop();
+    _bgAudioPlayer.dispose();
     super.dispose();
+  }
+
+  // ─── Background Music Controls ──────────────────────────────────────────────
+  Future<void> _playBgMusic() async {
+    if (!_isBgMusicEnabled) return;
+    final trackFile = _audioTracks[_selectedTrackIndex]['file']!;
+    await _bgAudioPlayer.setVolume(_bgMusicVolume);
+    await _bgAudioPlayer.play(AssetSource('audio/$trackFile'));
+  }
+
+  Future<void> _pauseBgMusic() async {
+    await _bgAudioPlayer.pause();
+  }
+
+  Future<void> _stopBgMusic() async {
+    await _bgAudioPlayer.stop();
   }
 
   void _togglePlay() {
@@ -68,8 +100,10 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
       _isPlaying = !_isPlaying;
       if (_isPlaying) {
         _startSmoothScrolling();
+        _playBgMusic();
       } else {
         _stopSmoothScrolling();
+        _pauseBgMusic();
       }
     });
   }
@@ -90,6 +124,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
 
       if (currentScroll >= maxScroll) {
         setState(() => _isPlaying = false);
+        _stopBgMusic();
         timer.cancel();
         return;
       }
@@ -333,6 +368,11 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                           if (_scrollController.hasClients) {
                             _scrollController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeOut);
                           }
+                          if (_isPlaying) {
+                            setState(() => _isPlaying = false);
+                            _stopSmoothScrolling();
+                            _stopBgMusic();
+                          }
                         },
                         borderRadius: BorderRadius.circular(999),
                         child: Container(
@@ -387,15 +427,20 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
 
                       const SizedBox(width: 20),
 
-                      // Font Size Adjustment Quick Button
+                      // Background Music Toggle Button
                       InkWell(
                         onTap: () {
-                          // Quick feedback toast
+                          setState(() => _isBgMusicEnabled = !_isBgMusicEnabled);
+                          if (!_isBgMusicEnabled) {
+                            _stopBgMusic();
+                          } else if (_isPlaying) {
+                            _playBgMusic();
+                          }
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Kecepatan teleprompter diatur secara otomatis ke 60 FPS'),
-                              duration: Duration(seconds: 2),
-                              backgroundColor: Color(0xFF0D9488),
+                            SnackBar(
+                              content: Text(_isBgMusicEnabled ? '🎵 Musik latar aktif' : '🔇 Musik latar dimatikan'),
+                              duration: const Duration(seconds: 2),
+                              backgroundColor: const Color(0xFF0D9488),
                             ),
                           );
                         },
@@ -403,9 +448,9 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: _isBgMusicEnabled ? const Color(0xFFCCFBF1) : Colors.white,
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: _isBgMusicEnabled ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
                             boxShadow: [
                               BoxShadow(
                                 color: const Color(0xFF0F172A).withValues(alpha: 0.05),
@@ -414,7 +459,11 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                               ),
                             ],
                           ),
-                          child: const Icon(LucideIcons.slidersHorizontal, size: 20, color: Color(0xFF0D9488)),
+                          child: Icon(
+                            _isBgMusicEnabled ? LucideIcons.music : LucideIcons.musicOff,
+                            size: 20,
+                            color: _isBgMusicEnabled ? const Color(0xFF0D9488) : const Color(0xFF64748B),
+                          ),
                         ),
                       ),
                     ],
@@ -556,6 +605,97 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                             );
                           }).toList(),
                         ),
+
+                        // ── Background Music Track Selector & Volume ──
+                        if (_isBgMusicEnabled) ...[
+                          const SizedBox(height: 12),
+                          const Divider(color: Color(0xFFF1F5F9)),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(LucideIcons.music, size: 14, color: Color(0xFF0D9488)),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Musik Latar:',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
+                              ),
+                              const Spacer(),
+                              // Volume slider compact
+                              const Icon(LucideIcons.volume1, size: 13, color: Color(0xFF94A3B8)),
+                              SizedBox(
+                                width: 80,
+                                child: SliderTheme(
+                                  data: SliderThemeData(
+                                    trackHeight: 3,
+                                    thumbColor: const Color(0xFF0D9488),
+                                    activeTrackColor: const Color(0xFF0D9488),
+                                    inactiveTrackColor: const Color(0xFFF1F5F9),
+                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                                    overlayColor: const Color(0xFF0D9488).withValues(alpha: 0.15),
+                                  ),
+                                  child: Slider(
+                                    value: _bgMusicVolume,
+                                    min: 0.05,
+                                    max: 0.8,
+                                    onChanged: (val) {
+                                      setState(() => _bgMusicVolume = val);
+                                      _bgAudioPlayer.setVolume(val);
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const Icon(LucideIcons.volume2, size: 13, color: Color(0xFF94A3B8)),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: List.generate(_audioTracks.length, (i) {
+                              final isSel = _selectedTrackIndex == i;
+                              return Expanded(
+                                child: Padding(
+                                  padding: EdgeInsets.only(right: i < _audioTracks.length - 1 ? 6 : 0),
+                                  child: InkWell(
+                                    onTap: () {
+                                      setState(() => _selectedTrackIndex = i);
+                                      if (_isPlaying && _isBgMusicEnabled) {
+                                        _playBgMusic();
+                                      }
+                                    },
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 150),
+                                      padding: const EdgeInsets.symmetric(vertical: 7),
+                                      decoration: BoxDecoration(
+                                        color: isSel ? const Color(0xFF0D9488) : const Color(0xFFF8FAFC),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: isSel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            isSel ? LucideIcons.disc3 : LucideIcons.music,
+                                            size: 12,
+                                            color: isSel ? Colors.white : const Color(0xFF64748B),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _audioTracks[i]['name']!,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 10,
+                                              fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                                              color: isSel ? Colors.white : const Color(0xFF64748B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ],
                       ],
                     ),
                   ),
