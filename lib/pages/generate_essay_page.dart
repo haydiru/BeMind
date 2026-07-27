@@ -53,6 +53,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   String _completeText = ''; // Permanent accumulated text across all pauses & sentences
   String _currentWords = '';  // Temporary live words for current active spoken phrase
   bool _isRestartingStt = false; // Debounce flag for seamless continuous restart
+  int _sttErrorCount = 0; // Circuit-breaker counter to prevent Android ting-tung error loops
   final ScrollController _mainScrollController = ScrollController(); // Auto-scroll controller for page
   final ScrollController _textFieldScrollController = ScrollController(); // Auto-scroll controller inside TextField
 
@@ -81,16 +82,30 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     try {
       _sttInitialized = await _speechToText.initialize(
         onError: (val) {
-          debugPrint('[STT Error]: $val');
+          debugPrint('[STT Error]: ${val.errorMsg} (permanent: ${val.permanent})');
           if (_isRecordingVoice && mounted) {
+            _sttErrorCount++;
             _commitCurrentWordsToPermanent();
-            _restartListeningLoop();
+
+            // Circuit-breaker: If Android native STT errors 3+ times in a row, wait 1.5s & cancel native session
+            if (_sttErrorCount >= 3) {
+              debugPrint('[STT Circuit Breaker]: Triggered after 3 consecutive errors. Resetting native session.');
+              _sttErrorCount = 0;
+              Future.delayed(const Duration(milliseconds: 1200), () async {
+                if (_isRecordingVoice && mounted) {
+                  try {
+                    await _speechToText.cancel();
+                  } catch (_) {}
+                  _restartListeningLoop();
+                }
+              });
+            } else {
+              _restartListeningLoop();
+            }
           }
         },
         onStatus: (val) {
           debugPrint('[STT Status]: $val');
-          // When Android SpeechRecognizer finishes an utterance (pause/silence detected):
-          // Commit currentWords into completeText and auto-restart if user hasn't clicked stop
           if (val == 'done' || val == 'notListening') {
             _commitCurrentWordsToPermanent();
             if (_isRecordingVoice && mounted) {
@@ -142,14 +157,22 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     _updateTranscriptText(_completeText);
   }
 
-  /// Debounced safe restart loop for continuous Speech-to-Text
+  /// Debounced safe restart loop for continuous Speech-to-Text with clean Android resource cleanup
   void _restartListeningLoop() {
     if (!_isRecordingVoice || _isRestartingStt) return;
     _isRestartingStt = true;
 
-    Future.delayed(const Duration(milliseconds: 150), () async {
-      if (_isRecordingVoice && mounted && !_speechToText.isListening) {
-        await _startListeningSession();
+    Future.delayed(const Duration(milliseconds: 350), () async {
+      if (_isRecordingVoice && mounted) {
+        try {
+          if (_speechToText.isListening) {
+            await _speechToText.stop();
+            await Future.delayed(const Duration(milliseconds: 100));
+          }
+          await _startListeningSession();
+        } catch (e) {
+          debugPrint('[STT Restart Exception]: $e');
+        }
       }
       _isRestartingStt = false;
     });
@@ -226,6 +249,8 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           if (mounted && _isRecordingVoice) {
             final newWords = val.recognizedWords.trim();
             if (newWords.isEmpty) return;
+
+            _sttErrorCount = 0; // Reset circuit breaker error counter on active recognition
 
             // 💡 Smart Real-Time Phrase Boundary Detection:
             final currLower = _currentWords.trim().toLowerCase();
