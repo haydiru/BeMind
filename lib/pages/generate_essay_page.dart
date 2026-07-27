@@ -51,6 +51,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   // Language Locale for Speech-To-Text ('en_US' for English, 'id_ID' for Bahasa Indonesia)
   String _sttLocaleId = 'en_US';
   String _committedTranscriptBuffer = ''; // Immutable buffer holding all previous sentences/utterances
+  bool _isRestartingStt = false; // Debounce flag to prevent duplicate concurrent STT listen() restarts on Android
 
   // 📎 Real File Picker
   String? _attachedFileName;
@@ -79,27 +80,16 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         onError: (val) {
           debugPrint('[STT Error]: $val');
           if (_isRecordingVoice && mounted) {
-            _lockCurrentTextToBuffer();
-            Future.delayed(const Duration(milliseconds: 200), () {
-              if (_isRecordingVoice && mounted && !_speechToText.isListening) {
-                _startContinuousListening();
-              }
-            });
+            _safeRestartListening();
           }
         },
         onStatus: (val) {
           debugPrint('[STT Status]: $val');
-          // When user pauses to take a breath (Android VAD triggers silence):
-          // 1. Lock whatever is currently on screen into _committedTranscriptBuffer
-          // 2. Seamlessly re-listen for the next utterance without erasing previous text
+          // On Android, pauses trigger both 'notListening' and 'done' in rapid succession.
+          // _safeRestartListening debounces these calls so STT is restarted cleanly ONCE without resetting text.
           if (val == 'notListening' || val == 'done') {
-            if (_isRecordingVoice) {
-              _lockCurrentTextToBuffer();
-              Future.delayed(const Duration(milliseconds: 100), () {
-                if (_isRecordingVoice && mounted && !_speechToText.isListening) {
-                  _startContinuousListening();
-                }
-              });
+            if (_isRecordingVoice && mounted) {
+              _safeRestartListening();
             }
           }
         },
@@ -107,6 +97,23 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     } catch (e) {
       debugPrint('[STT Init Exception]: $e');
     }
+  }
+
+  /// Safely locks current text to buffer & restarts STT with debouncing to prevent Android race conditions
+  void _safeRestartListening() {
+    if (!_isRecordingVoice || _isRestartingStt) return;
+    _isRestartingStt = true;
+
+    _lockCurrentTextToBuffer();
+
+    Future.delayed(const Duration(milliseconds: 300), () async {
+      if (_isRecordingVoice && mounted) {
+        if (!_speechToText.isListening) {
+          await _startContinuousListening();
+        }
+      }
+      _isRestartingStt = false;
+    });
   }
 
   /// Locks whatever is currently in the text controller into the committed buffer
@@ -134,19 +141,20 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     try {
       if (_isRecordingVoice) {
         // ── STOP RECORDING ──
+        _isRecordingVoice = false;
         if (_speechToText.isListening) {
           await _speechToText.stop();
         }
         _lockCurrentTextToBuffer();
 
         setState(() {
-          _isRecordingVoice = false;
           _isTranscribing = false;
           _transcriptTextController.text = _committedTranscriptBuffer;
         });
       } else {
         // ── START RECORDING ──
         _committedTranscriptBuffer = '';
+        _isRestartingStt = false;
 
         setState(() {
           _isRecordingVoice = true;
@@ -175,37 +183,41 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   }
 
   // 🔄 Continuous Live Dictation Engine
-  void _startContinuousListening() {
+  Future<void> _startContinuousListening() async {
     if (!_isRecordingVoice) return;
 
-    _speechToText.listen(
-      onResult: (result) {
-        if (mounted && _isRecordingVoice) {
-          final liveWords = result.recognizedWords.trim();
-          
-          if (liveWords.isNotEmpty) {
-            final combinedText = _committedTranscriptBuffer.isEmpty
-                ? liveWords
-                : '$_committedTranscriptBuffer $liveWords';
+    try {
+      await _speechToText.listen(
+        onResult: (result) {
+          if (mounted && _isRecordingVoice) {
+            final liveWords = result.recognizedWords.trim();
+            
+            if (liveWords.isNotEmpty) {
+              final combinedText = _committedTranscriptBuffer.isEmpty
+                  ? liveWords
+                  : '$_committedTranscriptBuffer $liveWords';
 
-            setState(() {
-              _transcriptTextController.text = combinedText;
-            });
+              setState(() {
+                _transcriptTextController.text = combinedText;
+              });
 
-            if (result.finalResult) {
-              _committedTranscriptBuffer = combinedText;
+              if (result.finalResult) {
+                _committedTranscriptBuffer = combinedText;
+              }
             }
           }
-        }
-      },
-      localeId: _sttLocaleId,
-      listenFor: const Duration(minutes: 30),
-      pauseFor: const Duration(seconds: 10),
-      listenMode: stt.ListenMode.dictation,
-      partialResults: true,
-      onSoundLevelChange: null,
-      cancelOnError: false,
-    );
+        },
+        localeId: _sttLocaleId,
+        listenFor: const Duration(minutes: 30),
+        pauseFor: const Duration(seconds: 10),
+        listenMode: stt.ListenMode.dictation,
+        partialResults: true,
+        onSoundLevelChange: null,
+        cancelOnError: false,
+      );
+    } catch (e) {
+      debugPrint('[STT Listen Exception]: $e');
+    }
   }
 
   // 🔊 Audio Playback Handler
