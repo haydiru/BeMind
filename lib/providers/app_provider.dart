@@ -255,10 +255,11 @@ class AppProvider extends ChangeNotifier {
     try {
       final response = await Supabase.instance.client
           .from('generated_essays')
-          .select()
+          .select('id, title, category, sub_topic, difficulty, tone, content, created_at')
           .eq('user_id', userId)
           .order('created_at', ascending: false)
-          .limit(50);
+          .limit(50)
+          .timeout(const Duration(seconds: 5));
 
       _essays.clear();
       for (final row in response) {
@@ -320,7 +321,7 @@ class AppProvider extends ChangeNotifier {
 
         final res = await Supabase.instance.client.from('vocabularies').upsert(
           payload,
-        ).select().maybeSingle();
+        ).select().maybeSingle().timeout(const Duration(seconds: 5));
 
         if (res != null && res['id'] != null) {
           // Update in-memory item with DB generated UUID
@@ -376,8 +377,10 @@ class AppProvider extends ChangeNotifier {
     try {
       final response = await Supabase.instance.client
           .from('vocabularies')
-          .select()
+          .select('id, word, phonetic, definition, context_sentence, indonesian_meaning, mastery_status, added_at')
           .eq('user_id', userId)
+          .order('added_at', ascending: false)
+          .timeout(const Duration(seconds: 5));
           .order('added_at', ascending: false);
 
       _vocabList.clear();

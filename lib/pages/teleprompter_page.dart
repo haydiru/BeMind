@@ -142,6 +142,8 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
     _scrollTimer?.cancel();
   }
 
+  bool _showSettingsPanel = false;
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
@@ -155,11 +157,11 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
       appBar: const HeaderBar(title: 'BeMind AI'),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 20.0),
+          padding: const EdgeInsets.fromLTRB(14.0, 4.0, 14.0, 10.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. Top Header Row
+              // 1. Compact Top Header Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -169,7 +171,7 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w800,
                         color: AppTheme.textPrimary,
                       ),
@@ -177,15 +179,15 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF3E8FF),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: Text(
-                      '60 FPS Smooth',
+                      '60 FPS',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.primaryPurple,
                       ),
@@ -194,21 +196,21 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                 ],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
 
-              // 2. Full Height Teleprompter Box with Smooth Gradual Fade-out Mask
+              // 2. MAXIMIZED Teleprompter Box with Smooth Gradual Fade-out Mask
               Expanded(
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(32),
+                    borderRadius: BorderRadius.circular(28),
                     border: Border.all(color: const Color(0xFFE2E8F0)),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF0F172A).withValues(alpha: 0.05),
-                        blurRadius: 40,
-                        offset: const Offset(0, 16),
+                        blurRadius: 30,
+                        offset: const Offset(0, 10),
                       ),
                     ],
                   ),
@@ -218,25 +220,25 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                       if (scriptParagraphs.isEmpty)
                         Center(
                           child: Padding(
-                            padding: const EdgeInsets.all(32),
+                            padding: const EdgeInsets.all(24),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(LucideIcons.scrollText, size: 48, color: AppTheme.primaryCyan.withValues(alpha: 0.5)),
-                                const SizedBox(height: 16),
+                                Icon(LucideIcons.scrollText, size: 44, color: AppTheme.primaryCyan.withValues(alpha: 0.5)),
+                                const SizedBox(height: 12),
                                 Text(
                                   'Belum Ada Project Dipilih',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 16,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.bold,
                                     color: AppTheme.textPrimary,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 6),
                                 Text(
                                   'Buat project narasi dari halaman Dashboard, lalu pilih "Latihan Teleprompter" untuk memulai.',
                                   textAlign: TextAlign.center,
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textSecondary),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary),
                                 ),
                               ],
                             ),
@@ -247,21 +249,20 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                       if (scriptParagraphs.isNotEmpty)
                         ListView.builder(
                           controller: _scrollController,
-                          padding: const EdgeInsets.symmetric(vertical: 140, horizontal: 20),
+                          padding: const EdgeInsets.symmetric(vertical: 120, horizontal: 16),
                           itemCount: scriptParagraphs.length,
                           itemBuilder: (context, index) {
                             final chunkText = scriptParagraphs[index];
                             final wordsInChunk = chunkText.split(RegExp(r'\s+'));
 
                             return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 12.0),
+                              padding: const EdgeInsets.symmetric(vertical: 10.0),
                               child: Wrap(
                                 alignment: WrapAlignment.center,
                                 runAlignment: WrapAlignment.center,
-                                spacing: 6,
-                                runSpacing: 6,
+                                spacing: 5,
+                                runSpacing: 5,
                                 children: wordsInChunk.map((word) {
-                                  // Clean word for lookup (remove punctuation)
                                   final cleaned = word.replaceAll(RegExp(r'[^\w\s]'), '');
                                   return InkWell(
                                     onTap: () {
@@ -294,17 +295,17 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                           },
                         ),
 
-                      // TOP GRADUAL FADE-OUT MASK (Teks Hilang Perlahan Saat Ke Atas)
+                      // TOP GRADUAL FADE-OUT MASK
                       if (scriptParagraphs.isNotEmpty)
                         Positioned(
                           top: 0,
                           left: 0,
                           right: 0,
-                          height: 130,
+                          height: 100,
                           child: IgnorePointer(
                             child: Container(
                               decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                                 gradient: LinearGradient(
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
@@ -321,17 +322,17 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                           ),
                         ),
 
-                      // BOTTOM GRADUAL FADE-OUT MASK (Teks Muncul Perlahan Dari Bawah)
+                      // BOTTOM GRADUAL FADE-OUT MASK
                       if (scriptParagraphs.isNotEmpty)
                         Positioned(
                           bottom: 0,
                           left: 0,
                           right: 0,
-                          height: 130,
+                          height: 100,
                           child: IgnorePointer(
                             child: Container(
                               decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+                                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
                                 gradient: LinearGradient(
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
@@ -352,308 +353,142 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                 ),
               ),
 
-              const SizedBox(height: 14),
+              const SizedBox(height: 6),
 
-              // 3. Bottom Controls Group (Pristine Proportional Design System)
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Play / Pause & Quick Reset Control Bar
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Reset to Top Button
-                      InkWell(
-                        onTap: () {
-                          if (_scrollController.hasClients) {
-                            _scrollController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeOut);
-                          }
-                          if (_isPlaying) {
-                            setState(() => _isPlaying = false);
-                            _stopSmoothScrolling();
-                            _stopBgMusic();
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(999),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF0F172A).withValues(alpha: 0.05),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(LucideIcons.rotateCcw, size: 20, color: Color(0xFF64748B)),
-                        ),
-                      ),
-
-                      const SizedBox(width: 20),
-
-                      // Main Play/Pause Floating Action Circle
-                      GestureDetector(
-                        onTap: _togglePlay,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF0D9488).withValues(alpha: 0.4),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            _isPlaying ? LucideIcons.pause : LucideIcons.play,
-                            color: Colors.white,
-                            size: 26,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 20),
-
-                      // Background Music Toggle Button
-                      InkWell(
-                        onTap: () {
-                          setState(() => _isBgMusicEnabled = !_isBgMusicEnabled);
-                          if (!_isBgMusicEnabled) {
-                            _stopBgMusic();
-                          } else if (_isPlaying) {
-                            _playBgMusic();
-                          }
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(_isBgMusicEnabled ? '🎵 Musik latar aktif' : '🔇 Musik latar dimatikan'),
-                              duration: const Duration(seconds: 2),
-                              backgroundColor: const Color(0xFF0D9488),
-                            ),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(999),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: _isBgMusicEnabled ? const Color(0xFFCCFBF1) : Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: _isBgMusicEnabled ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF0F172A).withValues(alpha: 0.05),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            _isBgMusicEnabled ? LucideIcons.music : LucideIcons.volumeOff,
-                            size: 20,
-                            color: _isBgMusicEnabled ? const Color(0xFF0D9488) : const Color(0xFF64748B),
-                          ),
-                        ),
+              // 3. COLLAPSIBLE SETTINGS PANEL (WPM + Audio Controls)
+              AnimatedCrossFade(
+                duration: const Duration(milliseconds: 250),
+                crossFadeState: _showSettingsPanel
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                firstChild: const SizedBox.shrink(),
+                secondChild: Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0F172A).withValues(alpha: 0.06),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 14),
-
-                  // WPM Speed Control Container with Intuitive Icons (Turtle, Gauge, Zap) & Presets
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        // Speed Header with WPM Count & Intuitive Pace Label
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFCCFBF1),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    _wpm < 20
-                                        ? LucideIcons.turtle
-                                        : _wpm < 50
-                                            ? LucideIcons.gauge
-                                            : LucideIcons.zap,
-                                    size: 18,
-                                    color: const Color(0xFF0D9488),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Kecepatan Baca (WPM)',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
-                                    ),
-                                    Text(
-                                      _wpm < 20
-                                          ? 'Mode Santai & Pelan'
-                                          : _wpm < 50
-                                              ? 'Tempo Bicara Ideal (Standar)'
-                                              : 'Mode Cepat & Fluency Tinggi',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF64748B), fontWeight: FontWeight.w600),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // WPM Speed Header & Slider
+                      Row(
+                        children: [
+                          Icon(
+                            _wpm < 20
+                                ? LucideIcons.turtle
+                                : _wpm < 50
+                                    ? LucideIcons.gauge
+                                    : LucideIcons.zap,
+                            size: 16,
+                            color: const Color(0xFF0D9488),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Speed: ${_wpm.toInt()} WPM',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF0F172A),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0D9488).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '${_wpm.toInt()} WPM',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF0D9488)),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        // Interactive WPM Slider Bar
-                        Row(
-                          children: [
-                            const Icon(LucideIcons.turtle, size: 16, color: Color(0xFF94A3B8)),
-                            Expanded(
-                              child: SliderTheme(
-                                data: SliderThemeData(
-                                  trackHeight: 6,
-                                  thumbColor: const Color(0xFF0D9488),
-                                  activeTrackColor: const Color(0xFF0D9488),
-                                  inactiveTrackColor: const Color(0xFFF1F5F9),
-                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
-                                  overlayColor: const Color(0xFF0D9488).withValues(alpha: 0.2),
-                                ),
-                                child: Slider(
-                                  value: _wpm,
-                                  min: 5,
-                                  max: 80,
-                                  divisions: 75,
-                                  onChanged: (val) {
-                                    setState(() => _wpm = val);
-                                  },
-                                ),
-                              ),
-                            ),
-                            const Icon(LucideIcons.zap, size: 16, color: Color(0xFF6366F1)),
-                          ],
-                        ),
-
-                        const SizedBox(height: 4),
-
-                        // Quick Speed Preset Chips (15 WPM, 25 WPM, 40 WPM, 60 WPM)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [15.0, 25.0, 40.0, 60.0].map((preset) {
+                          ),
+                          const Spacer(),
+                          // Quick WPM chips
+                          ...[15.0, 25.0, 40.0, 60.0].map((preset) {
                             final isSel = (_wpm - preset).abs() < 2.5;
-                            return InkWell(
-                              onTap: () => setState(() => _wpm = preset),
-                              borderRadius: BorderRadius.circular(999),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: isSel ? const Color(0xFF0D9488) : const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(999),
-                                  border: Border.all(color: isSel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
-                                ),
-                                child: Text(
-                                  '${preset.toInt()} WPM',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10,
-                                    fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
-                                    color: isSel ? Colors.white : const Color(0xFF64748B),
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: InkWell(
+                                onTap: () => setState(() => _wpm = preset),
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: isSel ? const Color(0xFF0D9488) : const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: isSel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
+                                  ),
+                                  child: Text(
+                                    '${preset.toInt()}',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                                      color: isSel ? Colors.white : const Color(0xFF64748B),
+                                    ),
                                   ),
                                 ),
                               ),
                             );
-                          }).toList(),
+                          }),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      SliderTheme(
+                        data: SliderThemeData(
+                          trackHeight: 4,
+                          thumbColor: const Color(0xFF0D9488),
+                          activeTrackColor: const Color(0xFF0D9488),
+                          inactiveTrackColor: const Color(0xFFF1F5F9),
+                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
                         ),
+                        child: Slider(
+                          value: _wpm,
+                          min: 5,
+                          max: 80,
+                          divisions: 75,
+                          onChanged: (val) => setState(() => _wpm = val),
+                        ),
+                      ),
 
-                        // ── Background Music Track Selector & Volume ──
-                        if (_isBgMusicEnabled) ...[
-                          const SizedBox(height: 12),
-                          const Divider(color: Color(0xFFF1F5F9)),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(LucideIcons.music, size: 14, color: Color(0xFF0D9488)),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Musik Latar:',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
-                              ),
-                              const Spacer(),
-                              // Volume slider compact
-                              const Icon(LucideIcons.volume1, size: 13, color: Color(0xFF94A3B8)),
-                              SizedBox(
-                                width: 80,
-                                child: SliderTheme(
-                                  data: SliderThemeData(
-                                    trackHeight: 3,
-                                    thumbColor: const Color(0xFF0D9488),
-                                    activeTrackColor: const Color(0xFF0D9488),
-                                    inactiveTrackColor: const Color(0xFFF1F5F9),
-                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                                    overlayColor: const Color(0xFF0D9488).withValues(alpha: 0.15),
-                                  ),
-                                  child: Slider(
-                                    value: _bgMusicVolume,
-                                    min: 0.05,
-                                    max: 0.8,
-                                    onChanged: (val) {
-                                      setState(() => _bgMusicVolume = val);
-                                      _bgAudioPlayer.setVolume(val);
-                                    },
+                      const Divider(color: Color(0xFFF1F5F9), height: 12),
+
+                      // Audio Background Music Row
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              setState(() => _isBgMusicEnabled = !_isBgMusicEnabled);
+                              if (!_isBgMusicEnabled) {
+                                _stopBgMusic();
+                              } else if (_isPlaying) {
+                                _playBgMusic();
+                              }
+                            },
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _isBgMusicEnabled ? LucideIcons.music : LucideIcons.volumeOff,
+                                  size: 15,
+                                  color: _isBgMusicEnabled ? const Color(0xFF0D9488) : const Color(0xFF94A3B8),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _isBgMusicEnabled ? 'Musik Latar ON' : 'Musik OFF',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: _isBgMusicEnabled ? const Color(0xFF0D9488) : const Color(0xFF94A3B8),
                                   ),
                                 ),
-                              ),
-                              const Icon(LucideIcons.volume2, size: 13, color: Color(0xFF94A3B8)),
-                            ],
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: List.generate(_audioTracks.length, (i) {
-                              final isSel = _selectedTrackIndex == i;
-                              return Expanded(
-                                child: Padding(
-                                  padding: EdgeInsets.only(right: i < _audioTracks.length - 1 ? 6 : 0),
+                          const Spacer(),
+                          if (_isBgMusicEnabled)
+                            Row(
+                              children: List.generate(_audioTracks.length, (i) {
+                                final isSel = _selectedTrackIndex == i;
+                                return Padding(
+                                  padding: const EdgeInsets.only(left: 4),
                                   child: InkWell(
                                     onTap: () {
                                       setState(() => _selectedTrackIndex = i);
@@ -661,45 +496,137 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                                         _playBgMusic();
                                       }
                                     },
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 150),
-                                      padding: const EdgeInsets.symmetric(vertical: 7),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(
                                         color: isSel ? const Color(0xFF0D9488) : const Color(0xFFF8FAFC),
-                                        borderRadius: BorderRadius.circular(10),
+                                        borderRadius: BorderRadius.circular(8),
                                         border: Border.all(color: isSel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0)),
                                       ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            isSel ? LucideIcons.disc3 : LucideIcons.music,
-                                            size: 12,
-                                            color: isSel ? Colors.white : const Color(0xFF64748B),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            _audioTracks[i]['name']!,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 10,
-                                              fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
-                                              color: isSel ? Colors.white : const Color(0xFF64748B),
-                                            ),
-                                          ),
-                                        ],
+                                      child: Text(
+                                        _audioTracks[i]['name']!,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 10,
+                                          fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                                          color: isSel ? Colors.white : const Color(0xFF64748B),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            }),
-                          ),
+                                );
+                              }),
+                            ),
                         ],
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
+              ),
+
+              // 4. ULTRA-COMPACT FLOATING CONTROL BAR
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.06),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Reset Button
+                    InkWell(
+                      onTap: () {
+                        if (_scrollController.hasClients) {
+                          _scrollController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeOut);
+                        }
+                        if (_isPlaying) {
+                          setState(() => _isPlaying = false);
+                          _stopSmoothScrolling();
+                          _stopBgMusic();
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(999),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        child: const Icon(LucideIcons.rotateCcw, size: 20, color: Color(0xFF64748B)),
+                      ),
+                    ),
+
+                    // Main Play/Pause Button
+                    GestureDetector(
+                      onTap: _togglePlay,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF0D9488).withValues(alpha: 0.4),
+                              blurRadius: 14,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          _isPlaying ? LucideIcons.pause : LucideIcons.play,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+
+                    // Speed & Audio Settings Toggle Pill
+                    InkWell(
+                      onTap: () => setState(() => _showSettingsPanel = !_showSettingsPanel),
+                      borderRadius: BorderRadius.circular(999),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _showSettingsPanel ? const Color(0xFFCCFBF1) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: _showSettingsPanel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              LucideIcons.slidersHorizontal,
+                              size: 15,
+                              color: _showSettingsPanel ? const Color(0xFF0D9488) : const Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${_wpm.toInt()} WPM',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: _showSettingsPanel ? const Color(0xFF0D9488) : const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

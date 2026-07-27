@@ -304,38 +304,44 @@ class _SettingsPageState extends State<SettingsPage> {
 
                       const SizedBox(height: 16),
 
-                      // Save Button
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF0D9488).withValues(alpha: 0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
+                      // Save Button (Full Width, Overflow Safe)
+                      SizedBox(
+                        width: double.infinity,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                          ],
-                        ),
-                        child: ElevatedButton.icon(
-                          onPressed: _isSaving ? null : () => _saveProfileChanges(provider),
-                          icon: _isSaving
-                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Icon(LucideIcons.save, size: 16),
-                          label: Text(
-                            _isSaving ? 'Menyimpan...' : 'Simpan Perubahan',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 13),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          child: ElevatedButton.icon(
+                            onPressed: _isSaving ? null : () => _saveProfileChanges(provider),
+                            icon: _isSaving
+                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : const Icon(LucideIcons.save, size: 16),
+                            label: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                _isSaving ? 'Menyimpan...' : 'Simpan Perubahan',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
                           ),
                         ),
                       ),
