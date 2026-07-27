@@ -50,8 +50,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
   // Language Locale for Speech-To-Text ('en_US' for English, 'id_ID' for Bahasa Indonesia)
   String _sttLocaleId = 'en_US';
-  final List<String> _committedChunks = []; // Stores committed sentence chunks from previous pauses
-  String _currentSessionChunk = ''; // Stores live words from current active STT session
+  String _committedTranscriptBuffer = ''; // Immutable buffer holding all previous sentences/utterances
 
   // 📎 Real File Picker
   String? _attachedFileName;
@@ -80,9 +79,8 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         onError: (val) {
           debugPrint('[STT Error]: $val');
           if (_isRecordingVoice && mounted) {
-            _commitSessionChunk();
-            _updateDisplay();
-            Future.delayed(const Duration(milliseconds: 250), () {
+            _lockCurrentTextToBuffer();
+            Future.delayed(const Duration(milliseconds: 200), () {
               if (_isRecordingVoice && mounted && !_speechToText.isListening) {
                 _startContinuousListening();
               }
@@ -91,12 +89,13 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         },
         onStatus: (val) {
           debugPrint('[STT Status]: $val');
-          // When STT pauses on breath/silence, lock current chunk to list and restart seamlessly
+          // When user pauses to take a breath (Android VAD triggers silence):
+          // 1. Lock whatever is currently on screen into _committedTranscriptBuffer
+          // 2. Seamlessly re-listen for the next utterance without erasing previous text
           if (val == 'notListening' || val == 'done') {
             if (_isRecordingVoice) {
-              _commitSessionChunk();
-              _updateDisplay();
-              Future.delayed(const Duration(milliseconds: 150), () {
+              _lockCurrentTextToBuffer();
+              Future.delayed(const Duration(milliseconds: 100), () {
                 if (_isRecordingVoice && mounted && !_speechToText.isListening) {
                   _startContinuousListening();
                 }
@@ -110,25 +109,11 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
-  void _commitSessionChunk() {
-    final chunk = _currentSessionChunk.trim();
-    if (chunk.isNotEmpty) {
-      if (_committedChunks.isEmpty || _committedChunks.last != chunk) {
-        _committedChunks.add(chunk);
-      }
-      _currentSessionChunk = '';
-    }
-  }
-
-  void _updateDisplay() {
-    final all = [..._committedChunks];
-    if (_currentSessionChunk.trim().isNotEmpty) {
-      all.add(_currentSessionChunk.trim());
-    }
-    if (mounted) {
-      setState(() {
-        _transcriptTextController.text = all.join(' ');
-      });
+  /// Locks whatever is currently in the text controller into the committed buffer
+  void _lockCurrentTextToBuffer() {
+    final currentText = _transcriptTextController.text.trim();
+    if (currentText.isNotEmpty) {
+      _committedTranscriptBuffer = currentText;
     }
   }
 
@@ -144,25 +129,24 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     super.dispose();
   }
 
-  // 🎙️ Audio Recording / Speech-to-Text Handler (No mic hardware conflict)
+  // 🎙️ Speech-to-Text Recording Toggle Handler
   Future<void> _toggleAudioRecording() async {
     try {
       if (_isRecordingVoice) {
-        // STOP RECORDING
+        // ── STOP RECORDING ──
         if (_speechToText.isListening) {
           await _speechToText.stop();
         }
-        _commitSessionChunk();
+        _lockCurrentTextToBuffer();
 
         setState(() {
           _isRecordingVoice = false;
           _isTranscribing = false;
-          _updateDisplay();
+          _transcriptTextController.text = _committedTranscriptBuffer;
         });
       } else {
-        // START RECORDING
-        _committedChunks.clear();
-        _currentSessionChunk = '';
+        // ── START RECORDING ──
+        _committedTranscriptBuffer = '';
 
         setState(() {
           _isRecordingVoice = true;
@@ -177,7 +161,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         _startContinuousListening();
       }
     } catch (e) {
-      debugPrint('[AudioRecord Error]: $e');
+      debugPrint('[STT Toggle Error]: $e');
       setState(() {
         _isRecordingVoice = false;
         _isTranscribing = false;
@@ -190,25 +174,33 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
-  // 🔄 Continuous Speech Recognition with smooth transcript accumulation
+  // 🔄 Continuous Live Dictation Engine
   void _startContinuousListening() {
     if (!_isRecordingVoice) return;
 
     _speechToText.listen(
       onResult: (result) {
         if (mounted && _isRecordingVoice) {
-          _currentSessionChunk = result.recognizedWords.trim();
-          _updateDisplay();
+          final liveWords = result.recognizedWords.trim();
+          
+          if (liveWords.isNotEmpty) {
+            final combinedText = _committedTranscriptBuffer.isEmpty
+                ? liveWords
+                : '$_committedTranscriptBuffer $liveWords';
 
-          if (result.finalResult) {
-            _commitSessionChunk();
-            _updateDisplay();
+            setState(() {
+              _transcriptTextController.text = combinedText;
+            });
+
+            if (result.finalResult) {
+              _committedTranscriptBuffer = combinedText;
+            }
           }
         }
       },
       localeId: _sttLocaleId,
-      listenFor: const Duration(minutes: 10),
-      pauseFor: const Duration(seconds: 5),
+      listenFor: const Duration(minutes: 30),
+      pauseFor: const Duration(seconds: 10),
       listenMode: stt.ListenMode.dictation,
       partialResults: true,
       onSoundLevelChange: null,
