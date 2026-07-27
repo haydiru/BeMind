@@ -50,7 +50,8 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
   // Language Locale for Speech-To-Text ('en_US' for English, 'id_ID' for Bahasa Indonesia)
   String _sttLocaleId = 'en_US';
-  String _baseTranscript = ''; // Stores accumulated transcript from previous speech sessions/pauses
+  String _accumulatedTranscript = ''; // Stores committed text from previous speech sessions/pauses
+  String _currentSessionTranscript = ''; // Stores live words from current active STT session
 
   // 📎 Real File Picker
   String? _attachedFileName;
@@ -76,16 +77,24 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
   Future<void> _initSpeechToText() async {
     try {
       _sttInitialized = await _speechToText.initialize(
-        onError: (val) => debugPrint('[STT Error]: $val'),
+        onError: (val) {
+          debugPrint('[STT Error]: $val');
+          if (_isRecordingVoice && mounted) {
+            _commitCurrentSession();
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (_isRecordingVoice && mounted && !_speechToText.isListening) {
+                _startContinuousListening();
+              }
+            });
+          }
+        },
         onStatus: (val) {
           debugPrint('[STT Status]: $val');
-          // Auto-restart STT on pause so speech isn't lost if user pauses mid-recording
+          // When STT pauses automatically on silence, commit current session text and restart listening seamlessly
           if (val == 'notListening' || val == 'done') {
             if (_isRecordingVoice) {
-              if (_transcriptTextController.text.trim().isNotEmpty) {
-                _baseTranscript = _transcriptTextController.text.trim();
-              }
-              Future.delayed(const Duration(milliseconds: 150), () {
+              _commitCurrentSession();
+              Future.delayed(const Duration(milliseconds: 200), () {
                 if (_isRecordingVoice && mounted && !_speechToText.isListening) {
                   _startContinuousListening();
                 }
@@ -96,6 +105,18 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       );
     } catch (e) {
       debugPrint('[STT Init Exception]: $e');
+    }
+  }
+
+  void _commitCurrentSession() {
+    if (_currentSessionTranscript.trim().isNotEmpty) {
+      final chunk = _currentSessionTranscript.trim();
+      if (_accumulatedTranscript.isEmpty) {
+        _accumulatedTranscript = chunk;
+      } else if (!_accumulatedTranscript.endsWith(chunk)) {
+        _accumulatedTranscript = '$_accumulatedTranscript $chunk';
+      }
+      _currentSessionTranscript = '';
     }
   }
 
@@ -111,66 +132,37 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     super.dispose();
   }
 
-  // 🎙️ Audio Recording Handler
+  // 🎙️ Audio Recording / Speech-to-Text Handler (No mic hardware conflict)
   Future<void> _toggleAudioRecording() async {
     try {
       if (_isRecordingVoice) {
-        // Stop recording cleanly
-        String? path;
-        if (await _audioRecorder.isRecording()) {
-          path = await _audioRecorder.stop();
-        }
+        // STOP RECORDING
         if (_speechToText.isListening) {
           await _speechToText.stop();
         }
-
-        // Lock in full accumulated transcript
-        if (_transcriptTextController.text.trim().isNotEmpty) {
-          _baseTranscript = _transcriptTextController.text.trim();
-        }
+        _commitCurrentSession();
 
         setState(() {
           _isRecordingVoice = false;
-          _recordedAudioPath = path;
           _isTranscribing = false;
+          _transcriptTextController.text = _accumulatedTranscript.trim();
         });
       } else {
-        // Start recording
-        if (await _audioRecorder.hasPermission()) {
-          final tempDir = kIsWeb ? null : await getTemporaryDirectory();
-          final path = kIsWeb ? '' : '${tempDir!.path}/rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        // START RECORDING
+        _accumulatedTranscript = '';
+        _currentSessionTranscript = '';
 
-          // Reset accumulated transcript for new recording session
-          _baseTranscript = '';
-          setState(() {
-            _isRecordingVoice = true;
-            _transcriptTextController.text = '';
-            _recordedAudioPath = null;
-          });
+        setState(() {
+          _isRecordingVoice = true;
+          _transcriptTextController.text = '';
+          _recordedAudioPath = null;
+        });
 
-          // Start On-device Realtime Free Speech Recognition directly
-          if (_sttInitialized) {
-            try {
-              await _audioRecorder.start(
-                const RecordConfig(encoder: AudioEncoder.aacLc),
-                path: path,
-              );
-            } catch (_) {}
-
-            _startContinuousListening();
-          } else {
-            await _audioRecorder.start(
-              const RecordConfig(encoder: AudioEncoder.aacLc),
-              path: path,
-            );
-          }
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Izin mikrofon belum diberikan!'), backgroundColor: Colors.red),
-            );
-          }
+        if (!_sttInitialized) {
+          await _initSpeechToText();
         }
+
+        _startContinuousListening();
       }
     } catch (e) {
       debugPrint('[AudioRecord Error]: $e');
@@ -180,36 +172,35 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal merekam suara: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal memproses suara: $e'), backgroundColor: Colors.red),
         );
       }
     }
   }
 
-  // 🔄 Continuous Speech Recognition with persistent transcript accumulation
+  // 🔄 Continuous Speech Recognition with smooth transcript accumulation
   void _startContinuousListening() {
     if (!_isRecordingVoice) return;
 
     _speechToText.listen(
       onResult: (result) {
         if (mounted && _isRecordingVoice) {
-          final currentChunk = result.recognizedWords.trim();
-          if (currentChunk.isNotEmpty) {
-            final fullText = _baseTranscript.isEmpty
-                ? currentChunk
-                : '$_baseTranscript $currentChunk';
+          _currentSessionTranscript = result.recognizedWords.trim();
 
-            setState(() {
-              _transcriptTextController.text = fullText;
-            });
+          final fullDisplay = _accumulatedTranscript.isEmpty
+              ? _currentSessionTranscript
+              : '$_accumulatedTranscript $_currentSessionTranscript';
 
-            if (result.finalResult) {
-              _baseTranscript = fullText;
-            }
+          setState(() {
+            _transcriptTextController.text = fullDisplay.trim();
+          });
+
+          if (result.finalResult) {
+            _commitCurrentSession();
           }
         }
       },
-      localeId: _sttLocaleId, // Uses user-selected language (en_US or id_ID)
+      localeId: _sttLocaleId,
       listenFor: const Duration(minutes: 10),
       pauseFor: const Duration(seconds: 5),
       listenMode: stt.ListenMode.dictation,
