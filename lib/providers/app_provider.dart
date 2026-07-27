@@ -381,7 +381,6 @@ class AppProvider extends ChangeNotifier {
           .eq('user_id', userId)
           .order('added_at', ascending: false)
           .timeout(const Duration(seconds: 5));
-          .order('added_at', ascending: false);
 
       _vocabList.clear();
       for (final row in response) {
