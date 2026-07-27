@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/app_provider.dart';
-import '../theme/app_theme.dart';
+
+// ──────────────────────────────────────────────────────────────────────────────
+// BeMind — Premium Onboarding & Authentication Page
+// Responsive, pixel-perfect, with native Google Sign-In
+// ──────────────────────────────────────────────────────────────────────────────
 
 class OnboardingAuthPage extends StatefulWidget {
   const OnboardingAuthPage({Key? key}) : super(key: key);
@@ -13,7 +19,8 @@ class OnboardingAuthPage extends StatefulWidget {
   State<OnboardingAuthPage> createState() => _OnboardingAuthPageState();
 }
 
-class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
+class _OnboardingAuthPageState extends State<OnboardingAuthPage>
+    with SingleTickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentSlide = 0;
   bool _isRegisterMode = false;
@@ -26,19 +33,29 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
   bool _obscurePassword = true;
   String _selectedGoal = 'Job Interview Prep';
 
-  final List<Map<String, String>> _onboardingSlides = [
-    {
-      'title': '100% Personal Narrative Engine',
-      'subtitle': 'Ubah CV, rekaman suara, dan catatan karirmu menjadi naskah kelancaran bahasa Inggris personal.',
-    },
-    {
-      'title': 'High-Speed Teleprompter Reader',
-      'subtitle': 'Latih kelancaran, ritme bicara, dan percaya diri dengan kontrol kecepatan baca dinamis.',
-    },
-    {
-      'title': 'On-Device Passive Learning',
-      'subtitle': 'Simpan kosakata asing instan dan dapatkan notifikasi pengingat otomatis di lockscreen.',
-    },
+  // Animation
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnim;
+
+  final List<_SlideData> _slides = [
+    _SlideData(
+      icon: LucideIcons.sparkles,
+      title: '100% Personal Narrative',
+      subtitle:
+          'Ubah CV & rekaman suaramu menjadi naskah kelancaran bahasa Inggris.',
+    ),
+    _SlideData(
+      icon: LucideIcons.zap,
+      title: 'High-Speed Teleprompter',
+      subtitle:
+          'Latih ritme bicara & percaya diri dengan kecepatan baca dinamis.',
+    ),
+    _SlideData(
+      icon: LucideIcons.bellRing,
+      title: 'Passive Learning Engine',
+      subtitle:
+          'Kosakata asing instan & pengingat otomatis di lockscreen HP-mu.',
+    ),
   ];
 
   final List<String> _goals = [
@@ -49,7 +66,19 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnim = CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
+    _fadeController.forward();
+  }
+
+  @override
   void dispose() {
+    _fadeController.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -57,7 +86,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
     super.dispose();
   }
 
-  // ─── LOGIN HANDLER ──────────────────────────────────────────────────────────
+  // ─── LOGIN ──────────────────────────────────────────────────────────────────
   Future<void> _handleLogin(AppProvider provider) async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -68,19 +97,18 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
     }
 
     setState(() => _isLoading = true);
-
     try {
       final response = await Supabase.instance.client.auth.signInWithPassword(
         email: email,
         password: password,
       );
-
       final supaUser = response.user;
       if (supaUser != null) {
         final userName = supaUser.userMetadata?['name'] ??
             supaUser.userMetadata?['full_name'] ??
             email.split('@').first;
-        final targetGoal = supaUser.userMetadata?['target_goal'] ?? 'Job Interview Prep';
+        final targetGoal =
+            supaUser.userMetadata?['target_goal'] ?? 'Job Interview Prep';
         provider.loginWithProfile(
           id: supaUser.id,
           name: userName,
@@ -89,7 +117,8 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
         );
         _showSnackBar('Selamat Datang Kembali, $userName!');
       } else {
-        _showSnackBar('Login gagal. Periksa email dan password Anda.', isError: true);
+        _showSnackBar('Login gagal. Periksa email dan password Anda.',
+            isError: true);
       }
     } on AuthException catch (e) {
       _showSnackBar('Login gagal: ${e.message}', isError: true);
@@ -100,34 +129,29 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
     }
   }
 
-  // ─── REGISTER HANDLER ───────────────────────────────────────────────────────
+  // ─── REGISTER ──────────────────────────────────────────────────────────────
   Future<void> _handleRegister(AppProvider provider) async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      _showSnackBar('Harap lengkapi Nama, Email, dan Password!', isError: true);
+      _showSnackBar('Harap lengkapi Nama, Email, dan Password!',
+          isError: true);
       return;
     }
-
     if (password.length < 6) {
       _showSnackBar('Password minimal 6 karakter!', isError: true);
       return;
     }
 
     setState(() => _isLoading = true);
-
     try {
       final response = await Supabase.instance.client.auth.signUp(
         email: email,
         password: password,
-        data: {
-          'name': name,
-          'target_goal': _selectedGoal,
-        },
+        data: {'name': name, 'target_goal': _selectedGoal},
       );
-
       final supaUser = response.user;
       if (supaUser != null) {
         provider.loginWithProfile(
@@ -138,10 +162,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
         );
         _showSnackBar('Akun Berhasil Dibuat! Selamat Datang, $name 🎉');
       } else {
-        _showSnackBar(
-          'Cek email kamu untuk konfirmasi, lalu login!',
-          isError: false,
-        );
+        _showSnackBar('Cek email kamu untuk konfirmasi, lalu login!');
       }
     } on AuthException catch (e) {
       _showSnackBar('Pendaftaran gagal: ${e.message}', isError: true);
@@ -152,22 +173,69 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
     }
   }
 
-  // ─── GOOGLE GMAIL LOGIN ──────────────────────────────────────────────────────
+  // ─── NATIVE GOOGLE SIGN-IN ────────────────────────────────────────────────
   Future<void> _handleGoogleLogin(AppProvider provider) async {
     setState(() => _isLoading = true);
 
     try {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.bemind://login-callback/',
+      // Web Client ID from Google Cloud Console
+      const webClientId =
+          '659983765395-3apa3crilf79tk18ip9c443evec5ul7t.apps.googleusercontent.com';
+
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        serverClientId: webClientId,
       );
-    } on AuthException {
+
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        // User cancelled
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      final accessToken = googleAuth.accessToken;
+
+      if (idToken == null) {
+        _showSnackBar('Google Sign-In gagal: tidak mendapat token.',
+            isError: true);
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+
+      // Authenticate with Supabase using the Google ID token
+      final response = await Supabase.instance.client.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
+      );
+
+      final supaUser = response.user;
+      if (supaUser != null) {
+        final userName = supaUser.userMetadata?['full_name'] ??
+            supaUser.userMetadata?['name'] ??
+            googleUser.displayName ??
+            googleUser.email.split('@').first;
+        final userEmail = supaUser.email ?? googleUser.email;
+
+        provider.loginWithProfile(
+          id: supaUser.id,
+          name: userName,
+          email: userEmail,
+          targetGoal:
+              supaUser.userMetadata?['target_goal'] ?? 'Job Interview Prep',
+        );
+        _showSnackBar('Selamat Datang, $userName! 🎉');
+      } else {
+        _showSnackBar('Login Google gagal. Coba lagi.', isError: true);
+      }
+    } catch (e) {
+      debugPrint('Google Sign-In Error: $e');
       _showSnackBar(
-        'Google Login belum diaktifkan di Supabase Dashboard.\nAktifkan di: Authentication → Providers → Google',
+        'Google Login gagal. Pastikan akun Google aktif.',
         isError: true,
       );
-    } catch (_) {
-      _showSnackBar('Gagal memulai Google Login. Coba login dengan email.', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -178,597 +246,120 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
       SnackBar(
         content: Text(
           message,
-          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
-        backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF0D9488),
+        backgroundColor:
+            isError ? const Color(0xFFEF4444) : const Color(0xFF0D9488),
         behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 3),
       ),
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  BUILD
+  // ═══════════════════════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context, listen: false);
+    final mq = MediaQuery.of(context);
+    final screenH = mq.size.height;
+    final bottomInset = mq.viewInsets.bottom; // keyboard height
+
+    // Adaptive spacing — shrinks when keyboard is open or screen is small
+    final bool isCompact = screenH < 700 || bottomInset > 100;
+    final double topGap = isCompact ? 8 : 20;
+    final double sectionGap = isCompact ? 10 : 16;
+    final double carouselH = isCompact ? 72 : 88;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // PRISTINE AIRY LIGHT CANVAS
+      backgroundColor: const Color(0xFFF8FAFC),
       body: Stack(
         children: [
-          // Subtle Soft Gradient Orbs Background
+          // ── Background Gradient Orbs ──
           Positioned(
-            top: -60,
-            right: -60,
+            top: -80,
+            right: -80,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF0D9488).withValues(alpha: 0.10),
+                    const Color(0xFF0D9488).withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -100,
+            left: -80,
             child: Container(
               width: 260,
               height: 260,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF0D9488).withValues(alpha: 0.08), // Soft Teal Orb
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -80,
-            left: -60,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF6366F1).withValues(alpha: 0.07), // Soft Indigo Orb
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF6366F1).withValues(alpha: 0.08),
+                    const Color(0xFF6366F1).withValues(alpha: 0.0),
+                  ],
+                ),
               ),
             ),
           ),
 
+          // ── Main Scrollable Content ──
           SafeArea(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 460),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 4),
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: FadeTransition(
+                  opacity: _fadeAnim,
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverPadding(
+                        padding: EdgeInsets.fromLTRB(
+                            24, topGap, 24, 24 + bottomInset * 0.1),
+                        sliver: SliverList(
+                          delegate: SliverChildListDelegate([
+                            // ── Brand Header ──
+                            _buildBrandHeader(isCompact),
+                            SizedBox(height: sectionGap),
 
-                      // ─── ELEGANT BRAND LOGO HEADER (COMPACT) ───────────────────────
-                      Center(
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFCCFBF1), // Soft Emerald Tint
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF0D9488).withValues(alpha: 0.2),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                LucideIcons.brainCircuit,
-                                size: 26,
-                                color: Color(0xFF0D9488),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'BeMind',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF0F172A),
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF0D9488).withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    'AI-NATIVE',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      color: const Color(0xFF0D9488),
-                                      letterSpacing: 0.8,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              'English Fluency Builder',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                color: const Color(0xFF64748B),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 14),
-
-                      // ─── PRISTINE CAROUSEL CARD (VALUE PROP - COMPACT 96px) ────────
-                      Container(
-                        height: 96,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-                              blurRadius: 14,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                          border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
-                        ),
-                        child: PageView.builder(
-                          controller: _pageController,
-                          onPageChanged: (index) => setState(() => _currentSlide = index),
-                          itemCount: _onboardingSlides.length,
-                          itemBuilder: (context, index) {
-                            final slide = _onboardingSlides[index];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        index == 0
-                                            ? LucideIcons.sparkles
-                                            : index == 1
-                                                ? LucideIcons.zap
-                                                : LucideIcons.bellRing,
-                                        size: 15,
-                                        color: const Color(0xFF0D9488),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        slide['title']!,
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                          color: const Color(0xFF0F172A),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    slide['subtitle']!,
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      color: const Color(0xFF64748B),
-                                      height: 1.3,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Dots Indicator
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          _onboardingSlides.length,
-                          (index) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.symmetric(horizontal: 3),
-                            width: _currentSlide == index ? 18 : 6,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: _currentSlide == index ? const Color(0xFF0D9488) : const Color(0xFFCBD5E1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 14),
-
-                      // ─── GOOGLE LOGIN BUTTON ──────────────────────────────────────
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : () => _handleGoogleLogin(provider),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Colors.white,
-                          elevation: 2,
-                          shadowColor: const Color(0xFF0F172A).withValues(alpha: 0.08),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(999),
-                            side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 22,
-                              height: 22,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                              alignment: Alignment.center,
-                              child: CustomPaint(
-                                size: const Size(16, 16),
-                                painter: GoogleLogoPainter(),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Masuk dengan Google',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF0F172A),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Divider
-                      Row(
-                        children: [
-                          Expanded(child: Divider(color: const Color(0xFFE2E8F0))),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text(
-                              'atau dengan email',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF94A3B8)),
-                            ),
-                          ),
-                          Expanded(child: Divider(color: const Color(0xFFE2E8F0))),
-                        ],
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      // ─── FLOATING WHITE AUTH CARD ─────────────────────────────────
-                      Container(
-                        padding: const EdgeInsets.all(22),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(28),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF0F172A).withValues(alpha: 0.06),
-                              blurRadius: 28,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                          border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Dual Pill Tab Switcher
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => setState(() => _isRegisterMode = false),
-                                      child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 200),
-                                        padding: const EdgeInsets.symmetric(vertical: 11),
-                                        decoration: BoxDecoration(
-                                          color: !_isRegisterMode ? const Color(0xFF0D9488) : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(999),
-                                          boxShadow: !_isRegisterMode
-                                              ? [
-                                                  BoxShadow(
-                                                    color: const Color(0xFF0D9488).withValues(alpha: 0.3),
-                                                    blurRadius: 8,
-                                                    offset: const Offset(0, 2),
-                                                  ),
-                                                ]
-                                              : null,
-                                        ),
-                                        child: Text(
-                                          'Masuk',
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w700,
-                                            color: !_isRegisterMode ? Colors.white : const Color(0xFF64748B),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => setState(() => _isRegisterMode = true),
-                                      child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 200),
-                                        padding: const EdgeInsets.symmetric(vertical: 11),
-                                        decoration: BoxDecoration(
-                                          color: _isRegisterMode ? const Color(0xFF0D9488) : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(999),
-                                          boxShadow: _isRegisterMode
-                                              ? [
-                                                  BoxShadow(
-                                                    color: const Color(0xFF0D9488).withValues(alpha: 0.3),
-                                                    blurRadius: 8,
-                                                    offset: const Offset(0, 2),
-                                                  ),
-                                                ]
-                                              : null,
-                                        ),
-                                        child: Text(
-                                          'Daftar Akun',
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w700,
-                                            color: _isRegisterMode ? Colors.white : const Color(0xFF64748B),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // Full Name Field (Register Mode Only)
-                            if (_isRegisterMode) ...[
-                              Text(
-                                'Nama Lengkap',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF475569)),
-                              ),
-                              const SizedBox(height: 6),
-                              TextField(
-                                controller: _nameController,
-                                style: GoogleFonts.plusJakartaSans(color: const Color(0xFF0F172A), fontSize: 14),
-                                decoration: InputDecoration(
-                                  hintText: 'Masukkan nama lengkap kamu',
-                                  hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8), fontSize: 13),
-                                  prefixIcon: const Icon(LucideIcons.user, size: 18, color: Color(0xFF0D9488)),
-                                  filled: true,
-                                  fillColor: const Color(0xFFF8FAFC),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 14),
-                            ],
-
-                            // Email Field
-                            Text(
-                              'Alamat Email',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF475569)),
-                            ),
+                            // ── Value Prop Carousel ──
+                            _buildCarousel(carouselH),
                             const SizedBox(height: 6),
-                            TextField(
-                              controller: _emailController,
-                              style: GoogleFonts.plusJakartaSans(color: const Color(0xFF0F172A), fontSize: 14),
-                              decoration: InputDecoration(
-                                hintText: 'contoh: nama@email.com',
-                                hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8), fontSize: 13),
-                                prefixIcon: const Icon(LucideIcons.mail, size: 18, color: Color(0xFF0D9488)),
-                                filled: true,
-                                fillColor: const Color(0xFFF8FAFC),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5),
-                                ),
-                              ),
-                            ),
+                            _buildDotsIndicator(),
+                            SizedBox(height: sectionGap),
+
+                            // ── Google Login ──
+                            _buildGoogleButton(provider),
+                            SizedBox(height: sectionGap),
+
+                            // ── Divider ──
+                            _buildDivider(),
+                            SizedBox(height: sectionGap),
+
+                            // ── Auth Card ──
+                            _buildAuthCard(provider, isCompact),
                             const SizedBox(height: 14),
 
-                            // Password Field
-                            Text(
-                              'Kata Sandi (Password)',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF475569)),
-                            ),
-                            const SizedBox(height: 6),
-                            TextField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              style: GoogleFonts.plusJakartaSans(color: const Color(0xFF0F172A), fontSize: 14),
-                              decoration: InputDecoration(
-                                hintText: 'Masukkan kata sandi',
-                                hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8), fontSize: 13),
-                                prefixIcon: const Icon(LucideIcons.lock, size: 18, color: Color(0xFF0D9488)),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
-                                    size: 18,
-                                    color: const Color(0xFF94A3B8),
-                                  ),
-                                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                                ),
-                                filled: true,
-                                fillColor: const Color(0xFFF8FAFC),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5),
-                                ),
-                              ),
-                            ),
-
-                            // Target Goal Selector (Register Mode Only)
-                            if (_isRegisterMode) ...[
-                              const SizedBox(height: 14),
-                              Text(
-                                'Fokus Utama Belajar:',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF475569),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: _goals.map((goal) {
-                                  final isSelected = _selectedGoal == goal;
-                                  return ChoiceChip(
-                                    label: Text(goal, style: GoogleFonts.plusJakartaSans(fontSize: 11)),
-                                    selected: isSelected,
-                                    onSelected: (selected) {
-                                      if (selected) setState(() => _selectedGoal = goal);
-                                    },
-                                    selectedColor: const Color(0xFF0D9488),
-                                    backgroundColor: const Color(0xFFF8FAFC),
-                                    labelStyle: GoogleFonts.plusJakartaSans(
-                                      color: isSelected ? Colors.white : const Color(0xFF475569),
-                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(999),
-                                      side: BorderSide(
-                                        color: isSelected ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-
-                            const SizedBox(height: 22),
-
-                            // Primary Action Button (Gradient Soft Emerald to Royal Indigo)
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(999),
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF0D9488), Color(0xFF6366F1)], // Emerald to Indigo
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF0D9488).withValues(alpha: 0.35),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: ElevatedButton(
-                                onPressed: _isLoading
-                                    ? null
-                                    : () => _isRegisterMode ? _handleRegister(provider) : _handleLogin(provider),
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  backgroundColor: Colors.transparent,
-                                  shadowColor: Colors.transparent,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                      )
-                                    : Text(
-                                        _isRegisterMode ? 'Daftar & Buat Akun BeMind' : 'Masuk ke Aplikasi',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                          ],
+                            // ── Bottom Toggle ──
+                            _buildBottomToggle(),
+                            const SizedBox(height: 8),
+                          ]),
                         ),
                       ),
-
-                      const SizedBox(height: 18),
-
-                      // Bottom Toggle Prompt
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _isRegisterMode ? 'Sudah memiliki akun BeMind?' : 'Belum memiliki akun?',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF64748B)),
-                          ),
-                          TextButton(
-                            onPressed: () => setState(() => _isRegisterMode = !_isRegisterMode),
-                            child: Text(
-                              _isRegisterMode ? 'Masuk di sini' : 'Daftar sekarang',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF0D9488),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
@@ -779,63 +370,572 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage> {
       ),
     );
   }
-}
 
-/// CustomPainter for rendering authentic 4-color Google G Logo
-class GoogleLogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double w = size.width;
-    final double h = size.height;
-    final double cx = w / 2;
-    final double cy = h / 2;
-    final double r = w / 2;
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  WIDGET BUILDERS
+  // ═══════════════════════════════════════════════════════════════════════════
 
-    // Paints for 4 Google brand colors
-    final Paint bluePaint = Paint()..color = const Color(0xFF4285F4)..style = PaintingStyle.fill;
-    final Paint greenPaint = Paint()..color = const Color(0xFF34A853)..style = PaintingStyle.fill;
-    final Paint yellowPaint = Paint()..color = const Color(0xFFFBBC05)..style = PaintingStyle.fill;
-    final Paint redPaint = Paint()..color = const Color(0xFFEA4335)..style = PaintingStyle.fill;
+  Widget _buildBrandHeader(bool isCompact) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Brain Icon
+          Container(
+            padding: EdgeInsets.all(isCompact ? 8 : 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFCCFBF1),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0D9488).withValues(alpha: 0.18),
+                  blurRadius: 12,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Icon(
+              LucideIcons.brainCircuit,
+              size: isCompact ? 22 : 26,
+              color: const Color(0xFF0D9488),
+            ),
+          ),
+          SizedBox(height: isCompact ? 6 : 8),
 
-    // Outer & Inner Radius for G Ring
-    final double outerR = r;
-    final double innerR = r * 0.52;
-
-    final Rect outerRect = Rect.fromCircle(center: Offset(cx, cy), radius: outerR);
-    final Rect innerRect = Rect.fromCircle(center: Offset(cx, cy), radius: innerR);
-
-    // Helper to draw ring segment arc
-    Path createSegment(double startAngleRad, double sweepAngleRad) {
-      final Path path = Path();
-      path.arcTo(outerRect, startAngleRad, sweepAngleRad, false);
-      path.arcTo(innerRect, startAngleRad + sweepAngleRad, -sweepAngleRad, false);
-      path.close();
-      return path;
-    }
-
-    // 1. Red Top Arc (-0.75 rad to ~2.2 rad)
-    canvas.drawPath(createSegment(-0.75, 2.15), redPaint);
-
-    // 2. Yellow Left Arc (~1.4 rad to ~1.2 rad)
-    canvas.drawPath(createSegment(1.4, 1.2), yellowPaint);
-
-    // 3. Green Bottom Arc (~2.6 rad to ~1.2 rad)
-    canvas.drawPath(createSegment(2.6, 1.25), greenPaint);
-
-    // 4. Blue Right Arc & Horizontal Bar
-    final Path blueSegment = createSegment(-0.75, 0.95);
-    canvas.drawPath(blueSegment, bluePaint);
-
-    // Blue Center Horizontal Bar
-    final Path barPath = Path()
-      ..moveTo(cx, cy - r * 0.24)
-      ..lineTo(cx + outerR, cy - r * 0.24)
-      ..lineTo(cx + outerR, cy + r * 0.24)
-      ..lineTo(cx, cy + r * 0.24)
-      ..close();
-    canvas.drawPath(barPath, bluePaint);
+          // App Name + Badge
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'BeMind',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: isCompact ? 22 : 26,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF0F172A),
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0D9488).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'AI-NATIVE',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF0D9488),
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'English Fluency Builder',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              color: const Color(0xFF64748B),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget _buildCarousel(double height) {
+    return Container(
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+      ),
+      child: PageView.builder(
+        controller: _pageController,
+        onPageChanged: (i) => setState(() => _currentSlide = i),
+        itemCount: _slides.length,
+        itemBuilder: (context, index) {
+          final slide = _slides[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(slide.icon,
+                        size: 14, color: const Color(0xFF0D9488)),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        slide.title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0F172A),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  slide.subtitle,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    color: const Color(0xFF64748B),
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDotsIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        _slides.length,
+        (i) => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: _currentSlide == i ? 18 : 6,
+          height: 4,
+          decoration: BoxDecoration(
+            color: _currentSlide == i
+                ? const Color(0xFF0D9488)
+                : const Color(0xFFCBD5E1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoogleButton(AppProvider provider) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(999),
+      elevation: 0,
+      child: InkWell(
+        onTap: _isLoading ? null : () => _handleGoogleLogin(provider),
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 13),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                'assets/images/google_logo.svg',
+                width: 20,
+                height: 20,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Masuk dengan Google',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'atau dengan email',
+            style: GoogleFonts.plusJakartaSans(
+                fontSize: 11, color: const Color(0xFF94A3B8)),
+          ),
+        ),
+        const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+      ],
+    );
+  }
+
+  Widget _buildAuthCard(AppProvider provider, bool isCompact) {
+    return Container(
+      padding: EdgeInsets.all(isCompact ? 16 : 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.05),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── Tab Switcher ──
+          _buildTabSwitcher(),
+          SizedBox(height: isCompact ? 14 : 18),
+
+          // ── Form Fields ──
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            child: _isRegisterMode
+                ? _buildRegisterFields(isCompact)
+                : _buildLoginFields(isCompact),
+          ),
+
+          SizedBox(height: isCompact ? 16 : 20),
+
+          // ── Primary Action Button ──
+          _buildActionButton(provider),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabSwitcher() {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        children: [
+          _tabPill('Masuk', !_isRegisterMode,
+              () => setState(() => _isRegisterMode = false)),
+          _tabPill('Daftar Akun', _isRegisterMode,
+              () => setState(() => _isRegisterMode = true)),
+        ],
+      ),
+    );
+  }
+
+  Widget _tabPill(String label, bool isActive, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isActive ? const Color(0xFF0D9488) : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF0D9488).withValues(alpha: 0.25),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: isActive ? Colors.white : const Color(0xFF64748B),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginFields(bool isCompact) {
+    return Column(
+      key: const ValueKey('login'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _fieldLabel('Alamat Email'),
+        const SizedBox(height: 5),
+        _emailField(),
+        SizedBox(height: isCompact ? 10 : 12),
+        _fieldLabel('Kata Sandi'),
+        const SizedBox(height: 5),
+        _passwordField(),
+      ],
+    );
+  }
+
+  Widget _buildRegisterFields(bool isCompact) {
+    return Column(
+      key: const ValueKey('register'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _fieldLabel('Nama Lengkap'),
+        const SizedBox(height: 5),
+        _nameField(),
+        SizedBox(height: isCompact ? 10 : 12),
+        _fieldLabel('Alamat Email'),
+        const SizedBox(height: 5),
+        _emailField(),
+        SizedBox(height: isCompact ? 10 : 12),
+        _fieldLabel('Kata Sandi'),
+        const SizedBox(height: 5),
+        _passwordField(),
+        SizedBox(height: isCompact ? 10 : 12),
+        _fieldLabel('Fokus Utama Belajar:'),
+        const SizedBox(height: 6),
+        _buildGoalChips(),
+      ],
+    );
+  }
+
+  Widget _fieldLabel(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.plusJakartaSans(
+        fontSize: 11.5,
+        fontWeight: FontWeight.w600,
+        color: const Color(0xFF475569),
+      ),
+    );
+  }
+
+  InputDecoration _inputDeco(
+      {required String hint, required IconData icon, Widget? suffix}) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle:
+          GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8), fontSize: 12.5),
+      prefixIcon: Icon(icon, size: 17, color: const Color(0xFF0D9488)),
+      suffixIcon: suffix,
+      filled: true,
+      fillColor: const Color(0xFFF8FAFC),
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5),
+      ),
+    );
+  }
+
+  Widget _nameField() {
+    return TextField(
+      controller: _nameController,
+      style: GoogleFonts.plusJakartaSans(
+          color: const Color(0xFF0F172A), fontSize: 13),
+      decoration:
+          _inputDeco(hint: 'Masukkan nama lengkap', icon: LucideIcons.user),
+    );
+  }
+
+  Widget _emailField() {
+    return TextField(
+      controller: _emailController,
+      keyboardType: TextInputType.emailAddress,
+      style: GoogleFonts.plusJakartaSans(
+          color: const Color(0xFF0F172A), fontSize: 13),
+      decoration:
+          _inputDeco(hint: 'contoh: nama@email.com', icon: LucideIcons.mail),
+    );
+  }
+
+  Widget _passwordField() {
+    return TextField(
+      controller: _passwordController,
+      obscureText: _obscurePassword,
+      style: GoogleFonts.plusJakartaSans(
+          color: const Color(0xFF0F172A), fontSize: 13),
+      decoration: _inputDeco(
+        hint: 'Masukkan kata sandi',
+        icon: LucideIcons.lock,
+        suffix: GestureDetector(
+          onTap: () => setState(() => _obscurePassword = !_obscurePassword),
+          child: Icon(
+            _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
+            size: 17,
+            color: const Color(0xFF94A3B8),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoalChips() {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: _goals.map((goal) {
+        final isSelected = _selectedGoal == goal;
+        return ChoiceChip(
+          label: Text(goal),
+          selected: isSelected,
+          onSelected: (s) {
+            if (s) setState(() => _selectedGoal = goal);
+          },
+          selectedColor: const Color(0xFF0D9488),
+          backgroundColor: const Color(0xFFF8FAFC),
+          labelStyle: GoogleFonts.plusJakartaSans(
+            fontSize: 10.5,
+            color: isSelected ? Colors.white : const Color(0xFF475569),
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.compact,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
+            side: BorderSide(
+              color: isSelected
+                  ? const Color(0xFF0D9488)
+                  : const Color(0xFFE2E8F0),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildActionButton(AppProvider provider) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0D9488).withValues(alpha: 0.30),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: _isLoading
+            ? null
+            : () => _isRegisterMode
+                ? _handleRegister(provider)
+                : _handleLogin(provider),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(999)),
+        ),
+        child: _isLoading
+            ? const SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white),
+              )
+            : Text(
+                _isRegisterMode
+                    ? 'Daftar & Buat Akun BeMind'
+                    : 'Masuk ke Aplikasi',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildBottomToggle() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          _isRegisterMode
+              ? 'Sudah memiliki akun?'
+              : 'Belum memiliki akun?',
+          style: GoogleFonts.plusJakartaSans(
+              fontSize: 12, color: const Color(0xFF64748B)),
+        ),
+        TextButton(
+          onPressed: () =>
+              setState(() => _isRegisterMode = !_isRegisterMode),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(
+            _isRegisterMode ? 'Masuk di sini' : 'Daftar sekarang',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF0D9488),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Slide Data Model ────────────────────────────────────────────────────────
+class _SlideData {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _SlideData({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
 }
