@@ -50,6 +50,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
   // Language Locale for Speech-To-Text ('en_US' for English, 'id_ID' for Bahasa Indonesia)
   String _sttLocaleId = 'en_US';
+  String _baseTranscript = ''; // Stores accumulated transcript from previous speech sessions/pauses
 
   // 📎 Real File Picker
   String? _attachedFileName;
@@ -76,7 +77,22 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     try {
       _sttInitialized = await _speechToText.initialize(
         onError: (val) => debugPrint('[STT Error]: $val'),
-        onStatus: (val) => debugPrint('[STT Status]: $val'),
+        onStatus: (val) {
+          debugPrint('[STT Status]: $val');
+          // Auto-restart STT on pause so speech isn't lost if user pauses mid-recording
+          if (val == 'notListening' || val == 'done') {
+            if (_isRecordingVoice) {
+              if (_transcriptTextController.text.trim().isNotEmpty) {
+                _baseTranscript = _transcriptTextController.text.trim();
+              }
+              Future.delayed(const Duration(milliseconds: 150), () {
+                if (_isRecordingVoice && mounted && !_speechToText.isListening) {
+                  _startContinuousListening();
+                }
+              });
+            }
+          }
+        },
       );
     } catch (e) {
       debugPrint('[STT Init Exception]: $e');
@@ -108,6 +124,11 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           await _speechToText.stop();
         }
 
+        // Lock in full accumulated transcript
+        if (_transcriptTextController.text.trim().isNotEmpty) {
+          _baseTranscript = _transcriptTextController.text.trim();
+        }
+
         setState(() {
           _isRecordingVoice = false;
           _recordedAudioPath = path;
@@ -119,7 +140,8 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           final tempDir = kIsWeb ? null : await getTemporaryDirectory();
           final path = kIsWeb ? '' : '${tempDir!.path}/rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
-          // Reset previous state
+          // Reset accumulated transcript for new recording session
+          _baseTranscript = '';
           setState(() {
             _isRecordingVoice = true;
             _transcriptTextController.text = '';
@@ -128,6 +150,13 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
           // Start On-device Realtime Free Speech Recognition directly
           if (_sttInitialized) {
+            try {
+              await _audioRecorder.start(
+                const RecordConfig(encoder: AudioEncoder.aacLc),
+                path: path,
+              );
+            } catch (_) {}
+
             _startContinuousListening();
           } else {
             await _audioRecorder.start(
@@ -157,21 +186,32 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
-  // 🔄 Continuous Speech Recognition without early timeout pause
+  // 🔄 Continuous Speech Recognition with persistent transcript accumulation
   void _startContinuousListening() {
     if (!_isRecordingVoice) return;
 
     _speechToText.listen(
       onResult: (result) {
-        if (mounted) {
-          setState(() {
-            _transcriptTextController.text = result.recognizedWords;
-          });
+        if (mounted && _isRecordingVoice) {
+          final currentChunk = result.recognizedWords.trim();
+          if (currentChunk.isNotEmpty) {
+            final fullText = _baseTranscript.isEmpty
+                ? currentChunk
+                : '$_baseTranscript $currentChunk';
+
+            setState(() {
+              _transcriptTextController.text = fullText;
+            });
+
+            if (result.finalResult) {
+              _baseTranscript = fullText;
+            }
+          }
         }
       },
       localeId: _sttLocaleId, // Uses user-selected language (en_US or id_ID)
-      listenFor: const Duration(minutes: 5),
-      pauseFor: const Duration(seconds: 10),
+      listenFor: const Duration(minutes: 10),
+      pauseFor: const Duration(seconds: 5),
       listenMode: stt.ListenMode.dictation,
       partialResults: true,
       onSoundLevelChange: null,
