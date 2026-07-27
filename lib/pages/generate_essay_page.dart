@@ -108,7 +108,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     if (live.isNotEmpty) {
       if (_completeText.isEmpty) {
         _completeText = live;
-      } else if (!_completeText.endsWith(live)) {
+      } else if (!_completeText.toLowerCase().endsWith(live.toLowerCase())) {
         _completeText = "$_completeText $live".trim();
       }
       _currentWords = '';
@@ -192,7 +192,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
-  // 🔄 Continuous Live Speech Listening Session
+  // 🔄 Continuous Live Speech Listening Session with Real-Time Instant Phrase Detection
   Future<void> _startListeningSession() async {
     if (!_isRecordingVoice) return;
 
@@ -200,8 +200,30 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       await _speechToText.listen(
         onResult: (val) {
           if (mounted && _isRecordingVoice) {
+            final newWords = val.recognizedWords.trim();
+            if (newWords.isEmpty) return;
+
+            // 💡 Smart Real-Time Phrase Boundary Detection:
+            // If newWords does NOT start with _currentWords (and is not an extension),
+            // it means Android started a new phrase BEFORE the beep sound/onStatus fired!
+            // Instantly commit _currentWords to _completeText right now so zero words are lost!
+            final currLower = _currentWords.trim().toLowerCase();
+            final newLower = newWords.toLowerCase();
+
+            if (currLower.isNotEmpty &&
+                !newLower.startsWith(currLower) &&
+                !currLower.endsWith(newLower)) {
+              if (_completeText.isEmpty) {
+                _completeText = _currentWords.trim();
+              } else if (!_completeText.toLowerCase().endsWith(currLower)) {
+                _completeText = "$_completeText ${_currentWords.trim()}".trim();
+              }
+              _currentWords = '';
+            }
+
+            _currentWords = newWords;
+
             setState(() {
-              _currentWords = val.recognizedWords;
               _transcriptTextController.text = _completeText.isEmpty
                   ? _currentWords
                   : "$_completeText $_currentWords".trim();
