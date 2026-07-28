@@ -142,13 +142,15 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
         );
         _showSnackBar('Selamat Datang Kembali, $userName! 🚀');
       } else {
-        provider.login(email, password);
-        _showSnackBar('Selamat Datang Kembali, ${email.split('@').first}! 🚀');
+        _showSnackBar('Login gagal. Periksa email dan password Anda.',
+            isError: true);
       }
+    } on AuthException catch (e) {
+      debugPrint('[Login AuthException]: ${e.message}');
+      _showSnackBar('Login gagal: Email atau Password salah.', isError: true);
     } catch (e) {
-      debugPrint('[Login Exception]: $e — Logging in with local session fallback');
-      provider.login(email, password);
-      _showSnackBar('Selamat Datang Kembali, ${email.split('@').first}! 🚀');
+      debugPrint('[Login Error]: $e');
+      _showSnackBar('Gagal terhubung ke server autentikasi. Coba lagi.', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -187,23 +189,14 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
         );
         _showSnackBar('Akun Berhasil Dibuat! Selamat Datang, $name 🎉');
       } else {
-        provider.loginWithProfile(
-          id: 'usr_${DateTime.now().millisecondsSinceEpoch}',
-          name: name,
-          email: email,
-          targetGoal: _selectedGoal,
-        );
-        _showSnackBar('Selamat Datang, $name 🎉');
+        _showSnackBar('Silakan periksa email kamu untuk konfirmasi pendaftaran.');
       }
+    } on AuthException catch (e) {
+      debugPrint('[Register AuthException]: ${e.message}');
+      _showSnackBar('Pendaftaran gagal: ${e.message}', isError: true);
     } catch (e) {
-      debugPrint('[Register Exception]: $e — Logging in with local profile fallback');
-      provider.loginWithProfile(
-        id: 'usr_${DateTime.now().millisecondsSinceEpoch}',
-        name: name,
-        email: email,
-        targetGoal: _selectedGoal,
-      );
-      _showSnackBar('Selamat Datang, $name 🎉');
+      debugPrint('[Register Error]: $e');
+      _showSnackBar('Gagal terhubung ke server pendaftaran: $e', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -232,13 +225,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
       final accessToken = googleAuth.accessToken;
 
       if (idToken == null) {
-        provider.loginWithProfile(
-          id: 'usr_google_${DateTime.now().millisecondsSinceEpoch}',
-          name: googleUser.displayName ?? 'Pengguna Google',
-          email: googleUser.email,
-          targetGoal: 'Job Interview Prep',
-        );
-        _showSnackBar('Selamat Datang, ${googleUser.displayName ?? "User"}! 🎉');
+        _showSnackBar('Google Sign-In gagal: Token autentikasi tidak valid.', isError: true);
         if (mounted) setState(() => _isLoading = false);
         return;
       }
@@ -266,23 +253,11 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
         );
         _showSnackBar('Selamat Datang, $userName! 🎉');
       } else {
-        provider.loginWithProfile(
-          id: 'usr_google_${DateTime.now().millisecondsSinceEpoch}',
-          name: googleUser.displayName ?? 'Pengguna Google',
-          email: googleUser.email,
-          targetGoal: 'Job Interview Prep',
-        );
-        _showSnackBar('Selamat Datang, ${googleUser.displayName ?? "User"}! 🎉');
+        _showSnackBar('Gagal memverifikasi akun Google dengan server.', isError: true);
       }
     } catch (e) {
-      debugPrint('Google Sign-In Exception: $e — Using fallback guest profile');
-      provider.loginWithProfile(
-        id: 'usr_demo',
-        name: 'Demo User',
-        email: 'demo@bemind.ai',
-        targetGoal: 'Job Interview Prep',
-      );
-      _showSnackBar('Selamat Datang di BeMind Demo! 🚀');
+      debugPrint('Google Sign-In Exception: $e');
+      _showSnackBar('Proses Google Login gagal. Pastikan akun Google aktif.', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
