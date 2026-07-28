@@ -29,22 +29,21 @@ class HeaderBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           // Mascot Logo Badge
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: const Color(0xFF0D9488),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF0F766E), width: 1.8),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF0D9488), width: 2),
+              image: const DecorationImage(
+                image: AssetImage('assets/images/app_logo.jpg'),
+                fit: BoxFit.cover,
+              ),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0xFF0F766E),
                   offset: Offset(0, 2.5),
                 ),
               ],
-            ),
-            child: const Icon(
-              LucideIcons.sparkles,
-              size: 18,
-              color: Color(0xFFFEF08A),
             ),
           ),
           const SizedBox(width: 10),

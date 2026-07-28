@@ -413,30 +413,15 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF0F766E), width: 2),
+              border: Border.all(color: const Color(0xFF0D9488), width: 2),
+              image: const DecorationImage(
+                image: AssetImage('assets/images/app_logo.jpg'),
+                fit: BoxFit.cover,
+              ),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0xFF0F766E),
                   offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  LucideIcons.sparkles,
-                  color: const Color(0xFFFEF08A),
-                  size: isCompact ? 22 : 26,
-                ),
-                Text(
-                  'BeMind',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
                 ),
               ],
             ),

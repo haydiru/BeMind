@@ -65,12 +65,16 @@ class _MarketplacePageState extends State<MarketplacePage> {
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        image: const DecorationImage(
+                          image: AssetImage('assets/images/app_logo.jpg'),
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                      child: const Text('🛍️', style: TextStyle(fontSize: 28)),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
