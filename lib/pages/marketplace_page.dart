@@ -98,22 +98,6 @@ class _MarketplacePageState extends State<MarketplacePage> {
                   ],
                 ),
               ),
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(LucideIcons.sparkles, size: 16, color: Color(0xFF0D9488)),
-                      label: Text('Remix Dengan Konteks Saya', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13, color: const Color(0xFF0F172A))),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
 
               const SizedBox(height: 20),
 
