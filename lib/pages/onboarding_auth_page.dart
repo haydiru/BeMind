@@ -8,8 +8,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/app_provider.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
-// BeMind — Premium Onboarding & Authentication Page
-// Responsive, pixel-perfect, with native Google Sign-In
+// BeMind — Gamified Duolingo-Inspired Onboarding & Auth Page
+// High-energy 3D elevated buttons, mascot speech bubble, 3D goal cards & tactile controls
 // ──────────────────────────────────────────────────────────────────────────────
 
 class OnboardingAuthPage extends StatefulWidget {
@@ -41,28 +41,53 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
     _SlideData(
       icon: LucideIcons.sparkles,
       title: '100% Personal Narrative',
-      subtitle:
-          'Ubah CV & rekaman suaramu menjadi naskah kelancaran bahasa Inggris.',
+      subtitle: 'Ubah CV & suaramu jadi naskah kelancaran bahasa Inggris.',
     ),
     _SlideData(
       icon: LucideIcons.zap,
       title: 'High-Speed Teleprompter',
-      subtitle:
-          'Latih ritme bicara & percaya diri dengan kecepatan baca dinamis.',
+      subtitle: 'Latih ritme bicara & tingkatkan percaya diri real-time.',
     ),
     _SlideData(
       icon: LucideIcons.bellRing,
-      title: 'Passive Learning Engine',
-      subtitle:
-          'Kosakata asing instan & pengingat otomatis di lockscreen HP-mu.',
+      title: 'Passive Flashcards Engine',
+      subtitle: 'Kosakata baru otomatis di lockscreen HP kamu.',
     ),
   ];
 
-  final List<String> _goals = [
-    'Job Interview Prep',
-    'IELTS/TOEFL',
-    'Business Pitching',
-    'Casual Conversation',
+  final List<_GoalData> _goals = [
+    _GoalData(
+      id: 'Job Interview Prep',
+      title: 'Job Interview',
+      desc: 'Naskah wawancara kerja & CV',
+      icon: LucideIcons.briefcase,
+      badge: 'POPULER',
+      color: const Color(0xFF0D9488),
+    ),
+    _GoalData(
+      id: 'IELTS/TOEFL',
+      title: 'IELTS / TOEFL',
+      desc: 'Speaking test & essay narrative',
+      icon: LucideIcons.graduationCap,
+      badge: 'TARGET TOP',
+      color: const Color(0xFF6366F1),
+    ),
+    _GoalData(
+      id: 'Business Pitching',
+      title: 'Business Pitch',
+      desc: 'Presentasi & pitching investor',
+      icon: LucideIcons.trendingUp,
+      badge: 'KARIR',
+      color: const Color(0xFFF59E0B),
+    ),
+    _GoalData(
+      id: 'Casual Conversation',
+      title: 'Conversation',
+      desc: 'Percakapan sehari-hari & sosial',
+      icon: LucideIcons.messagesSquare,
+      badge: 'KESEHARIAN',
+      color: const Color(0xFFEC4899),
+    ),
   ];
 
   @override
@@ -115,7 +140,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
           email: email,
           targetGoal: targetGoal,
         );
-        _showSnackBar('Selamat Datang Kembali, $userName!');
+        _showSnackBar('Selamat Datang Kembali, $userName! 🚀');
       } else {
         _showSnackBar('Login gagal. Periksa email dan password Anda.',
             isError: true);
@@ -178,7 +203,6 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
     setState(() => _isLoading = true);
 
     try {
-      // Web Client ID from Google Cloud Console
       const webClientId =
           '659983765395-3apa3crilf79tk18ip9c443evec5ul7t.apps.googleusercontent.com';
 
@@ -188,7 +212,6 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
 
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
-        // User cancelled
         if (mounted) setState(() => _isLoading = false);
         return;
       }
@@ -204,7 +227,6 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
         return;
       }
 
-      // Authenticate with Supabase using the Google ID token
       final response = await Supabase.instance.client.auth.signInWithIdToken(
         provider: OAuthProvider.google,
         idToken: idToken,
@@ -248,7 +270,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
           message,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 13,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             color: Colors.white,
           ),
         ),
@@ -256,7 +278,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
             isError ? const Color(0xFFEF4444) : const Color(0xFF0D9488),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         duration: const Duration(seconds: 3),
       ),
     );
@@ -270,50 +292,38 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
     final provider = Provider.of<AppProvider>(context, listen: false);
     final mq = MediaQuery.of(context);
     final screenH = mq.size.height;
-    final bottomInset = mq.viewInsets.bottom; // keyboard height
+    final bottomInset = mq.viewInsets.bottom;
 
-    // Adaptive spacing — shrinks when keyboard is open or screen is small
     final bool isCompact = screenH < 700 || bottomInset > 100;
-    final double topGap = isCompact ? 8 : 20;
-    final double sectionGap = isCompact ? 10 : 16;
-    final double carouselH = isCompact ? 72 : 88;
+    final double topGap = isCompact ? 8 : 16;
+    final double sectionGap = isCompact ? 10 : 14;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: Stack(
         children: [
-          // ── Background Gradient Orbs ──
+          // ── Background Ambient Blobs ──
           Positioned(
-            top: -80,
-            right: -80,
+            top: -60,
+            right: -60,
             child: Container(
-              width: 220,
-              height: 220,
+              width: 240,
+              height: 240,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF0D9488).withValues(alpha: 0.10),
-                    const Color(0xFF0D9488).withValues(alpha: 0.0),
-                  ],
-                ),
+                color: const Color(0xFF0D9488).withValues(alpha: 0.08),
               ),
             ),
           ),
           Positioned(
-            bottom: -100,
-            left: -80,
+            bottom: -80,
+            left: -60,
             child: Container(
               width: 260,
               height: 260,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF6366F1).withValues(alpha: 0.08),
-                    const Color(0xFF6366F1).withValues(alpha: 0.0),
-                  ],
-                ),
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -329,34 +339,34 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
                     slivers: [
                       SliverPadding(
                         padding: EdgeInsets.fromLTRB(
-                            24, topGap, 24, 24 + bottomInset * 0.1),
+                            20, topGap, 20, 24 + bottomInset * 0.1),
                         sliver: SliverList(
                           delegate: SliverChildListDelegate([
-                            // ── Brand Header ──
-                            _buildBrandHeader(isCompact),
+                            // ── 1. Duolingo Mascot + Speech Bubble Hero ──
+                            _buildMascotHeroBanner(isCompact),
                             SizedBox(height: sectionGap),
 
-                            // ── Value Prop Carousel ──
-                            _buildCarousel(carouselH),
+                            // ── 2. Value Prop Carousel ──
+                            _buildCarousel(isCompact ? 74 : 86),
                             const SizedBox(height: 6),
                             _buildDotsIndicator(),
                             SizedBox(height: sectionGap),
 
-                            // ── Google Login ──
-                            _buildGoogleButton(provider),
+                            // ── 3. Google Sign-In 3D Button ──
+                            _buildGoogle3DButton(provider),
                             SizedBox(height: sectionGap),
 
-                            // ── Divider ──
+                            // ── 4. Divider ──
                             _buildDivider(),
                             SizedBox(height: sectionGap),
 
-                            // ── Auth Card ──
+                            // ── 5. Gamified Auth Card (3D Form) ──
                             _buildAuthCard(provider, isCompact),
                             const SizedBox(height: 14),
 
-                            // ── Bottom Toggle ──
+                            // ── 6. Bottom Switcher ──
                             _buildBottomToggle(),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 12),
                           ]),
                         ),
                       ),
@@ -375,74 +385,111 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
   //  WIDGET BUILDERS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  Widget _buildBrandHeader(bool isCompact) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+  /// 🦜 Duolingo-Style Mascot + Speech Bubble Header
+  Widget _buildMascotHeroBanner(bool isCompact) {
+    return Container(
+      padding: EdgeInsets.all(isCompact ? 12 : 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0xFFCBD5E1),
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
-          // Brain Icon
+          // Mascot Icon Badge
           Container(
-            padding: EdgeInsets.all(isCompact ? 8 : 10),
+            width: isCompact ? 54 : 64,
+            height: isCompact ? 54 : 64,
             decoration: BoxDecoration(
-              color: const Color(0xFFCCFBF1),
-              shape: BoxShape.circle,
-              boxShadow: [
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF0F766E), width: 2),
+              boxShadow: const [
                 BoxShadow(
-                  color: const Color(0xFF0D9488).withValues(alpha: 0.18),
-                  blurRadius: 12,
-                  offset: const Offset(0, 3),
+                  color: Color(0xFF0F766E),
+                  offset: Offset(0, 3),
                 ),
               ],
             ),
-            child: Icon(
-              LucideIcons.brainCircuit,
-              size: isCompact ? 22 : 26,
-              color: const Color(0xFF0D9488),
-            ),
-          ),
-          SizedBox(height: isCompact ? 6 : 8),
-
-          // App Name + Badge
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'BeMind',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: isCompact ? 22 : 26,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
-                  letterSpacing: -0.5,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  LucideIcons.sparkles,
+                  color: const Color(0xFFFEF08A),
+                  size: isCompact ? 22 : 26,
                 ),
-              ),
-              const SizedBox(width: 6),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0D9488).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'AI-NATIVE',
+                Text(
+                  'BeMind',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF0D9488),
-                    letterSpacing: 0.8,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            'English Fluency Builder',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              color: const Color(0xFF64748B),
-              fontWeight: FontWeight.w600,
+          const SizedBox(width: 12),
+
+          // Speech Bubble Container
+          Expanded(
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFBBF7D0), width: 1.8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            _isRegisterMode
+                                ? 'Halo! Siap jadi fasih?'
+                                : 'Selamat Datang Kembali!',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: isCompact ? 12 : 13,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF15803D),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(LucideIcons.zap, size: 13, color: Color(0xFFEAB308)),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _isRegisterMode
+                            ? 'Pilih tujuanmu & raih percakapan bahasa Inggris 100% lancar.'
+                            : 'Lanjutkan latihan naskah & kelancaran bicaramu hari ini!',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF166534),
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -455,15 +502,14 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
       height: height,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
+            color: Color(0xFFE2E8F0),
+            offset: Offset(0, 3),
           ),
         ],
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
       ),
       child: PageView.builder(
         controller: _pageController,
@@ -480,15 +526,14 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(slide.icon,
-                        size: 14, color: const Color(0xFF0D9488)),
+                    Icon(slide.icon, size: 15, color: const Color(0xFF0D9488)),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
                         slide.title,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
                           color: const Color(0xFF0F172A),
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -496,7 +541,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   slide.subtitle,
                   textAlign: TextAlign.center,
@@ -505,6 +550,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10.5,
                     color: const Color(0xFF64748B),
+                    fontWeight: FontWeight.w600,
                     height: 1.3,
                   ),
                 ),
@@ -524,53 +570,44 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
         (i) => AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 3),
-          width: _currentSlide == i ? 18 : 6,
-          height: 4,
+          width: _currentSlide == i ? 22 : 8,
+          height: 6,
           decoration: BoxDecoration(
             color: _currentSlide == i
                 ? const Color(0xFF0D9488)
                 : const Color(0xFFCBD5E1),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(999),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildGoogleButton(AppProvider provider) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(999),
-      elevation: 0,
-      child: InkWell(
-        onTap: _isLoading ? null : () => _handleGoogleLogin(provider),
-        borderRadius: BorderRadius.circular(999),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 13),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+  /// 🔘 Duolingo 3D Elevated Google Sign-In Card
+  Widget _buildGoogle3DButton(AppProvider provider) {
+    return _Duolingo3DTactileButton(
+      backgroundColor: Colors.white,
+      shadowColor: const Color(0xFFCBD5E1),
+      borderColor: const Color(0xFFE2E8F0),
+      onPressed: _isLoading ? null : () => _handleGoogleLogin(provider),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset(
+            'assets/images/google_logo.svg',
+            width: 20,
+            height: 20,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SvgPicture.asset(
-                'assets/images/google_logo.svg',
-                width: 20,
-                height: 20,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'Masuk dengan Google',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
-                ),
-              ),
-            ],
+          const SizedBox(width: 10),
+          Text(
+            'Masuk dengan Google',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -578,16 +615,27 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
   Widget _buildDivider() {
     return Row(
       children: [
-        const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+        const Expanded(child: Divider(color: Color(0xFFCBD5E1), thickness: 1.5)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'atau dengan email',
-            style: GoogleFonts.plusJakartaSans(
-                fontSize: 11, color: const Color(0xFF94A3B8)),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'ATAU DENGAN EMAIL',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF64748B),
+                letterSpacing: 0.5,
+              ),
+            ),
           ),
         ),
-        const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+        const Expanded(child: Divider(color: Color(0xFFCBD5E1), thickness: 1.5)),
       ],
     );
   }
@@ -598,21 +646,20 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.05),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: Color(0xFFCBD5E1),
+            offset: Offset(0, 5),
           ),
         ],
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Tab Switcher ──
-          _buildTabSwitcher(),
+          // ── 3D Segmented Tab Switcher ──
+          _build3DTabSwitcher(),
           SizedBox(height: isCompact ? 14 : 18),
 
           // ── Form Fields ──
@@ -627,32 +674,34 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
 
           SizedBox(height: isCompact ? 16 : 20),
 
-          // ── Primary Action Button ──
-          _buildActionButton(provider),
+          // ── 3D Primary Action Button ──
+          _build3DActionButton(provider),
         ],
       ),
     );
   }
 
-  Widget _buildTabSwitcher() {
+  /// 🔀 3D Segmented Tab Switcher
+  Widget _build3DTabSwitcher() {
     return Container(
-      padding: const EdgeInsets.all(3),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
       ),
       child: Row(
         children: [
-          _tabPill('Masuk', !_isRegisterMode,
+          _3dTabPill('Masuk', !_isRegisterMode,
               () => setState(() => _isRegisterMode = false)),
-          _tabPill('Daftar Akun', _isRegisterMode,
+          _3dTabPill('Daftar Akun', _isRegisterMode,
               () => setState(() => _isRegisterMode = true)),
         ],
       ),
     );
   }
 
-  Widget _tabPill(String label, bool isActive, VoidCallback onTap) {
+  Widget _3dTabPill(String label, bool isActive, VoidCallback onTap) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -661,13 +710,15 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: isActive ? const Color(0xFF0D9488) : Colors.transparent,
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(12),
+            border: isActive
+                ? Border.all(color: const Color(0xFF0F766E), width: 1.8)
+                : null,
             boxShadow: isActive
-                ? [
+                ? const [
                     BoxShadow(
-                      color: const Color(0xFF0D9488).withValues(alpha: 0.25),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+                      color: Color(0xFF0F766E),
+                      offset: Offset(0, 2.5),
                     ),
                   ]
                 : null,
@@ -677,7 +728,7 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
             textAlign: TextAlign.center,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12.5,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: isActive ? Colors.white : const Color(0xFF64748B),
             ),
           ),
@@ -692,12 +743,12 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _fieldLabel('Alamat Email'),
-        const SizedBox(height: 5),
+        _fieldLabel('ALAMAT EMAIL'),
+        const SizedBox(height: 6),
         _emailField(),
         SizedBox(height: isCompact ? 10 : 12),
-        _fieldLabel('Kata Sandi'),
-        const SizedBox(height: 5),
+        _fieldLabel('KATA SANDI'),
+        const SizedBox(height: 6),
         _passwordField(),
       ],
     );
@@ -709,21 +760,21 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _fieldLabel('Nama Lengkap'),
-        const SizedBox(height: 5),
+        _fieldLabel('NAMA LENGKAP'),
+        const SizedBox(height: 6),
         _nameField(),
         SizedBox(height: isCompact ? 10 : 12),
-        _fieldLabel('Alamat Email'),
-        const SizedBox(height: 5),
+        _fieldLabel('ALAMAT EMAIL'),
+        const SizedBox(height: 6),
         _emailField(),
         SizedBox(height: isCompact ? 10 : 12),
-        _fieldLabel('Kata Sandi'),
-        const SizedBox(height: 5),
-        _passwordField(),
-        SizedBox(height: isCompact ? 10 : 12),
-        _fieldLabel('Fokus Utama Belajar:'),
+        _fieldLabel('KATA SANDI'),
         const SizedBox(height: 6),
-        _buildGoalChips(),
+        _passwordField(),
+        SizedBox(height: isCompact ? 12 : 14),
+        _fieldLabel('PILIH TARGET FOKUS BELAJAR:'),
+        const SizedBox(height: 8),
+        _build3DGoalGrid(),
       ],
     );
   }
@@ -732,36 +783,37 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
     return Text(
       text,
       style: GoogleFonts.plusJakartaSans(
-        fontSize: 11.5,
-        fontWeight: FontWeight.w600,
+        fontSize: 10.5,
+        fontWeight: FontWeight.w900,
         color: const Color(0xFF475569),
+        letterSpacing: 0.5,
       ),
     );
   }
 
-  InputDecoration _inputDeco(
+  InputDecoration _3dInputDeco(
       {required String hint, required IconData icon, Widget? suffix}) {
     return InputDecoration(
       hintText: hint,
       hintStyle:
           GoogleFonts.plusJakartaSans(color: const Color(0xFF94A3B8), fontSize: 12.5),
-      prefixIcon: Icon(icon, size: 17, color: const Color(0xFF0D9488)),
+      prefixIcon: Icon(icon, size: 18, color: const Color(0xFF0D9488)),
       suffixIcon: suffix,
       filled: true,
       fillColor: const Color(0xFFF8FAFC),
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1), width: 1.8),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1), width: 1.8),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFF0D9488), width: 2.2),
       ),
     );
   }
@@ -770,9 +822,9 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
     return TextField(
       controller: _nameController,
       style: GoogleFonts.plusJakartaSans(
-          color: const Color(0xFF0F172A), fontSize: 13),
+          color: const Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.w600),
       decoration:
-          _inputDeco(hint: 'Masukkan nama lengkap', icon: LucideIcons.user),
+          _3dInputDeco(hint: 'Masukkan nama lengkap', icon: LucideIcons.user),
     );
   }
 
@@ -781,9 +833,9 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       style: GoogleFonts.plusJakartaSans(
-          color: const Color(0xFF0F172A), fontSize: 13),
+          color: const Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.w600),
       decoration:
-          _inputDeco(hint: 'contoh: nama@email.com', icon: LucideIcons.mail),
+          _3dInputDeco(hint: 'contoh: nama@email.com', icon: LucideIcons.mail),
     );
   }
 
@@ -792,15 +844,15 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
       controller: _passwordController,
       obscureText: _obscurePassword,
       style: GoogleFonts.plusJakartaSans(
-          color: const Color(0xFF0F172A), fontSize: 13),
-      decoration: _inputDeco(
+          color: const Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.w600),
+      decoration: _3dInputDeco(
         hint: 'Masukkan kata sandi',
         icon: LucideIcons.lock,
         suffix: GestureDetector(
           onTap: () => setState(() => _obscurePassword = !_obscurePassword),
           child: Icon(
             _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
-            size: 17,
+            size: 18,
             color: const Color(0xFF94A3B8),
           ),
         ),
@@ -808,89 +860,132 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
     );
   }
 
-  Widget _buildGoalChips() {
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: _goals.map((goal) {
-        final isSelected = _selectedGoal == goal;
-        return ChoiceChip(
-          label: Text(goal),
-          selected: isSelected,
-          onSelected: (s) {
-            if (s) setState(() => _selectedGoal = goal);
-          },
-          selectedColor: const Color(0xFF0D9488),
-          backgroundColor: const Color(0xFFF8FAFC),
-          labelStyle: GoogleFonts.plusJakartaSans(
-            fontSize: 10.5,
-            color: isSelected ? Colors.white : const Color(0xFF475569),
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-          ),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: VisualDensity.compact,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(999),
-            side: BorderSide(
-              color: isSelected
-                  ? const Color(0xFF0D9488)
-                  : const Color(0xFFE2E8F0),
+  /// 🎯 Gamified 3D Goal Selection Cards Grid
+  Widget _build3DGoalGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 2.2,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemCount: _goals.length,
+      itemBuilder: (context, index) {
+        final goal = _goals[index];
+        final isSel = _selectedGoal == goal.id;
+
+        return GestureDetector(
+          onTap: () => setState(() => _selectedGoal = goal.id),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSel ? const Color(0xFFF0FDF4) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0),
+                width: isSel ? 2.2 : 1.8,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isSel ? const Color(0xFF0F766E) : const Color(0xFFCBD5E1),
+                  offset: const Offset(0, 3.5),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: isSel
+                        ? const Color(0xFF0D9488).withValues(alpha: 0.15)
+                        : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    goal.icon,
+                    size: 16,
+                    color: isSel ? const Color(0xFF0D9488) : const Color(0xFF64748B),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        goal.title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: isSel ? const Color(0xFF0F766E) : const Color(0xFF0F172A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        goal.desc,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w600,
+                          color: isSel ? const Color(0xFF15803D) : const Color(0xFF64748B),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         );
-      }).toList(),
+      },
     );
   }
 
-  Widget _buildActionButton(AppProvider provider) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0D9488).withValues(alpha: 0.30),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: _isLoading
-            ? null
-            : () => _isRegisterMode
-                ? _handleRegister(provider)
-                : _handleLogin(provider),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(999)),
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                height: 18,
-                width: 18,
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.white),
-              )
-            : Text(
-                _isRegisterMode
-                    ? 'Daftar & Buat Akun BeMind'
-                    : 'Masuk ke Aplikasi',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
+  /// 🚀 Duolingo 3D Elevated Primary Action Button
+  Widget _build3DActionButton(AppProvider provider) {
+    return _Duolingo3DTactileButton(
+      backgroundColor: const Color(0xFF0D9488),
+      shadowColor: const Color(0xFF0F766E),
+      borderColor: const Color(0xFF0F766E),
+      onPressed: _isLoading
+          ? null
+          : () => _isRegisterMode
+              ? _handleRegister(provider)
+              : _handleLogin(provider),
+      child: _isLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: Colors.white,
               ),
-      ),
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _isRegisterMode
+                      ? 'DAFTAR AKUN BEMIND'
+                      : 'MASUK SEKARANG',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(LucideIcons.arrowRight, size: 18, color: Colors.white),
+              ],
+            ),
     );
   }
 
@@ -900,10 +995,13 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
       children: [
         Text(
           _isRegisterMode
-              ? 'Sudah memiliki akun?'
-              : 'Belum memiliki akun?',
+              ? 'Sudah punya akun?'
+              : 'Belum punya akun?',
           style: GoogleFonts.plusJakartaSans(
-              fontSize: 12, color: const Color(0xFF64748B)),
+            fontSize: 12.5,
+            color: const Color(0xFF64748B),
+            fontWeight: FontWeight.w600,
+          ),
         ),
         TextButton(
           onPressed: () =>
@@ -916,8 +1014,8 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
           child: Text(
             _isRegisterMode ? 'Masuk di sini' : 'Daftar sekarang',
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w900,
               color: const Color(0xFF0D9488),
             ),
           ),
@@ -927,7 +1025,72 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
   }
 }
 
-// ─── Slide Data Model ────────────────────────────────────────────────────────
+// ─── 🔘 Reusable Duolingo-Style 3D Tactile Elevated Button Component ────────
+class _Duolingo3DTactileButton extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onPressed;
+  final Color backgroundColor;
+  final Color shadowColor;
+  final Color borderColor;
+
+  const _Duolingo3DTactileButton({
+    Key? key,
+    required this.child,
+    required this.onPressed,
+    required this.backgroundColor,
+    required this.shadowColor,
+    required this.borderColor,
+  }) : super(key: key);
+
+  @override
+  State<_Duolingo3DTactileButton> createState() =>
+      __Duolingo3DTactileButtonState();
+}
+
+class __Duolingo3DTactileButtonState extends State<_Duolingo3DTactileButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final double topMargin = _isPressed ? 4.0 : 0.0;
+    final double bottomShadow = _isPressed ? 1.0 : 5.0;
+
+    return GestureDetector(
+      onTapDown: widget.onPressed == null
+          ? null
+          : (_) => setState(() => _isPressed = true),
+      onTapUp: widget.onPressed == null
+          ? null
+          : (_) {
+              setState(() => _isPressed = false);
+              widget.onPressed!();
+            },
+      onTapCancel: widget.onPressed == null
+          ? null
+          : () => setState(() => _isPressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 80),
+        margin: EdgeInsets.only(top: topMargin),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: widget.backgroundColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: widget.borderColor, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: widget.shadowColor,
+              offset: Offset(0, bottomShadow),
+            ),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+// ─── Slide & Goal Data Models ────────────────────────────────────────────────
 class _SlideData {
   final IconData icon;
   final String title;
@@ -937,5 +1100,23 @@ class _SlideData {
     required this.icon,
     required this.title,
     required this.subtitle,
+  });
+}
+
+class _GoalData {
+  final String id;
+  final String title;
+  final String desc;
+  final IconData icon;
+  final String badge;
+  final Color color;
+
+  const _GoalData({
+    required this.id,
+    required this.title,
+    required this.desc,
+    required this.icon,
+    required this.badge,
+    required this.color,
   });
 }

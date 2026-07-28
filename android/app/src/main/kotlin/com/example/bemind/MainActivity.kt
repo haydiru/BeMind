@@ -7,7 +7,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private const val CHANNEL = "com.example.bemind/audio_control"
+    private val CHANNEL = "com.example.bemind/audio_control"
     private var originalNotificationVol: Int = -1
     private var originalSystemVol: Int = -1
 

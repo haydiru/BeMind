@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -50,10 +51,10 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
   // Language Locale for Speech-To-Text ('en_US' for English, 'id_ID' for Bahasa Indonesia)
   String _sttLocaleId = 'en_US';
-  String _completeText = ''; // Permanent accumulated text across all pauses & sentences
-  String _currentWords = '';  // Temporary live words for current active spoken phrase
+  final List<String> _committedWords = []; // Permanent accumulated words list across all pauses
+  List<String> _currentSessionWords = []; // Active stream words from current spoken phrase
   bool _isRestartingStt = false; // Debounce flag for seamless continuous restart
-  int _sttErrorCount = 0; // Circuit-breaker counter to prevent Android ting-tung error loops
+  int _sttErrorCount = 0; // Circuit-breaker counter to prevent Android error loops
   final ScrollController _mainScrollController = ScrollController(); // Auto-scroll controller for page
   final ScrollController _textFieldScrollController = ScrollController(); // Auto-scroll controller inside TextField
 
@@ -85,11 +86,11 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           debugPrint('[STT Error]: ${val.errorMsg} (permanent: ${val.permanent})');
           if (_isRecordingVoice && mounted) {
             _sttErrorCount++;
-            _commitCurrentWordsToPermanent();
+            _commitCurrentSessionWords();
 
-            // Circuit-breaker: If Android native STT errors 3+ times in a row, wait 1.5s & cancel native session
+            // Circuit-breaker: If Android native STT errors 3+ times in a row, wait 1.2s & cancel native session
             if (_sttErrorCount >= 3) {
-              debugPrint('[STT Circuit Breaker]: Triggered after 3 consecutive errors. Resetting native session.');
+              debugPrint('[STT Circuit Breaker]: Resetting native session after 3 errors.');
               _sttErrorCount = 0;
               Future.delayed(const Duration(milliseconds: 1200), () async {
                 if (_isRecordingVoice && mounted) {
@@ -107,7 +108,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         onStatus: (val) {
           debugPrint('[STT Status]: $val');
           if (val == 'done' || val == 'notListening') {
-            _commitCurrentWordsToPermanent();
+            _commitCurrentSessionWords();
             if (_isRecordingVoice && mounted) {
               _restartListeningLoop();
             }
@@ -143,18 +144,48 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     });
   }
 
-  /// Commits current session live words into permanent accumulated completeText
-  void _commitCurrentWordsToPermanent() {
-    final live = _currentWords.trim();
-    if (live.isNotEmpty) {
-      if (_completeText.isEmpty) {
-        _completeText = live;
-      } else if (!_completeText.toLowerCase().endsWith(live.toLowerCase())) {
-        _completeText = "$_completeText $live".trim();
-      }
-      _currentWords = '';
+  /// Locks current session words into permanent committed words list
+  void _commitCurrentSessionWords() {
+    if (_currentSessionWords.isNotEmpty) {
+      _committedWords.addAll(_currentSessionWords);
+      _currentSessionWords = [];
     }
-    _updateTranscriptText(_completeText);
+    _updateTranscriptText(_committedWords.join(' '));
+  }
+
+  /// Real-time word stream processor that locks words per-word on brief or long pauses
+  void _processIncomingSpeech(String recognizedText) {
+    final text = recognizedText.trim();
+    if (text.isEmpty) return;
+
+    _sttErrorCount = 0; // Reset error counter on active recognition
+    final incoming = text.split(RegExp(r'\s+'));
+
+    // Check if incoming is a prefix extension of _currentSessionWords
+    bool isExtension = true;
+    if (_currentSessionWords.isNotEmpty) {
+      if (incoming.length < _currentSessionWords.length) {
+        isExtension = false;
+      } else {
+        for (int i = 0; i < _currentSessionWords.length; i++) {
+          if (_currentSessionWords[i].toLowerCase() != incoming[i].toLowerCase()) {
+            isExtension = false;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!isExtension && _currentSessionWords.isNotEmpty) {
+      // Stream has reset or new phrase started! Lock all words from current session into committed!
+      _committedWords.addAll(_currentSessionWords);
+      _currentSessionWords = [];
+    }
+
+    _currentSessionWords = incoming;
+
+    final fullText = [..._committedWords, ..._currentSessionWords].join(' ');
+    _updateTranscriptText(fullText);
   }
 
   /// Debounced safe restart loop for continuous Speech-to-Text with clean Android resource cleanup
@@ -220,17 +251,17 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         if (_speechToText.isListening) {
           await _speechToText.stop();
         }
-        _commitCurrentWordsToPermanent();
+        _commitCurrentSessionWords();
         await _unmuteSystemAudio();
 
         setState(() {
           _isTranscribing = false;
-          _updateTranscriptText(_completeText);
+          _updateTranscriptText(_committedWords.join(' '));
         });
       } else {
         // ── START RECORDING ──
-        _completeText = '';
-        _currentWords = '';
+        _committedWords.clear();
+        _currentSessionWords.clear();
         _isRestartingStt = false;
         await _muteSystemAudio();
 
@@ -261,7 +292,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
-  // 🔄 Continuous Live Speech Listening Session with Real-Time Instant Phrase Detection
+  // 🔄 Continuous Live Speech Listening Session with Real-Time Word-Stream Accumulation
   Future<void> _startListeningSession() async {
     if (!_isRecordingVoice) return;
 
@@ -269,36 +300,10 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       await _speechToText.listen(
         onResult: (val) {
           if (mounted && _isRecordingVoice) {
-            final newWords = val.recognizedWords.trim();
-            if (newWords.isEmpty) return;
-
-            _sttErrorCount = 0; // Reset circuit breaker error counter on active recognition
-
-            // 💡 Smart Real-Time Phrase Boundary Detection:
-            final currLower = _currentWords.trim().toLowerCase();
-            final newLower = newWords.toLowerCase();
-
-            if (currLower.isNotEmpty &&
-                !newLower.startsWith(currLower) &&
-                !currLower.endsWith(newLower)) {
-              if (_completeText.isEmpty) {
-                _completeText = _currentWords.trim();
-              } else if (!_completeText.toLowerCase().endsWith(currLower)) {
-                _completeText = "$_completeText ${_currentWords.trim()}".trim();
-              }
-              _currentWords = '';
-            }
-
-            _currentWords = newWords;
-
-            final combinedDisplay = _completeText.isEmpty
-                ? _currentWords
-                : "$_completeText $_currentWords".trim();
-
-            _updateTranscriptText(combinedDisplay);
+            _processIncomingSpeech(val.recognizedWords);
 
             if (val.finalResult) {
-              _commitCurrentWordsToPermanent();
+              _commitCurrentSessionWords();
             }
           }
         },

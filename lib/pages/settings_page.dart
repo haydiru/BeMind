@@ -621,14 +621,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         Text('v2.4.0 (Build 2026)', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Backend API Cloud', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B), fontWeight: FontWeight.w600)),
-                        Text('be-mind.vercel.app', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488))),
-                      ],
-                    ),
                   ],
                 ),
               ),
