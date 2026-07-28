@@ -21,6 +21,16 @@ class _VocabVaultPageState extends State<VocabVaultPage> {
   bool _isCardFlipped = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<AppProvider>(context, listen: false).refreshVocabularies();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
     final allVocab = provider.vocabList;

@@ -252,7 +252,6 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           await _speechToText.stop();
         }
         _commitCurrentSessionWords();
-        await _unmuteSystemAudio();
 
         setState(() {
           _isTranscribing = false;
@@ -263,7 +262,6 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         _committedWords.clear();
         _currentSessionWords.clear();
         _isRestartingStt = false;
-        await _muteSystemAudio();
 
         setState(() {
           _isRecordingVoice = true;
@@ -279,7 +277,6 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       }
     } catch (e) {
       debugPrint('[STT Toggle Error]: $e');
-      await _unmuteSystemAudio();
       setState(() {
         _isRecordingVoice = false;
         _isTranscribing = false;
@@ -621,6 +618,33 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                             InkWell(
                               onTap: () => provider.clearSelectedProjectCategory(),
                               child: const Icon(LucideIcons.x, size: 16, color: Color(0xFF0D9488)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+                    if (provider.selectedRemixTemplate != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF9C3),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFFDE047), width: 1.5),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(LucideIcons.sparkles, size: 18, color: Color(0xFFA16207)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Menggunakan Template Remix: "${provider.selectedRemixTemplate!.title}"',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFFA16207)),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () => provider.clearSelectedRemixTemplate(),
+                              child: const Icon(LucideIcons.x, size: 16, color: Color(0xFFA16207)),
                             ),
                           ],
                         ),

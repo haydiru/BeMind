@@ -40,7 +40,7 @@ class ContextVaultPage extends StatelessWidget {
             onPressed: () {
               final newName = controller.text.trim();
               if (newName.isNotEmpty) {
-                provider.updateProjectCategory(oldCategory, newName);
+                provider.updateProjectCategoryName(oldCategory, newName);
               }
               Navigator.pop(ctx);
             },

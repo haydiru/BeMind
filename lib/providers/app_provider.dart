@@ -142,7 +142,28 @@ class AppProvider extends ChangeNotifier {
   }
 
   // ─── AI Narrative / Project State ──────────────────────────────────────────
-  final List<Essay> _essays = [];
+  final List<Essay> _essays = [
+    Essay(
+      id: 'demo_1',
+      title: 'Senior AI Engineer Tech Interview Narration',
+      category: 'Job Interview',
+      subTopic: 'System Architecture & Microservices',
+      difficulty: 'Advanced (C1)',
+      tone: 'Professional & Confident',
+      content: 'Good morning. Over the past five years as a Senior Software Engineer, I have specialized in building high-throughput distributed microservices. In my most recent role, I led the architectural redesign of our core payment gateway, reducing P99 latency by 42% while scaling to handle over two million daily transactions.',
+      createdAt: DateTime.now().subtract(const Duration(days: 1)),
+    ),
+    Essay(
+      id: 'demo_2',
+      title: 'IELTS Speaking Part 2 — Memorable Journey',
+      category: 'IELTS/TOEFL',
+      subTopic: 'Travel & Cultural Adaptation',
+      difficulty: 'Upper-Intermediate (B2)',
+      tone: 'Conversational',
+      content: 'I would like to talk about an unforgettable trip I took to Kyoto two years ago. What struck me most was the seamless juxtaposition of ancient Buddhist temples right beside cutting-edge technological infrastructure.',
+      createdAt: DateTime.now().subtract(const Duration(days: 3)),
+    ),
+  ];
   List<Essay> get essays => List.unmodifiable(_essays);
 
   Essay? _activeEssay;
@@ -179,30 +200,32 @@ class AppProvider extends ChangeNotifier {
   Future<void> updateEssayNarrative(String id, String newTitle, String newContent, String newCategory) async {
     final idx = _essays.indexWhere((e) => e.id == id);
     if (idx != -1) {
-      final old = _essays[idx];
-      final updated = Essay(
-        id: old.id,
+      _essays[idx] = Essay(
+        id: _essays[idx].id,
         title: newTitle,
-        category: newCategory,
-        subTopic: old.subTopic,
-        difficulty: old.difficulty,
-        tone: old.tone,
+        category: newCategory.isNotEmpty ? newCategory : _essays[idx].category,
+        subTopic: _essays[idx].subTopic,
+        difficulty: _essays[idx].difficulty,
+        tone: _essays[idx].tone,
         content: newContent,
-        createdAt: old.createdAt,
+        createdAt: _essays[idx].createdAt,
       );
-      _essays[idx] = updated;
-      if (_activeEssay?.id == id) {
-        _activeEssay = updated;
-      }
       notifyListeners();
 
-      // Sync edit to Supabase database if logged in
       try {
-        await Supabase.instance.client.from('generated_essays').update({
-          'title': newTitle,
-          'category': newCategory,
-          'content': newContent,
-        }).eq('id', id);
+        if (RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(id)) {
+          await Supabase.instance.client.from('generated_essays').update({
+            'title': newTitle,
+            'content': newContent,
+            'category': newCategory,
+          }).eq('id', id);
+        } else if (_user.id.isNotEmpty) {
+          await Supabase.instance.client.from('generated_essays').update({
+            'title': newTitle,
+            'content': newContent,
+            'category': newCategory,
+          }).eq('user_id', _user.id).eq('title', _essays[idx].title);
+        }
       } catch (e) {
         debugPrint('[AppProvider] Error updating essay in Supabase: $e');
       }
@@ -211,6 +234,7 @@ class AppProvider extends ChangeNotifier {
 
   /// Delete an essay narrative
   Future<void> deleteEssayNarrative(String id) async {
+    final targetEssay = _essays.firstWhere((e) => e.id == id, orElse: () => Essay(id: '', title: '', category: '', subTopic: '', difficulty: '', tone: '', content: '', createdAt: DateTime.now()));
     _essays.removeWhere((e) => e.id == id);
     if (_activeEssay?.id == id) {
       _activeEssay = _essays.isNotEmpty ? _essays.first : null;
@@ -218,27 +242,30 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await Supabase.instance.client.from('generated_essays').delete().eq('id', id);
+      if (RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(id)) {
+        await Supabase.instance.client.from('generated_essays').delete().eq('id', id);
+      } else if (_user.id.isNotEmpty && targetEssay.title.isNotEmpty) {
+        await Supabase.instance.client.from('generated_essays').delete().eq('user_id', _user.id).eq('title', targetEssay.title);
+      }
     } catch (e) {
-      debugPrint('[AppProvider] Error deleting essay from Supabase: $e');
+      debugPrint('[AppProvider] Error deleting essay in Supabase: $e');
     }
   }
 
-  /// Update a project category name across all its essays
-  Future<void> updateProjectCategory(String oldCategory, String newCategory) async {
-    if (oldCategory == newCategory) return;
+  /// Update Project Category name across all belonging essays
+  Future<void> updateProjectCategoryName(String oldCategory, String newCategory) async {
+    if (oldCategory == newCategory || newCategory.trim().isEmpty) return;
     for (int i = 0; i < _essays.length; i++) {
       if (_essays[i].category == oldCategory) {
-        final old = _essays[i];
         _essays[i] = Essay(
-          id: old.id,
-          title: old.title,
-          category: newCategory,
-          subTopic: old.subTopic,
-          difficulty: old.difficulty,
-          tone: old.tone,
-          content: old.content,
-          createdAt: old.createdAt,
+          id: _essays[i].id,
+          title: _essays[i].title,
+          category: newCategory.trim(),
+          subTopic: _essays[i].subTopic,
+          difficulty: _essays[i].difficulty,
+          tone: _essays[i].tone,
+          content: _essays[i].content,
+          createdAt: _essays[i].createdAt,
         );
       }
     }
@@ -246,7 +273,7 @@ class AppProvider extends ChangeNotifier {
 
     try {
       await Supabase.instance.client.from('generated_essays').update({
-        'category': newCategory,
+        'category': newCategory.trim(),
       }).eq('category', oldCategory).eq('user_id', _user.id);
     } catch (e) {
       debugPrint('[AppProvider] Error updating category in Supabase: $e');
@@ -266,20 +293,28 @@ class AppProvider extends ChangeNotifier {
           .eq('user_id', userId)
           .order('created_at', ascending: false)
           .limit(50)
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 8));
 
-      _essays.clear();
-      for (final row in response) {
-        _essays.add(Essay(
-          id: row['id']?.toString() ?? '',
-          title: row['title'] ?? 'Untitled Project',
-          category: row['category'] ?? '',
-          subTopic: row['sub_topic'] ?? '',
-          difficulty: row['difficulty'] ?? '',
-          tone: row['tone'] ?? '',
-          content: row['content'] ?? '',
-          createdAt: DateTime.tryParse(row['created_at']?.toString() ?? '') ?? DateTime.now(),
-        ));
+      if (response.isNotEmpty) {
+        final fetched = <Essay>[];
+        for (final row in response) {
+          fetched.add(Essay(
+            id: row['id']?.toString() ?? '',
+            title: row['title'] ?? 'Untitled Project',
+            category: row['category'] ?? '',
+            subTopic: row['sub_topic'] ?? '',
+            difficulty: row['difficulty'] ?? '',
+            tone: row['tone'] ?? '',
+            content: row['content'] ?? '',
+            createdAt: DateTime.tryParse(row['created_at']?.toString() ?? '') ?? DateTime.now(),
+          ));
+        }
+        // Merge Supabase essays efficiently without losing unsaved local items
+        for (var item in fetched) {
+          if (!_essays.any((e) => e.id == item.id || (e.title == item.title && e.category == item.category))) {
+            _essays.insert(0, item);
+          }
+        }
       }
 
       int newCompleteness = (40 + (_essays.length * 8) + (_contextItems.length * 10)).clamp(40, 100);
@@ -296,7 +331,38 @@ class AppProvider extends ChangeNotifier {
   Future<void> refreshEssays() => _loadUserEssays(_user.id);
 
   // ─── Vocabulary Vault State ─────────────────────────────────────────────────
-  final List<VocabItem> _vocabList = [];
+  final List<VocabItem> _vocabList = [
+    VocabItem(
+      id: 'v1',
+      word: 'Articulation',
+      phonetic: '/ɑːrˌtɪk.jəˈleɪ.ʃən/',
+      definition: 'The clear and precise pronunciation of words and sounds.',
+      contextSentence: 'Clear articulation is crucial during high-stakes job interviews.',
+      indonesianMeaning: 'Pelafalan / pengucapan kata yang jelas dan presisi.',
+      masteryStatus: MasteryStatus.mastered,
+      addedAt: DateTime.now().subtract(const Duration(days: 2)),
+    ),
+    VocabItem(
+      id: 'v2',
+      word: 'Eloquent',
+      phonetic: '/ˈel.ə.kwənt/',
+      definition: 'Fluent or persuasive in speaking or writing.',
+      contextSentence: 'She gave an eloquent presentation to the board of directors.',
+      indonesianMeaning: 'Fasih, anggun, dan meyakinkan dalam berbicara.',
+      masteryStatus: MasteryStatus.learning,
+      addedAt: DateTime.now().subtract(const Duration(days: 1)),
+    ),
+    VocabItem(
+      id: 'v3',
+      word: 'Cohesion',
+      phonetic: '/koʊˈhiː.ʒən/',
+      definition: 'The action or fact of forming a united whole in speech structure.',
+      contextSentence: 'Using transitional discourse markers improves essay cohesion.',
+      indonesianMeaning: 'Keterpaduan dan kesinambungan alur kalimat.',
+      masteryStatus: MasteryStatus.review,
+      addedAt: DateTime.now(),
+    ),
+  ];
   List<VocabItem> get vocabList => List.unmodifiable(_vocabList);
 
   void addVocabItem(VocabItem item) async {
@@ -387,30 +453,41 @@ class AppProvider extends ChangeNotifier {
           .select('id, word, phonetic, definition, context_sentence, indonesian_meaning, mastery_status, added_at')
           .eq('user_id', userId)
           .order('added_at', ascending: false)
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 8));
 
-      _vocabList.clear();
-      for (final row in response) {
-        MasteryStatus status = MasteryStatus.learning;
-        if (row['mastery_status'] == 'mastered') status = MasteryStatus.mastered;
-        if (row['mastery_status'] == 'review') status = MasteryStatus.review;
+      if (response.isNotEmpty) {
+        final fetched = <VocabItem>[];
+        for (final row in response) {
+          MasteryStatus status = MasteryStatus.learning;
+          if (row['mastery_status'] == 'mastered') status = MasteryStatus.mastered;
+          if (row['mastery_status'] == 'review') status = MasteryStatus.review;
 
-        _vocabList.add(VocabItem(
-          id: row['id']?.toString() ?? '',
-          word: row['word'] ?? '',
-          phonetic: row['phonetic'] ?? '',
-          definition: row['definition'] ?? '',
-          contextSentence: row['context_sentence'] ?? '',
-          indonesianMeaning: row['indonesian_meaning'] ?? '',
-          masteryStatus: status,
-          addedAt: DateTime.tryParse(row['added_at']?.toString() ?? '') ?? DateTime.now(),
-        ));
+          fetched.add(VocabItem(
+            id: row['id']?.toString() ?? '',
+            word: row['word'] ?? '',
+            phonetic: row['phonetic'] ?? '',
+            definition: row['definition'] ?? '',
+            contextSentence: row['context_sentence'] ?? '',
+            indonesianMeaning: row['indonesian_meaning'] ?? '',
+            masteryStatus: status,
+            addedAt: DateTime.tryParse(row['added_at']?.toString() ?? '') ?? DateTime.now(),
+          ));
+        }
+
+        for (var item in fetched) {
+          if (!_vocabList.any((v) => v.id == item.id || v.word.toLowerCase() == item.word.toLowerCase())) {
+            _vocabList.insert(0, item);
+          }
+        }
       }
       notifyListeners();
     } catch (e) {
       debugPrint('[AppProvider] Error loading user vocabularies from Supabase: $e');
     }
   }
+
+  /// Called externally to refresh vocabularies from database
+  Future<void> refreshVocabularies() => _loadUserVocabularies(_user.id);
 
   // ─── Marketplace Prompts State ──────────────────────────────────────────────
   final List<PromptTemplate> _promptTemplates = [
@@ -456,6 +533,11 @@ class AppProvider extends ChangeNotifier {
     _selectedRemixTemplate = template;
     template.useCount++;
     _currentPageIndex = 1; // Navigate to AI Narrative Generator Page (index 1)
+    notifyListeners();
+  }
+
+  void clearSelectedRemixTemplate() {
+    _selectedRemixTemplate = null;
     notifyListeners();
   }
 
