@@ -62,7 +62,7 @@ void main() async {
               email: u.email ?? '',
               targetGoal: goal,
             );
-          } else if (event == AuthChangeEvent.signedOut) {
+          } else if (event == AuthChangeEvent.signedOut && provider.isLoggedIn) {
             provider.logout();
           }
         });

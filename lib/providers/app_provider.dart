@@ -59,7 +59,8 @@ class AppProvider extends ChangeNotifier {
     _loadUserVocabularies(id);
   }
 
-  void logout() {
+  void logout() async {
+    if (!_isLoggedIn) return; // Prevents recursive auth state change loop
     _isLoggedIn = false;
     _essays.clear();
     _activeEssay = null;
@@ -70,8 +71,14 @@ class AppProvider extends ChangeNotifier {
       targetGoal: 'Job Interview Prep',
       profileCompleteness: 40,
     );
-    Supabase.instance.client.auth.signOut();
     notifyListeners();
+    try {
+      if (Supabase.instance.client.auth.currentUser != null) {
+        await Supabase.instance.client.auth.signOut();
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] SignOut exception: $e');
+    }
   }
 
   void updateTargetGoal(String newGoal) {
