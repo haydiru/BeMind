@@ -178,8 +178,27 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     });
   }
 
+  static const MethodChannel _audioControlChannel = MethodChannel('com.example.bemind/audio_control');
+
+  Future<void> _muteSystemAudio() async {
+    try {
+      await _audioControlChannel.invokeMethod('muteSystemAudio');
+    } catch (e) {
+      debugPrint('[AudioControl Mute Exception]: $e');
+    }
+  }
+
+  Future<void> _unmuteSystemAudio() async {
+    try {
+      await _audioControlChannel.invokeMethod('unmuteSystemAudio');
+    } catch (e) {
+      debugPrint('[AudioControl Unmute Exception]: $e');
+    }
+  }
+
   @override
   void dispose() {
+    _unmuteSystemAudio();
     _projectTitleController.dispose();
     _customTextController.dispose();
     _customPromptController.dispose();
@@ -202,6 +221,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
           await _speechToText.stop();
         }
         _commitCurrentWordsToPermanent();
+        await _unmuteSystemAudio();
 
         setState(() {
           _isTranscribing = false;
@@ -212,6 +232,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         _completeText = '';
         _currentWords = '';
         _isRestartingStt = false;
+        await _muteSystemAudio();
 
         setState(() {
           _isRecordingVoice = true;
@@ -227,6 +248,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       }
     } catch (e) {
       debugPrint('[STT Toggle Error]: $e');
+      await _unmuteSystemAudio();
       setState(() {
         _isRecordingVoice = false;
         _isTranscribing = false;
