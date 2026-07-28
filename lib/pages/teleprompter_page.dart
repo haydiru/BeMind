@@ -558,18 +558,17 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                 ),
               ),
 
-              // 4. ULTRA-COMPACT FLOATING CONTROL BAR
+              // 4. ULTRA-COMPACT 3D FLOATING CONTROL BAR
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-                  boxShadow: [
+                  border: Border.all(color: const Color(0xFFCBD5E1), width: 2.0),
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color(0xFF0F172A).withValues(alpha: 0.06),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
+                      color: Color(0xFFCBD5E1),
+                      offset: Offset(0, 3.5),
                     ),
                   ],
                 ),
@@ -595,32 +594,30 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                       ),
                     ),
 
-                    // Main Play/Pause Button
+                    // Main 3D Play/Pause Button
                     GestureDetector(
                       onTap: _togglePlay,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 52,
-                        height: 52,
+                      child: Container(
+                        width: 54,
+                        height: 54,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                          color: _isPlaying ? const Color(0xFFDC2626) : const Color(0xFF16A34A),
+                          border: Border.all(
+                            color: _isPlaying ? const Color(0xFFB91C1C) : const Color(0xFF15803D),
+                            width: 2.0,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0D9488).withValues(alpha: 0.4),
-                              blurRadius: 14,
-                              offset: const Offset(0, 4),
+                              color: _isPlaying ? const Color(0xFFB91C1C) : const Color(0xFF15803D),
+                              offset: const Offset(0, 3.5),
                             ),
                           ],
                         ),
                         child: Icon(
                           _isPlaying ? LucideIcons.pause : LucideIcons.play,
                           color: Colors.white,
-                          size: 24,
+                          size: 26,
                         ),
                       ),
                     ),
@@ -630,12 +627,13 @@ class _TeleprompterPageState extends State<TeleprompterPage> with SingleTickerPr
                       onTap: () => setState(() => _showSettingsPanel = !_showSettingsPanel),
                       borderRadius: BorderRadius.circular(999),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
                           color: _showSettingsPanel ? const Color(0xFFCCFBF1) : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(999),
                           border: Border.all(
-                            color: _showSettingsPanel ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0),
+                            color: _showSettingsPanel ? const Color(0xFF0D9488) : const Color(0xFFCBD5E1),
+                            width: 1.8,
                           ),
                         ),
                         child: Row(

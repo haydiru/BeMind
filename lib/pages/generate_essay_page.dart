@@ -576,15 +576,14 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFCBD5E1), width: 2.0),
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
+                      color: Color(0xFFCBD5E1),
+                      offset: Offset(0, 4.0),
                     ),
                   ],
-                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -756,15 +755,14 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFCBD5E1), width: 2.0),
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
+                      color: Color(0xFFCBD5E1),
+                      offset: Offset(0, 4.0),
                     ),
                   ],
-                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1183,49 +1181,50 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
               // ─── EKSEKUSI: TOMBOL GENERATE PROJECT ─────────────────────────────────
               Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0D9488), Color(0xFF6366F1)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
+                  color: const Color(0xFF16A34A),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFF15803D), width: 2.2),
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color(0xFF0D9488).withValues(alpha: 0.35),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
+                      color: Color(0xFF15803D),
+                      offset: Offset(0, 4.0),
                     ),
                   ],
                 ),
-                child: ElevatedButton(
-                  onPressed: _isGenerating ? null : () => _generateNarrative(provider),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    minimumSize: const Size(double.infinity, 54),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                  ),
-                  child: _isGenerating
-                      ? const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)),
-                            SizedBox(width: 12),
-                            Text('Sedang Menyusun Naskah AI...', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          ],
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(LucideIcons.sparkles, color: Colors.white, size: 20),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Generate & Sintesis Narasi',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(18),
+                    onTap: _isGenerating ? null : () => _generateNarrative(provider),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: _isGenerating
+                          ? const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)),
+                                SizedBox(width: 12),
+                                Text('AI SEDANG MERACIK NASKAH...', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+                              ],
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(LucideIcons.sparkles, color: Color(0xFFFEF08A), size: 22),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'GENERASI NASKAH KELANCARAN 🚀',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                    ),
+                  ),
                 ),
               ),
 
