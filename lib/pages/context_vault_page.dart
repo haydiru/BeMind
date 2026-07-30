@@ -54,6 +54,8 @@ class ContextVaultPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
   void _showCreateNewProjectDialog(BuildContext context, AppProvider provider) {
     final controller = TextEditingController();
     showDialog(
