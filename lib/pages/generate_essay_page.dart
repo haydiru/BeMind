@@ -405,46 +405,112 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
     }
   }
 
+  // Track bound remix template id to avoid overwriting user edits on rebuilds
+  String? _boundRemixTemplateId;
+
   void _showEditGeneratedDialog(BuildContext context, AppProvider provider) {
     if (_newGeneratedEssay == null) return;
-    final titleCtrl = TextEditingController(text: _newGeneratedEssay!.title);
-    final categoryCtrl = TextEditingController(text: _newGeneratedEssay!.category);
-    final contentCtrl = TextEditingController(text: _newGeneratedEssay!.content);
+
+    // Parent Project (Nama Project Utama) is READ-ONLY & LOCKED as parent
+    final parentProjectName = _newGeneratedEssay!.category.isNotEmpty ? _newGeneratedEssay!.category : 'General Project';
+    final subTopicCtrl = TextEditingController(text: _newGeneratedEssay!.title);
+    final narrativeContentCtrl = TextEditingController(text: _newGeneratedEssay!.content);
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Edit Hasil Narasi',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.white,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCCFBF1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(LucideIcons.pencil, color: Color(0xFF0D9488), size: 20),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Edit Naskah Narasi',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 17, color: const Color(0xFF0F172A)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // 🔒 LOCKED PARENT PROJECT BADGE
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.lock, size: 16, color: Color(0xFF64748B)),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Parent Project (Locked): ',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF64748B)),
+                  ),
+                  Expanded(
+                    child: Text(
+                      parentProjectName,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF0D9488)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                'Judul Sub-Narasi / Sub-Topic:',
+                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
+              ),
+              const SizedBox(height: 6),
               TextField(
-                controller: titleCtrl,
+                controller: subTopicCtrl,
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
                 decoration: InputDecoration(
-                  labelText: 'Judul Project / Narasi',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintText: 'Contoh: Jawaban STAR Leadership & System Scaling',
+                  filled: true,
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
                 ),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: categoryCtrl,
-                decoration: InputDecoration(
-                  labelText: 'Kategori / Project',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+              const SizedBox(height: 14),
+              Text(
+                'Isi Naskah Narasi Spoken Script:',
+                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
               TextField(
-                controller: contentCtrl,
-                maxLines: 6,
+                controller: narrativeContentCtrl,
+                maxLines: 8,
+                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF0F172A), height: 1.5),
                 decoration: InputDecoration(
-                  labelText: 'Naskah Narasi',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintText: 'Isi teks narasi kelancaran...',
+                  filled: true,
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
                 ),
               ),
             ],
@@ -453,24 +519,23 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
+            child: Text('Batal', style: GoogleFonts.plusJakartaSans(color: const Color(0xFF64748B), fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
             onPressed: () {
-              final t = titleCtrl.text.trim();
-              final c = categoryCtrl.text.trim();
-              final cnt = contentCtrl.text.trim();
-              if (t.isNotEmpty && cnt.isNotEmpty) {
-                provider.updateEssayNarrative(_newGeneratedEssay!.id, t, cnt, c.isNotEmpty ? c : 'Umum');
+              final newSubTitle = subTopicCtrl.text.trim();
+              final newContent = narrativeContentCtrl.text.trim();
+              if (newSubTitle.isNotEmpty && newContent.isNotEmpty) {
+                provider.updateEssayNarrative(_newGeneratedEssay!.id, newSubTitle, newContent, parentProjectName);
                 setState(() {
                   _newGeneratedEssay = Essay(
                     id: _newGeneratedEssay!.id,
-                    title: t,
-                    category: c,
-                    subTopic: _newGeneratedEssay!.subTopic,
+                    title: newSubTitle,
+                    category: parentProjectName,
+                    subTopic: newSubTitle,
                     difficulty: _newGeneratedEssay!.difficulty,
                     tone: _newGeneratedEssay!.tone,
-                    content: cnt,
+                    content: newContent,
                     createdAt: _newGeneratedEssay!.createdAt,
                   );
                 });
@@ -480,9 +545,10 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0D9488),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            child: const Text('Simpan'),
+            child: Text('Simpan Perubahan', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -502,10 +568,31 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
             _selectedCategory = boundCategory;
             _projectTitleController.text = boundCategory;
           });
-          // Ensure category list contains the custom bound category
           if (!_categories.contains(boundCategory)) {
             _categories.add(boundCategory);
           }
+        }
+      });
+    }
+
+    // Auto-bind Marketplace Prompt Template to Canva-style visual fields
+    final remixTmpl = provider.selectedRemixTemplate;
+    if (remixTmpl != null && _boundRemixTemplateId != remixTmpl.id) {
+      _boundRemixTemplateId = remixTmpl.id;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _customPromptController.text = remixTmpl.templateStructure;
+            if (_projectTitleController.text.trim().isEmpty) {
+              _projectTitleController.text = remixTmpl.title;
+            }
+            if (_categories.contains(remixTmpl.category)) {
+              _selectedCategory = remixTmpl.category;
+            } else {
+              _categories.add(remixTmpl.category);
+              _selectedCategory = remixTmpl.category;
+            }
+          });
         }
       });
     }
@@ -1145,7 +1232,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
 
               const SizedBox(height: 18),
 
-              // ─── STEP 3: KUSTOMISASI PROMPT (TUNE PROMPT) ─────────────────────────
+              // ─── STEP 3: KUSTOMISASI PROMPT (CANVA PROMPT BLOCK STUDIO) ────────────
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -1158,7 +1245,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                       offset: const Offset(0, 6),
                     ),
                   ],
-                  border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+                  border: Border.all(color: provider.selectedRemixTemplate != null ? const Color(0xFFEAB308) : const Color(0xFFF1F5F9), width: 1.8),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1169,25 +1256,122 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Kustomisasi Prompt & Instruksi AI',
+                            'Kustomisasi Prompt & Blueprint AI',
                             style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF0F172A)),
                           ),
                         ),
+                        if (provider.selectedRemixTemplate != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF9C3),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFFDE047)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(LucideIcons.sparkles, size: 14, color: Color(0xFFA16207)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Canva Block Active',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFFA16207)),
+                                ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Atur instruksi khusus untuk AI (misal: Gunakan STAR Method, tekankan leadership).',
+                      'Struktur instruksi prompt ini otomatis tersinkronisasi dan dapat kamu edit sepuasnya.',
                       style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF64748B)),
                     ),
+                    const SizedBox(height: 14),
+
+                    // 🎨 CANVA TEMPLATE BLOCK BADGE (IF MARKETPLACE TEMPLATE APPLIED)
+                    if (provider.selectedRemixTemplate != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFBEB),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFFCD34D)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '📦 Marketplace Template: "${provider.selectedRemixTemplate!.title}"',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF92400E)),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    provider.clearSelectedRemixTemplate();
+                                    _customPromptController.clear();
+                                    _boundRemixTemplateId = null;
+                                  },
+                                  child: const Icon(LucideIcons.x, size: 18, color: Color(0xFF92400E)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Oleh: ${provider.selectedRemixTemplate!.creatorName} • ${provider.selectedRemixTemplate!.useCount}x Digunakan',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFFB45309), fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 6,
+                              children: [
+                                _buildVariableChip('{USER_CONTEXT}'),
+                                _buildVariableChip('{TARGET_GOAL}'),
+                                _buildVariableChip('{STAR_METHOD}'),
+                                _buildVariableChip('{VOCAL_DNA}'),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+
+                    // PRESET QUICK PROMPT SUGGESTION CHIPS
+                    Text(
+                      'Pilih Template Prompt Cepat (1-Tap Remix):',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
+                    ),
+                    const SizedBox(height: 6),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildPromptPresetChip('🎯 STAR Method Response', 'Format naskah menggunakan metode STAR (Situation, Task, Action, Result) dengan fokus pada kepemimpinan.'),
+                          const SizedBox(width: 8),
+                          _buildPromptPresetChip('🔥 Executive Dual Impact', 'Tekankan pola rhetorical "Not only [KPI], but also [Team Culture]" dan signposting "Three things".'),
+                          const SizedBox(width: 8),
+                          _buildPromptPresetChip('📚 IELTS Band 8.0 Cohesion', 'Gunakan kosakata C1/C2, idiom alami, serta transisi opini yang fasih dan anggun.'),
+                          const SizedBox(width: 8),
+                          _buildPromptPresetChip('⚡ Elevator Pitch (180s)', 'Buat narasi pitch bisnis berdurasi 3 menit yang memikat investor.'),
+                        ],
+                      ),
+                    ),
+
                     const SizedBox(height: 12),
 
+                    // EDITABLE PROMPT STRUCTURE TEXT AREA
                     TextField(
                       controller: _customPromptController,
-                      maxLines: 2,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
+                      maxLines: 3,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF0F172A), height: 1.4),
                       decoration: InputDecoration(
-                        hintText: 'Contoh: Gunakan STAR Method (Situation, Task, Action, Result) dan tekankan arsitektur cloud & efisiensi database...',
+                        labelText: 'Struktur Prompt / Blueprint AI:',
+                        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF0D9488)),
+                        hintText: 'Struktur prompt template dari marketplace akan otomatis terisi dan bisa diedit di sini...',
                         hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
@@ -1499,5 +1683,48 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
         ),
       );
     }
+  }
+
+  Widget _buildVariableChip(String tag) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF3C7),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFFFCD34D)),
+      ),
+      child: Text(
+        tag,
+        style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFFB45309)),
+      ),
+    );
+  }
+
+  Widget _buildPromptPresetChip(String label, String templateText) {
+    final isSelected = _customPromptController.text.trim() == templateText.trim();
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _customPromptController.text = templateText;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFCCFBF1) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0), width: isSelected ? 1.5 : 1.0),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            color: isSelected ? const Color(0xFF0D9488) : const Color(0xFF475569),
+          ),
+        ),
+      ),
+    );
   }
 }
