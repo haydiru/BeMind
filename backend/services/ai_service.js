@@ -97,13 +97,21 @@ PART 4: INTERACTIVE SPEAKING DRILLS & FOLLOW-UP SCENARIOS
 (Targeted repetition drills, accent/rhythm exercises, and 3 follow-up practice prompts)
 `;
 
+  // Sanitize userContext if it contains raw document paste with structural headers
+  let sanitizedContext = (userContext || '').trim();
+  if (sanitizedContext.length > 4000) {
+    sanitizedContext = sanitizedContext.slice(0, 4000) + '\n...[document context truncated for optimal AI synthesis]...';
+  }
+
   const userPrompt = `### USER PRACTICE PARAMETERS & RAW INPUT
 - PRIMARY USE-CASE / CATEGORY: ${category || 'Job Interview'}
 - TOPIC / QUESTION / SUB-TOPIC: ${subTopic || 'Executive Leadership & Strategy'}
-- USER RAW NOTES / INTERVIEW HISTORY: ${userContext || 'Senior Executive Practice'}
+- USER RAW NOTES / INTERVIEW HISTORY:
+${sanitizedContext || 'Senior Executive Practice'}
+
 - CUSTOM INSTRUCTIONS / REQUEST: ${promptTemplate || 'Transform notes into executive speaking script'}
 
-CRITICAL TASK: Read the raw notes and instructions above, extract the key achievements and story elements, and synthesize a complete 4-Part Executive Master Practice Module in English. DO NOT return or copy the raw notes as-is! Begin now:`;
+CRITICAL TASK: Read the raw notes and instructions above, extract the key achievements and story elements, and synthesize a complete 4-Part Executive Master Practice Module in English. DO NOT return, copy, or dump raw document headings as-is! Begin now:`;
 
   // TIER 1: Try Primary OpenAI Proxy
   try {
