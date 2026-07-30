@@ -529,6 +529,27 @@ class AppProvider extends ChangeNotifier {
   PromptTemplate? _selectedRemixTemplate;
   PromptTemplate? get selectedRemixTemplate => _selectedRemixTemplate;
 
+  String? _selectedProjectCategory;
+  String? get selectedProjectCategory => _selectedProjectCategory;
+
+  void startNewNarrativeForProject(String categoryName) {
+    _selectedProjectCategory = categoryName;
+    _currentPageIndex = 1; // Navigate to AI Generator Page (index 1)
+    notifyListeners();
+  }
+
+  void createNewProject(String projectName) {
+    if (projectName.trim().isEmpty) return;
+    _selectedProjectCategory = projectName.trim();
+    _currentPageIndex = 1; // Navigate to AI Generator Page to build first narrative for this project
+    notifyListeners();
+  }
+
+  void clearSelectedProjectCategory() {
+    _selectedProjectCategory = null;
+    notifyListeners();
+  }
+
   void selectTemplateToRemix(PromptTemplate template) {
     _selectedRemixTemplate = template;
     template.useCount++;

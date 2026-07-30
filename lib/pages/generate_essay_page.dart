@@ -757,6 +757,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                       children: _categories.map((cat) {
                         final isSel = _selectedCategory == cat;
                         return ChoiceChip(
+                          showCheckmark: false,
                           avatar: Icon(isSel ? LucideIcons.folderCheck : LucideIcons.folder, size: 14, color: isSel ? Colors.white : const Color(0xFF64748B)),
                           label: Text(cat),
                           selected: isSel,
