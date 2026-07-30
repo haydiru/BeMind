@@ -36,7 +36,7 @@ android {
 
     packaging {
         jniLibs {
-            keepDebugSymbols += "**/*.so"
+            excludes += "**/gdb.setup"
         }
     }
 }

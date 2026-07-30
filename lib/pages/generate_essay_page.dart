@@ -739,33 +739,16 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                       const SizedBox(height: 14),
                     ],
 
-                    // Input Nama/Judul Project
-                    Text(
-                      'Nama Project / Judul Narasi:',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _projectTitleController,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
-                      decoration: InputDecoration(
-                        hintText: 'Contoh: Persiapan Wawancara Senior AI Engineer',
-                        hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
-                        filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Kategori Project Chips
-                    Text(
-                      'Kategori Project:',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF475569)),
+                    // 📁 1. SEKSI PROJECT UTAMA (PARENT)
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.folder, size: 16, color: Color(0xFF0D9488)),
+                        const SizedBox(width: 6),
+                        Text(
+                          '1. Pilih Project Utama (Parent Folder):',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Wrap(
@@ -774,6 +757,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                       children: _categories.map((cat) {
                         final isSel = _selectedCategory == cat;
                         return ChoiceChip(
+                          avatar: Icon(isSel ? LucideIcons.folderCheck : LucideIcons.folder, size: 14, color: isSel ? Colors.white : const Color(0xFF64748B)),
                           label: Text(cat),
                           selected: isSel,
                           selectedColor: const Color(0xFF0D9488),
@@ -792,6 +776,40 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                           },
                         );
                       }).toList(),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // 📝 2. SEKSI JUDUL NASKAH NARASI (SUB-TOPIC)
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.fileText, size: 16, color: Color(0xFF0D9488)),
+                        const SizedBox(width: 6),
+                        Text(
+                          '2. Judul Spesifik Naskah Narasi (Sub-Topic):',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Nama naskah narasi yang akan disimpan di dalam Project "$_selectedCategory"',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _projectTitleController,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF0F172A)),
+                      decoration: InputDecoration(
+                        hintText: 'Contoh: Persiapan Jawaban Leadership & STAR Method',
+                        hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
+                      ),
                     ),
 
                     const SizedBox(height: 18),
