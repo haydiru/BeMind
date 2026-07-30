@@ -1481,5 +1481,23 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
       _isGenerating = false;
       _newGeneratedEssay = finalEssay;
     });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(LucideIcons.sparkles, color: Colors.amberAccent, size: 20),
+              SizedBox(width: 10),
+              Expanded(child: Text('✨ Script Latihan Eksekutif Berhasil Disintesis!')),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1E293B),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
   }
 }

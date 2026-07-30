@@ -103,7 +103,7 @@ class ApiService {
     );
   }
 
-  /// Synthesizes dynamic Executive Master Practice Module from raw user notes/inputs
+  /// Synthesizes dynamic Executive Master Practice Module from ANY raw user document or notes
   static String _synthesizeExecutiveNarrative({
     required String category,
     required String subTopic,
@@ -111,32 +111,39 @@ class ApiService {
     required String promptTemplate,
   }) {
     String cleanContext = userContext.trim();
-    String domainFocus = 'AI & Automation Engineering, operational efficiency, and digital transformation';
+    String domainFocus = 'professional leadership, strategic execution, and sustainable value creation';
 
     if (cleanContext.isNotEmpty) {
-      // Remove raw document section titles and structural markers
+      // Strips system wrapper tags dynamically
       cleanContext = cleanContext
           .replaceAll(RegExp(r'User Direct Input:|Voice Audio Transcript:|Uploaded Document Context.*:|Context Vault Items:', caseSensitive: false), '')
-          .replaceAll(RegExp(r'INTERVIEW PREP|Company Details|JOB DESCRIPTION|Responsibilities:|Requirements:|Mission/Vision|NEWS/Current Affairs|Interviewers|LinkedIn|Common Interests|Q/A|Technical Questions|Behavioral Questions:', caseSensitive: false), '')
           .trim();
 
-      // Dynamically extract core domain focus if mentioned in user document
+      // Strips raw markdown headers and structural noise
+      cleanContext = cleanContext
+          .replaceAll(RegExp(r'^[#*\-\d.]+\s+', multiLine: true), '')
+          .replaceAll(RegExp(r'\s+'), ' ');
+
+      // Dynamically extract core domain focus from ANY user document topics
       final lower = cleanContext.toLowerCase();
-      if (lower.contains('automation') || lower.contains('n8n') || lower.contains('make.com') || lower.contains('ai engineer')) {
-        domainFocus = 'AI & Automation Engineering, n8n/Python workflows, and logistics process optimization';
-      } else if (lower.contains('software') || lower.contains('microservices') || lower.contains('cloud')) {
-        domainFocus = 'software engineering, cloud infrastructure scaling, and system reliability';
-      } else if (lower.contains('product') || lower.contains('management')) {
-        domainFocus = 'product management, strategic roadmap execution, and cross-functional leadership';
-      } else if (lower.contains('finance') || lower.contains('fintech') || lower.contains('payment')) {
-        domainFocus = 'fintech payments, financial technology operations, and risk mitigation';
+      if (lower.contains('automation') || lower.contains('n8n') || lower.contains('make') || lower.contains('python') || lower.contains('developer') || lower.contains('engineer')) {
+        domainFocus = 'AI & technology automation, system architecture, and process optimization';
+      } else if (lower.contains('sales') || lower.contains('market') || lower.contains('growth') || lower.contains('business')) {
+        domainFocus = 'business development, revenue growth, and strategic market expansion';
+      } else if (lower.contains('product') || lower.contains('design') || lower.contains('user')) {
+        domainFocus = 'product strategy, user-centric innovation, and roadmap execution';
+      } else if (lower.contains('ielts') || lower.contains('topic') || lower.contains('society') || lower.contains('opinion')) {
+        domainFocus = 'global societal trends, structured opinion analysis, and strategic perspectives';
+      } else if (cleanContext.length > 20) {
+        final words = cleanContext.split(' ').where((w) => w.length > 3).take(8).join(' ');
+        domainFocus = 'driving strategic transformation in $words';
       }
     }
 
-    // Clean up title to prevent dumping prompt instructions into title
+    // Clean up title dynamically
     String cleanTitle = subTopic.trim();
-    if (cleanTitle.toLowerCase().contains('buatkan script') || cleanTitle.toLowerCase().contains('prompt') || cleanTitle.length > 60) {
-      cleanTitle = 'Executive Interview & Leadership Script';
+    if (cleanTitle.toLowerCase().contains('buatkan') || cleanTitle.toLowerCase().contains('script') || cleanTitle.toLowerCase().contains('prompt') || cleanTitle.length > 50) {
+      cleanTitle = 'Executive Speaking & Practice Narrative';
     } else if (cleanTitle.isEmpty) {
       cleanTitle = '$category - Executive Narrative';
     }
