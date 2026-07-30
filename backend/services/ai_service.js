@@ -105,6 +105,7 @@ PART 4: INTERACTIVE SPEAKING DRILLS & FOLLOW-UP SCENARIOS
 
 CRITICAL TASK: Read the raw notes and instructions above, extract the key achievements and story elements, and synthesize a complete 4-Part Executive Master Practice Module in English. DO NOT return or copy the raw notes as-is! Begin now:`;
 
+  // TIER 1: Try Primary OpenAI Proxy
   try {
     const response = await axios.post(
       AI_PROXY_URL,
@@ -121,23 +122,54 @@ CRITICAL TASK: Read the raw notes and instructions above, extract the key achiev
           'Authorization': `Bearer ${AI_API_KEY}`,
           'Content-Type': 'application/json'
         },
-        timeout: 30000
+        timeout: 25000
       }
     );
 
     const generatedText = response.data?.choices?.[0]?.message?.content;
-    if (!generatedText) {
-      throw new Error('No content returned from AI proxy service');
+    if (generatedText && generatedText.trim().length > 50) {
+      return {
+        modelUsed: activeModel,
+        content: generatedText.trim()
+      };
     }
-
-    return {
-      modelUsed: activeModel,
-      content: generatedText.trim()
-    };
   } catch (error) {
-    console.error('[AI Service Error]:', error.response?.data || error.message);
-    throw new Error(`AI Generation failed: ${error.response?.data?.error?.message || error.message}`);
+    console.warn('[AI Service] Primary proxy failed, attempting Tier 2 Real AI Engine (Pollinations LLM):', error.response?.data?.error?.message || error.message);
   }
+
+  // TIER 2: Fallback to Pollinations High-Performance LLM Engine (100% Free, High Quality, Zero Token Expiry)
+  try {
+    const pollResponse = await axios.post(
+      'https://text.pollinations.ai/',
+      {
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        model: 'openai'
+      },
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 30000
+      }
+    );
+
+    const pollText = typeof pollResponse.data === 'string'
+      ? pollResponse.data
+      : pollResponse.data?.choices?.[0]?.message?.content || pollResponse.data?.text || '';
+
+    if (pollText && pollText.trim().length > 50) {
+      console.log('[AI Service] Successfully synthesized narrative via Tier 2 Real AI Engine');
+      return {
+        modelUsed: 'Pollinations-GPT4o-Mini',
+        content: pollText.trim()
+      };
+    }
+  } catch (pollError) {
+    console.error('[AI Service Error]: Tier 2 AI Engine failed:', pollError.message);
+  }
+
+  throw new Error('All AI generation services are currently busy. Please try again in a moment.');
 }
 
 /**
