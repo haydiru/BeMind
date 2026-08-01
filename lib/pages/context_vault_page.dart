@@ -805,7 +805,7 @@ class ContextVaultPage extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        'Project: $categoryName',
+                        categoryName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.plusJakartaSans(
