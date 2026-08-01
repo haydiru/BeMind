@@ -947,33 +947,46 @@ class ContextVaultPage extends StatelessWidget {
 
                     const SizedBox(height: 10),
 
-                    // Bottom Row: Meta Badges (Level + Date) on Left, Centered Play Button Action on Right
+                    // Bottom Row: Meta Badges (Level + Date) on Left, Clean Anchored Play Button Action on Right
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Level & Date Subtitle Info
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0D9488).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
+                        // Level & Date Subtitle Info (Responsive & Flexible Wrap)
+                        Expanded(
+                          child: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  essay.difficulty.startsWith('Level') ? essay.difficulty : 'Level ${essay.difficulty}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF0D9488), fontWeight: FontWeight.w800),
+                                ),
                               ),
-                              child: Text(
-                                'Level ${essay.difficulty}',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF0D9488), fontWeight: FontWeight.w800),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(LucideIcons.clock, size: 11, color: Color(0xFF94A3B8)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    DateFormat('d MMM HH:mm').format(essay.createdAt),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w600),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(LucideIcons.clock, size: 11, color: Color(0xFF94A3B8)),
-                            const SizedBox(width: 4),
-                            Text(
-                              DateFormat('d MMM HH:mm').format(essay.createdAt),
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w600),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
 
                         // 🟢 Centered High-Efficiency 'Play / Latih Prompter' Button
                         Material(
