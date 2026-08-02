@@ -97,3 +97,16 @@
   - Menghapus awalan teks string `'Project: '` pada header kartu grup project di `ContextVaultPage`.
   - Sekarang judul grup langsung menampilkan nama project secara bersih (contoh: **`IELTS/TOEFL`**, **`Job Interview`**).
 - **File Yang Diubah:** [lib/pages/context_vault_page.dart](file:///d:/Website/BeMind/lib/pages/context_vault_page.dart)
+
+---
+
+### 📌 TASK DONE #08: Pembuatan Dokumentasi Detail Aplikasi (README.md Architecture & System Manual)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Menulis ulang file `README.md` secara komprehensif mencakup: Visi aplikasi, Masalah & Solusi, Tabel rincian 7 Halaman Utama & fiturnya, Arsitektur Teknis (Flutter, Supabase, Multi-Modal AI, Teleprompter 60-120 FPS, Symbol Stripping), Protokol Alur Task Agent 3-Board, serta Panduan Instalasi & Build Release APK (~34.2 MB).
+- **File Yang Diubah:**
+  - [README.md](file:///d:/Website/BeMind/README.md)
+  - [02_TASKS_IN_PROGRESS.md](file:///d:/Website/BeMind/02_TASKS_IN_PROGRESS.md)
+  - [03_TASKS_DONE.md](file:///d:/Website/BeMind/03_TASKS_DONE.md)
