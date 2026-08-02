@@ -261,3 +261,38 @@
   - Memverifikasi handler permintaan izin `Permission.notification.request()`.
   - Memverifikasi filter prioritas kosa kata `learning`/`review` dan pembentukan notifikasi `BigTextStyleInformation`.
 - **File Yang Diubah:** [lib/services/notification_service.dart](file:///d:/Website/BeMind/lib/services/notification_service.dart)
+
+---
+
+### 📌 TASK DONE #21: TASK DB-01: Supabase PostgreSQL Database Schemas & RLS Security (`backend/supabase/`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi skema DDL PostgreSQL untuk 5 tabel utama (`profiles`, `user_contexts`, `generated_essays`, `vocabularies`, `prompt_templates`).
+  - Memverifikasi aturan Row Level Security (RLS) berbasis `auth.uid() = user_id`.
+  - Memverifikasi B-Tree Indexing pada kolom `user_id`, `category`, dan `mastery_status`.
+- **Target File:** `backend/supabase/`
+
+---
+
+### 📌 TASK DONE #22: TASK DB-02: Local Offline Persistence & Synchronization (`lib/providers/app_provider.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi inisialisasi memori/cache lokal untuk naskah, kosakata, dan prompt template (*Offline-First*).
+  - Memverifikasi sinkronisasi 2-way otomatis ke Supabase DB saat koneksi internet aktif.
+  - Memverifikasi update UI secara instan & optimistis (*optimistic updates*).
+- **File Yang Diubah:** [lib/providers/app_provider.dart](file:///d:/Website/BeMind/lib/providers/app_provider.dart)
+
+---
+
+### 📌 TASK DONE #23: TASK OPT-01: Multi-Arch Release Build Pipeline & ProGuard (`flutter build apk --release --split-per-abi`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi kompilasi biner rilis per arsitektur HP (`arm64-v8a`, `armeabi-v7a`, `x86_64`).
+  - Memverifikasi ukuran biner APK hemat (~34 MB per HP) dengan Native C++ Symbol Stripping.
+- **Target Command:** `flutter build apk --release --split-per-abi`
