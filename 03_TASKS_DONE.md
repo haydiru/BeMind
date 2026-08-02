@@ -110,3 +110,117 @@
   - [README.md](file:///d:/Website/BeMind/README.md)
   - [02_TASKS_IN_PROGRESS.md](file:///d:/Website/BeMind/02_TASKS_IN_PROGRESS.md)
   - [03_TASKS_DONE.md](file:///d:/Website/BeMind/03_TASKS_DONE.md)
+
+---
+
+### 📌 TASK DONE #09: TASK FE-01: Page 1 — Onboarding & Auth Screen UI (`lib/pages/onboarding_auth_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi dan memverifikasi modul Onboarding Slideshow 3-kartu fitur (*AI Custom Narrative*, *High-Speed Teleprompter*, *Passive Flashcards Engine*).
+  - Memverifikasi form Login & Registrasi lengkap dengan *toggle password visibility*, validasi format email, dan pesan error snackbar.
+  - Memverifikasi pilihan 4 *Target Goal Cards* (*Job Interview*, *IELTS/TOEFL*, *Business Pitch*, *Conversation*).
+  - Memverifikasi penanganan Supabase Auth Login & Register terintegrasi dengan `AppProvider`.
+- **File Yang Diubah:** [lib/pages/onboarding_auth_page.dart](file:///d:/Website/BeMind/lib/pages/onboarding_auth_page.dart)
+
+---
+
+### 📌 TASK DONE #10: TASK FE-02: Page 2 — Personal Context Vault UI (Part 1: Header & Direct Text) (`lib/pages/context_vault_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi tampilan Header Bar dengan Nama User, Target Goal Badge, dan Avatar Initial 3D Gradient.
+  - Memverifikasi indikator kekuatan profil (*Profile Background Strength & Fluency Performance Indicator*) dengan persentase dynamic ring.
+  - Memverifikasi tombol CTA `Buat Project Baru` dan modal dialog pembuatan project utama.
+- **File Yang Diubah:** [lib/pages/context_vault_page.dart](file:///d:/Website/BeMind/lib/pages/context_vault_page.dart)
+
+---
+
+### 📌 TASK DONE #11: TASK FE-03: Page 2 — Personal Context Vault UI (Part 2: Multi-Modal Extractors & Narrative Group Cards) (`lib/pages/context_vault_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi penataan kartu grup project per kategori dengan ikon spesifik (`briefcase`, `graduationCap`, `presentation`).
+  - Memverifikasi tombol `Tambah Narasi` per project dan pengarahan langsung ke generator.
+  - Memverifikasi dialog edit nama project, edit naskah, dan konfirmasi hapus naskah.
+- **File Yang Diubah:** [lib/pages/context_vault_page.dart](file:///d:/Website/BeMind/lib/pages/context_vault_page.dart)
+
+---
+
+### 📌 TASK DONE #12: TASK FE-04: Page 3 — AI Narrative Generator UI (Part 1: Setup & Parameter) (`lib/pages/generate_essay_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi Seksi 1 Parent Folder Chips dengan ikon folder bersih (`showCheckmark: false`).
+  - Memverifikasi Seksi 2 Form Input Judul Spesifik Sub-Topic dengan label pembimbing.
+  - Memverifikasi Slider Target English Level (A2, B1, B2, C1, C2) dan Chip Selector Tone (Professional, Conversational, Academic).
+- **File Yang Diubah:** [lib/pages/generate_essay_page.dart](file:///d:/Website/BeMind/lib/pages/generate_essay_page.dart)
+
+---
+
+### 📌 TASK DONE #13: TASK FE-05: Page 3 — AI Narrative Generator UI (Part 2: Context Input & Output Preview) (`lib/pages/generate_essay_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi modul Speech-to-Text voice prompt dengan penanganan continuous recording dan toggle bahasa (`en_US`/`id_ID`).
+  - Memverifikasi penggabungan konteks dari teks manual, rekaman suara, dan dokumen lampiran.
+  - Memverifikasi pembersihan teks prefix pada badge preview hasil naskah.
+- **File Yang Diubah:** [lib/pages/generate_essay_page.dart](file:///d:/Website/BeMind/lib/pages/generate_essay_page.dart)
+
+---
+
+### 📌 TASK DONE #14: TASK FE-06: Page 4 — Teleprompter Reader UI & Auto-Scroll Engine (`lib/pages/teleprompter_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi engine auto-scrolling 60–120 FPS dengan pengatur kecepatan WPM (60–300 WPM).
+  - Memverifikasi fungsi pemecah naskah per kalimat (`_buildScriptChunks`) untuk mencegah teks terpotong aneh.
+  - Memverifikasi pemutar lagu latar Lo-Fi dengan loop & pengatur volume.
+  - Memverifikasi interaksi pengetukan kata asing untuk pencarian fonetik & penambahan ke Vocab Vault.
+- **File Yang Diubah:** [lib/pages/teleprompter_page.dart](file:///d:/Website/BeMind/lib/pages/teleprompter_page.dart)
+
+---
+
+### 📌 TASK DONE #15: TASK FE-07: Page 5 — Personal Vocabulary Vault UI & Flashcards (`lib/pages/vocab_vault_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi pencarian kosakata instan & penataan kartu fonetik, definisi, dan arti Indonesia.
+  - Memverifikasi filter chip penguasaan (`All`, `Learning`, `Review`, `Mastered`).
+  - Memverifikasi mode *Flashcard Flip* interaktif untuk pengujian ingatan mandiri.
+  - Memverifikasi dialog tambah kosakata manual dan audio pengucapan TTS.
+- **File Yang Diubah:** [lib/pages/vocab_vault_page.dart](file:///d:/Website/BeMind/lib/pages/vocab_vault_page.dart)
+
+---
+
+### 📌 TASK DONE #16: TASK FE-08: Page 6 — Community Prompt Marketplace UI ("Canva for Prompts") (`lib/pages/marketplace_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi Hero Banner Card Toko Template Prompt AI.
+  - Memverifikasi pencarian template dan filter kategori (`All`, `Job Interview`, `IELTS/TOEFL`, `Business Pitching`, `Casual Conversation`).
+  - Memverifikasi aksi tombol `Gunakan / Remix Template` yang membawa template ke generator dengan data terinjeksi.
+  - Memverifikasi dialog form `Publish Prompt` bagi creator.
+- **File Yang Diubah:** [lib/pages/marketplace_page.dart](file:///d:/Website/BeMind/lib/pages/marketplace_page.dart)
+
+---
+
+### 📌 TASK DONE #17: TASK FE-09: Page 7 — Settings & Notification Manager UI (`lib/pages/settings_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi Kartu Informasi Profil User & indikator persentase kelengkapan profil.
+  - Memverifikasi form Edit Profil (Nama & Target Goal Utama) terhubung ke Supabase DB.
+  - Memverifikasi form Ubah Password dengan validasi kecocokan password dan batas minimal 6 karakter.
+  - Memverifikasi toggle notifikasi pasif lockscreen, pemilih frekuensi, dan pengatur jam aktif (08:00 - 21:00).
+  - Memverifikasi tombol manual Paksa Sinkronisasi Data (*Force Sync*) dan tombol Logout.
+- **File Yang Diubah:** [lib/pages/settings_page.dart](file:///d:/Website/BeMind/lib/pages/settings_page.dart)

@@ -1522,7 +1522,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              'Project: ${_newGeneratedEssay!.category}',
+                              _newGeneratedEssay!.category,
                               style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF0D9488), fontWeight: FontWeight.bold),
                             ),
                           ),
