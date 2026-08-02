@@ -41,17 +41,17 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
     _SlideData(
       icon: LucideIcons.sparkles,
       title: '100% Personal Narrative',
-      subtitle: 'Ubah CV & suaramu jadi naskah kelancaran bahasa Inggris.',
+      subtitle: 'Turn your CV & voice notes into English fluency scripts.',
     ),
     _SlideData(
       icon: LucideIcons.zap,
       title: 'High-Speed Teleprompter',
-      subtitle: 'Latih ritme bicara & tingkatkan percaya diri real-time.',
+      subtitle: 'Practice speech rhythm & build real-time speaking confidence.',
     ),
     _SlideData(
       icon: LucideIcons.bellRing,
       title: 'Passive Flashcards Engine',
-      subtitle: 'Kosakata baru otomatis di lockscreen HP kamu.',
+      subtitle: 'New vocabulary automatically delivered to your lockscreen.',
     ),
   ];
 
@@ -59,9 +59,9 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
     _GoalData(
       id: 'Job Interview Prep',
       title: 'Job Interview',
-      desc: 'Naskah wawancara kerja & CV',
+      desc: 'Job interview responses & CV narrative',
       icon: LucideIcons.briefcase,
-      badge: 'POPULER',
+      badge: 'POPULAR',
       color: const Color(0xFF0D9488),
     ),
     _GoalData(
@@ -69,23 +69,23 @@ class _OnboardingAuthPageState extends State<OnboardingAuthPage>
       title: 'IELTS / TOEFL',
       desc: 'Speaking test & essay narrative',
       icon: LucideIcons.graduationCap,
-      badge: 'TARGET TOP',
+      badge: 'TOP TARGET',
       color: const Color(0xFF6366F1),
     ),
     _GoalData(
       id: 'Business Pitching',
       title: 'Business Pitch',
-      desc: 'Presentasi & pitching investor',
+      desc: 'Investor pitching & presentation',
       icon: LucideIcons.trendingUp,
-      badge: 'KARIR',
+      badge: 'CAREER',
       color: const Color(0xFFF59E0B),
     ),
     _GoalData(
       id: 'Casual Conversation',
       title: 'Conversation',
-      desc: 'Percakapan sehari-hari & sosial',
+      desc: 'Daily & social conversations',
       icon: LucideIcons.messagesSquare,
-      badge: 'KESEHARIAN',
+      badge: 'DAILY',
       color: const Color(0xFFEC4899),
     ),
   ];

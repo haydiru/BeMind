@@ -57,7 +57,7 @@ class _VocabVaultPageState extends State<VocabVaultPage> {
         elevation: 4,
         icon: const Icon(LucideIcons.plus, size: 18),
         label: Text(
-          'Tambah Kosa Kata',
+          provider.tr('add_vocab_btn'),
           style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
         ),
       ),

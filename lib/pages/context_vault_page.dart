@@ -294,7 +294,7 @@ class ContextVaultPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Halo, ${user.name} 👋',
+                                provider.tr('welcome_user', args: {'name': user.name}),
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w800,
@@ -311,7 +311,7 @@ class ContextVaultPage extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Text(
-                                      'Fokus Utama',
+                                      provider.tr('primary_focus'),
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,

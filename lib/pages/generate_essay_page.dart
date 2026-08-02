@@ -745,7 +745,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         const Icon(LucideIcons.folder, size: 16, color: Color(0xFF0D9488)),
                         const SizedBox(width: 6),
                         Text(
-                          '1. Pilih Project Utama (Parent Folder):',
+                          provider.tr('gen_step1_title'),
                           style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
                         ),
                       ],
@@ -787,7 +787,7 @@ class _GenerateEssayPageState extends State<GenerateEssayPage> {
                         const Icon(LucideIcons.fileText, size: 16, color: Color(0xFF0D9488)),
                         const SizedBox(width: 6),
                         Text(
-                          '2. Judul Spesifik Naskah Narasi (Sub-Topic):',
+                          provider.tr('gen_step2_title'),
                           style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
                         ),
                       ],

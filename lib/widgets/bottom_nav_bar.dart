@@ -18,12 +18,12 @@ class BottomNavBar extends StatelessWidget {
     final currentIndex = provider.currentPageIndex;
 
     final navItems = [
-      {'icon': LucideIcons.layoutGrid, 'label': 'Naskah'},
-      {'icon': LucideIcons.sparkles, 'label': 'Buat AI'},
-      {'icon': LucideIcons.playCircle, 'label': 'Prompter'},
-      {'icon': LucideIcons.bookOpen, 'label': 'Vocab'},
-      {'icon': LucideIcons.shoppingBag, 'label': 'Market'},
-      {'icon': LucideIcons.settings, 'label': 'Setting'},
+      {'icon': LucideIcons.layoutGrid, 'label': provider.tr('nav_context_vault')},
+      {'icon': LucideIcons.sparkles, 'label': provider.tr('nav_generator')},
+      {'icon': LucideIcons.playCircle, 'label': provider.tr('nav_teleprompter')},
+      {'icon': LucideIcons.bookOpen, 'label': provider.tr('nav_vocab_vault')},
+      {'icon': LucideIcons.shoppingBag, 'label': provider.tr('nav_marketplace')},
+      {'icon': LucideIcons.settings, 'label': provider.tr('nav_settings')},
     ];
 
     return Container(

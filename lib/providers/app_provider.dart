@@ -1,8 +1,19 @@
-import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/models.dart';
+import '../services/localization_service.dart';
 
 class AppProvider extends ChangeNotifier {
+  // ─── App Language State (Default: English) ──────────────────────────────────
+  AppLanguage _currentLanguage = AppLanguage.english;
+  AppLanguage get currentLanguage => _currentLanguage;
+
+  void setAppLanguage(AppLanguage lang) {
+    _currentLanguage = lang;
+    notifyListeners();
+  }
+
+  String tr(String key, {Map<String, String>? args}) {
+    return LocalizationService.tr(_currentLanguage, key, args: args);
+  }
+
   // Navigation State
   int _currentPageIndex = 0;
   int get currentPageIndex => _currentPageIndex;

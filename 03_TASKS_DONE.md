@@ -296,3 +296,78 @@
   - Memverifikasi kompilasi biner rilis per arsitektur HP (`arm64-v8a`, `armeabi-v7a`, `x86_64`).
   - Memverifikasi ukuran biner APK hemat (~34 MB per HP) dengan Native C++ Symbol Stripping.
 - **Target Command:** `flutter build apk --release --split-per-abi`
+
+---
+
+### 📌 TASK DONE #24: TASK LANG-01: Localization Engine & App Language Provider (`lib/services/localization_service.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-03
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Membuat `LocalizationService` & enum `AppLanguage` (`english` [default], `indonesian`, `spanish`, `japanese`, `chinese`).
+  - Mengintegrasikan state management bahasa `AppProvider.currentLanguage`, `setAppLanguage()`, dan helper `tr()`.
+- **File Yang Diubah:** [lib/services/localization_service.dart](file:///d:/Website/BeMind/lib/services/localization_service.dart) & [lib/providers/app_provider.dart](file:///d:/Website/BeMind/lib/providers/app_provider.dart)
+
+---
+
+### 📌 TASK DONE #25: TASK LANG-02: Language Selection Controls in Settings & Header (`lib/widgets/header_bar.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-03
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Menambahkan tombol bendera & kode bahasa aplikasi pada `HeaderBar`.
+  - Menambahkan bottom sheet modal pemilih 5 bahasa antarmuka UI (English, Bahasa Indonesia, Español, 日本語, 中文) dengan target pembelajaran tetap 100% English.
+- **File Yang Diubah:** [lib/widgets/header_bar.dart](file:///d:/Website/BeMind/lib/widgets/header_bar.dart)
+
+---
+
+### 📌 TASK DONE #26: TASK LANG-03: Onboarding & Auth Page Localization (`lib/pages/onboarding_auth_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-03
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Mengubah seluruh teks visual Onboarding Slideshow ke Bahasa Inggris default.
+  - Mengubah deskripsi & badge 4 Target Goal Cards ke Bahasa Inggris default (`POPULAR`, `TOP TARGET`, `CAREER`, `DAILY`).
+- **File Yang Diubah:** [lib/pages/onboarding_auth_page.dart](file:///d:/Website/BeMind/lib/pages/onboarding_auth_page.dart)
+
+---
+
+### 📌 TASK DONE #27: TASK LANG-04: Personal Context Vault Page Localization (`lib/pages/context_vault_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-03
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Mengintegrasikan helper `provider.tr()` untuk salam header `welcome_user` dan `primary_focus`.
+- **File Yang Diubah:** [lib/pages/context_vault_page.dart](file:///d:/Website/BeMind/lib/pages/context_vault_page.dart)
+
+---
+
+### 📌 TASK DONE #28: TASK LANG-05: AI Narrative Generator Page Localization (`lib/pages/generate_essay_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-03
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Mengubah seksi judul & label generator narasi AI ke Bahasa Inggris default menggunakan `provider.tr()`.
+- **File Yang Diubah:** [lib/pages/generate_essay_page.dart](file:///d:/Website/BeMind/lib/pages/generate_essay_page.dart)
+
+---
+
+### 📌 TASK DONE #29: TASK LANG-06: Teleprompter Reader & Word Translator Localization (`lib/pages/teleprompter_page.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-03
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi kontrol teleprompter & WPM slider dalam Bahasa Inggris secara bawaan.
+  - Memverifikasi dialog terjemahan kata asing terhubung dengan bahasa UI pilihan pengguna.
+- **File Yang Diubah:** [lib/pages/teleprompter_page.dart](file:///d:/Website/BeMind/lib/pages/teleprompter_page.dart)
+
+---
+
+### 📌 TASK DONE #30: TASK LANG-07: Vocabulary Vault, Marketplace & Bottom Navigation Localization (`lib/pages/vocab_vault_page.dart`, `lib/widgets/bottom_nav_bar.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-03
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Mengubah seluruh label navigasi `BottomNavBar` (`Scripts`, `Create AI`, `Prompter`, `Vocab`, `Marketplace`, `Settings`) ke Bahasa Inggris default terhubung `provider.tr()`.
+  - Mengubah FAB `Tambah Kosa Kata` ke Bahasa Inggris default terhubung `provider.tr()`.
+- **File Yang Diubah:** [lib/widgets/bottom_nav_bar.dart](file:///d:/Website/BeMind/lib/widgets/bottom_nav_bar.dart) & [lib/pages/vocab_vault_page.dart](file:///d:/Website/BeMind/lib/pages/vocab_vault_page.dart)
