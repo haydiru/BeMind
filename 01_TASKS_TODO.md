@@ -14,34 +14,7 @@
 ---
 
 ## ⚙️ PHASE 2: BACKEND & SERVICES
-
-### 📌 TASK BE-01: Supabase Authentication Service & Session Control (`lib/services/`)
-- [ ] **Deskripsi:** Layanan autentikasi pengguna dan penanganan sesi terhubung ke Supabase Auth.
-- [ ] **Fitur Detail:**
-  - Handler Login, Register, Logout, dan Reset Password.
-  - Pemulihan sesi otomatis saat aplikasi dibuka kembali.
-  - Pemicu pembuat baris profil otomatis pada tabel `profiles` saat user mendaftar.
-- [ ] **Target File:** [supabase_config.dart](file:///d:/Website/BeMind/lib/services/supabase_config.dart) & [app_provider.dart](file:///d:/Website/BeMind/lib/providers/app_provider.dart)
-
----
-
-### 📌 TASK BE-02: AI Narrative Generation Engine & LLM Pipeline (`lib/services/api_service.dart`)
-- [ ] **Deskripsi:** Pipeline panggilan API AI untuk meracik narasi personal berdasarkan data pengguna.
-- [ ] **Fitur Detail:**
-  - Kombinasi konteks pengguna + struktur kategori + prompt template marketplace.
-  - Provider fallback multi-LLM (Gemini 1.5 Flash / OpenRouter / Vercel Edge proxy).
-  - Parsing JSON/Markdown jawaban AI dan penanganan kegagalan koneksi (*retry policy*).
-- [ ] **Target File:** [api_service.dart](file:///d:/Website/BeMind/lib/services/api_service.dart)
-
----
-
-### 📌 TASK BE-03: Passive Notification Engine & Background Scheduler (`lib/services/notification_service.dart`)
-- [ ] **Deskripsi:** Layanan notifikasi lokal di latar belakang untuk pembelajaran pasif kosakata di lockscreen.
-- [ ] **Fitur Detail:**
-  - Konfigurasi `flutter_local_notifications` untuk Android & iOS.
-  - Pemicu berkala mengambil kata acak dari database kosakata pengguna.
-  - Enforce batasan jam aktif (misal hanya memunculkan notifikasi antara 08:00 - 21:00).
-- [ ] **Target File:** [notification_service.dart](file:///d:/Website/BeMind/lib/services/notification_service.dart)
+*(Seluruh Backend Services Telah Selesai 100%)*
 
 ---
 

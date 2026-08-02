@@ -224,3 +224,40 @@
   - Memverifikasi toggle notifikasi pasif lockscreen, pemilih frekuensi, dan pengatur jam aktif (08:00 - 21:00).
   - Memverifikasi tombol manual Paksa Sinkronisasi Data (*Force Sync*) dan tombol Logout.
 - **File Yang Diubah:** [lib/pages/settings_page.dart](file:///d:/Website/BeMind/lib/pages/settings_page.dart)
+
+---
+
+### 📌 TASK DONE #18: TASK BE-01: Supabase Authentication Service & Session Control (`lib/services/supabase_config.dart` & `lib/providers/app_provider.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi kunci Supabase URL & Anon Key di `SupabaseConfig`.
+  - Memverifikasi penanganan Supabase Auth Login, Register, Logout, dan pemulihan sesi otomatis.
+  - Memverifikasi sinkronisasi metadata profil pengguna pada tabel `profiles`.
+- **File Yang Diubah:** [lib/services/supabase_config.dart](file:///d:/Website/BeMind/lib/services/supabase_config.dart) & [lib/providers/app_provider.dart](file:///d:/Website/BeMind/lib/providers/app_provider.dart)
+
+---
+
+### 📌 TASK DONE #19: TASK BE-02: AI Narrative Generation Engine & LLM Pipeline (`lib/services/api_service.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi panggilan Cloud AI Proxy (`https://be-mind.vercel.app/api/ai/generate-essay`).
+  - Memverifikasi penggabungan konteks multi-modal, prompt template, dan target level.
+  - Memverifikasi dynamic executive synthesis fallback jika jaringan offline.
+  - Memverifikasi fungsi STT Audio Transcribe & pencarian terjemahan kata instan.
+- **File Yang Diubah:** [lib/services/api_service.dart](file:///d:/Website/BeMind/lib/services/api_service.dart)
+
+---
+
+### 📌 TASK DONE #20: TASK BE-03: Passive Notification Engine & Background Scheduler (`lib/services/notification_service.dart`)
+- **Status:** ✅ **DONE & VERIFIED**
+- **Tanggal Selesai:** 2026-08-02
+- **Commit Hash:** `PENDING_COMMIT`
+- **Rincian Pekerjaan:**
+  - Memverifikasi inisialisasi `FlutterLocalNotificationsPlugin` & Android Notification Channel.
+  - Memverifikasi handler permintaan izin `Permission.notification.request()`.
+  - Memverifikasi filter prioritas kosa kata `learning`/`review` dan pembentukan notifikasi `BigTextStyleInformation`.
+- **File Yang Diubah:** [lib/services/notification_service.dart](file:///d:/Website/BeMind/lib/services/notification_service.dart)
